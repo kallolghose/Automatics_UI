@@ -46,6 +46,12 @@
             name="Automatics View"
             restorable="true">
       </view>
+      <view
+            class="com.automatics.packages.Views.ObjectList"
+            id="com.automatics.pacakges.Views.OMList"
+            name="Object List"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -89,6 +95,13 @@
                relationship="stack"
                relative="com.automatics.pacakges.Views.LogView"
                visible="true">
+         </view>
+         <view
+               closeable="false"
+               id="com.automatics.pacakges.Views.OMList"
+               minimized="false"
+               relationship="stack"
+               relative="Automatics.ObjectMap">
          </view>
       </perspectiveExtension>
    </extension>
@@ -155,6 +168,12 @@
             extensions="task"
             id="com.automatics.packages.Editors.texteditor"
             name="Text Editor">
+      </editor>
+      <editor
+            class="com.automatics.packages.Editors.TestSuiteEditor"
+            default="false"
+            id="com.automatics.packages.Editors.testSuiteEditor"
+            name="TestSuite Editor">
       </editor>
    </extension>
    <extension

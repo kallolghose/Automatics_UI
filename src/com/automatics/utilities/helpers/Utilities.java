@@ -10,7 +10,7 @@ public class Utilities
 {
 	public static DB getMongoDB()
 	{
-		DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "checkDB");
+		DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
 		return db;
 	}
 	
