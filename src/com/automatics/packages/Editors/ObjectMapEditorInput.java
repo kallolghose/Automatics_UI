@@ -4,11 +4,11 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
-public class TestCaseEditorInput implements IEditorInput {
+public class ObjectMapEditorInput implements IEditorInput {
 
 	private String id;
 	
-	public TestCaseEditorInput(String id)
+	public ObjectMapEditorInput(String id)
 	{
 		this.id = id;
 	}
@@ -35,7 +35,7 @@ public class TestCaseEditorInput implements IEditorInput {
 
 	public String getName() {
 		// TODO Auto-generated method stub
-		return id + "_testcase";
+		return id + "_objectmap";
 	}
 
 	public IPersistableElement getPersistable() {
@@ -45,20 +45,7 @@ public class TestCaseEditorInput implements IEditorInput {
 
 	public String getToolTipText() {
 		// TODO Auto-generated method stub
-		return "Test Case";
-	}
-	
-	public boolean equals(Object obj) {
-        if (this == obj)
-                return true;
-        if (obj == null)
-                return false;
-        if (getClass() != obj.getClass())
-                return false;
-        TestCaseEditorInput other = (TestCaseEditorInput) obj;
-        if (!id.equals(other.id))
-                return false;
-        return true;
+		return "Object Map";
 	}
 
 }

@@ -7,16 +7,16 @@ import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.EditorPart;
 
-import com.automatics.packages.Model.TestSuiteTask;
-import com.automatics.packages.Model.TestSuiteTaskService;
+import com.automatics.packages.Model.ObjectMapTask;
+import com.automatics.packages.Model.ObjectMapTaskService;
 
-public class TestSuiteEditor extends EditorPart {
+public class ObjectMapEditor extends EditorPart {
 
-	public static String ID = "com.automatics.packages.Editors.tsEditor"; 
-	private TestSuiteTask tsTask;
-	private TestSuiteEditorInput input;
+	public static String ID = "com.automatics.packages.Editors.omEditor";
+	private ObjectMapTask omTask;
+	private ObjectMapEditorInput input;
 	
-	public TestSuiteEditor() {
+	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
 	}
 
@@ -36,16 +36,16 @@ public class TestSuiteEditor extends EditorPart {
 	public void init(IEditorSite site, IEditorInput input)
 			throws PartInitException {
 		// TODO Auto-generated method stub
-		if(!(input instanceof TestSuiteEditorInput))
+		if(!(input instanceof ObjectMapEditorInput))
 		{
-			throw new RuntimeException("Wrong input");
+			throw new RuntimeException("Wrong Input");
 		}
 		
-		this.input = (TestSuiteEditorInput) input;
+		this.input = (ObjectMapEditorInput) input;
 		setSite(site);
 		setInput(input);
-		tsTask = TestSuiteTaskService.getInstance().getTaskByTSName(this.input.getId());
-		setPartName("TestSuite:" + tsTask.getTsName());
+		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(this.input.getId());
+		setPartName("TestSuite:" + omTask.getOmName());
 	}
 
 	@Override

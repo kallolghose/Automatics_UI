@@ -172,8 +172,20 @@
       <editor
             class="com.automatics.packages.Editors.TestSuiteEditor"
             default="false"
-            id="com.automatics.packages.Editors.testSuiteEditor"
+            id="com.automatics.packages.Editors.tsEditor"
             name="TestSuite Editor">
+      </editor>
+      <editor
+            class="com.automatics.packages.Editors.TCEditor"
+            default="false"
+            id="com.automatics.packages.Editors.tcEditor"
+            name="TC Editor">
+      </editor>
+      <editor
+            class="com.automatics.packages.Editors.ObjectMapEditor"
+            default="false"
+            id="com.automatics.packages.Editors.omEditor"
+            name="Object Map Editor">
       </editor>
    </extension>
    <extension

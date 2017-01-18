@@ -11,8 +11,14 @@ import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonValue;
 
+import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.swt.layout.FillLayout;
@@ -41,7 +47,16 @@ import org.eclipse.jdt.launching.JavaRuntime;
 
 import com.automatics.mongo.packages.AutomaticsDBConnection;
 import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
+import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
+import com.automatics.packages.Editors.TCEditor;
+import com.automatics.packages.Editors.TestCaseEditorInput;
+import com.automatics.packages.Editors.TestSuiteEditor;
+import com.automatics.packages.Editors.TestSuiteEditorInput;
+import com.automatics.packages.Model.TestCaseTask;
+import com.automatics.packages.Model.TestCaseTaskService;
+import com.automatics.packages.Model.TestSuiteTask;
+import com.automatics.packages.Model.TestSuiteTaskService;
 import com.automatics.utilities.elements.Project;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.gsons.testsuite.TSGson;
@@ -54,6 +69,8 @@ public class TC_TS_List extends ViewPart {
 
 	private static Tree testSuiteList;
 	private static Tree testCaseList;
+	private TestCaseTaskService tcService = TestCaseTaskService.getInstance();
+	private TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
 	
 	public TC_TS_List() {
 		// TODO Auto-generated constructor stub
@@ -191,6 +208,14 @@ public class TC_TS_List extends ViewPart {
 				//Get all the test cases for the test case
 				System.out.println(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString());
 				TSGson tsGson = Utilities.getGSONFromJSON(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString(), TSGson.class);
+				
+				//Create task of test suite
+				if(tsService.getTaskByTSName(tsName)==null) //Add task only if the task is not already added
+				{
+					TestSuiteTask tsTask = new TestSuiteTask(tsName, tsGson.tsDesc, tsGson.tsIdentifier, tsGson);
+					tsService.addTasks(tsTask);
+				}
+				
 				Iterator<TSTCGson> itr = tsGson.tsTCLink.iterator();
 				while(itr.hasNext())
 				{
@@ -205,17 +230,24 @@ public class TC_TS_List extends ViewPart {
 			TreeItem appName = new TreeItem(testCaseList, SWT.NONE);
 			appName.setText("App_Name");
 			
-			ArrayList<String> allTCList = AutomaticsDBTestSuiteQueries.getAllTS(db);
+			ArrayList<String> allTCList = AutomaticsDBTestCaseQueries.getAllTC(db);
 			for(String tcName : allTCList)
 			{
 				TreeItem testCaseItem = new TreeItem(appName,SWT.NONE);
 				testCaseItem.setText(tcName);
+				//Add test case task
+				if(tcService.getTaskByTcName(tcName)==null) //Add task only if the task is not added
+				{
+					TCGson tcGson = Utilities.getGSONFromJSON(AutomaticsDBTestCaseQueries.getTC(db, tcName).toString(),TCGson.class);
+					TestCaseTask tcTask = new TestCaseTask(tcName, tcGson.tcDesc, tcGson.tcType, tcGson.tcIdentifier, tcGson);
+					tcService.addTasks(tcTask);
+				}
 			}
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
 			System.out.println("[" + getClass().getName() + "-loadTestSuiteTestCaseTreeView()] Exception : " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 	
@@ -225,7 +257,9 @@ public class TC_TS_List extends ViewPart {
 		{
 			//Add Listener to test suite list
 			testSuiteList.addListener(SWT.MouseDoubleClick, new Listener() {
-				public void handleEvent(Event event) {
+				public void handleEvent(Event event) 
+				{
+					/*
 					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
 					try
 					{
@@ -235,7 +269,27 @@ public class TC_TS_List extends ViewPart {
 					{
 						System.out.println(exp.getMessage());
 						exp.printStackTrace();
+					}*/
+					try
+					{
+						//Get All Workbench
+						IWorkbench workbench = PlatformUI.getWorkbench();
+						IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+						IWorkbenchPage page = window.getActivePage();
+						
+						TreeItem selected[] = testSuiteList.getSelection();
+						if(selected[0].getData("eltType").toString().equalsIgnoreCase("TESTCASE"))
+						{
+					        TestCaseEditorInput input = new TestCaseEditorInput(selected[0].getText());
+					        page.openEditor(input, TCEditor.ID);
+						}
+						if(selected[0].getData("eltType").toString().equalsIgnoreCase("TESTSUITE"))
+						{
+							TestSuiteEditorInput input = new TestSuiteEditorInput(selected[0].getText());
+							page.openEditor(input, TestSuiteEditor.ID);
+						}
 					}
+					catch(Exception e){e.printStackTrace();System.out.println("[TC_TS_List-setlisteners()] : Exception" + e.getMessage());}
 				}
 			});
 			
