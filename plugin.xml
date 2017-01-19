@@ -101,7 +101,8 @@
                id="com.automatics.pacakges.Views.OMList"
                minimized="false"
                relationship="stack"
-               relative="Automatics.ObjectMap">
+               relative="Automatics.ObjectMap"
+               visible="true">
          </view>
       </perspectiveExtension>
    </extension>

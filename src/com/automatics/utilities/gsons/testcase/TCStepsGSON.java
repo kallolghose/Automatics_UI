@@ -1,7 +1,7 @@
 package com.automatics.utilities.gsons.testcase;
 
 public class TCStepsGSON {
-	public String stepNo;
+	public Integer stepNo;
 	public String stepOperation;
 	public String stepPageName;
 	public String stepObjName;

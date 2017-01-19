@@ -10,7 +10,10 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
 import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
+import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.helpers.Utilities;
+import com.automatics.utilities.save.model.ObjectMapSaveService;
+import com.automatics.utilities.save.model.ObjectMapSaveTask;
 import com.mongodb.DB;
 
 public class ObjectList extends ViewPart {
@@ -37,15 +40,28 @@ public class ObjectList extends ViewPart {
 
 	public void loadOMList()
 	{
-		TreeItem root = new TreeItem(omListTree, SWT.NONE);
-		root.setText("App_Name");
-		
-		DB db = Utilities.getMongoDB();
-		ArrayList<String> omList = AutomaticsDBObjectMapQueries.getAllOM(db);
-		for(String om : omList)
+		try
 		{
-			TreeItem omTree = new TreeItem(root, SWT.NONE);
-			omTree.setText(om);
+			TreeItem root = new TreeItem(omListTree, SWT.NONE);
+			root.setText("App_Name");
+			DB db = Utilities.getMongoDB();
+			ArrayList<String> omList = AutomaticsDBObjectMapQueries.getAllOM(db);
+			for(String om : omList)
+			{
+				TreeItem omTree = new TreeItem(root, SWT.NONE);
+				omTree.setText(om);
+				//Get Specific OMs add load the same
+				OMGson omGson = Utilities.getGSONFromJSON(AutomaticsDBObjectMapQueries.getOM(db,om).toString(), OMGson.class);
+				//Add the same to save task
+				ObjectMapSaveTask omTask = new ObjectMapSaveTask(omGson.omName,omGson);
+				System.out.println("TasK : "  + omTask.getOmName());
+				ObjectMapSaveService.getInstance().addSaveTask(omTask);
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + ":loadOMList() ] - Exception : " + e.getMessage());
+			e.printStackTrace();
 		}
 	}
 		

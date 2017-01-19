@@ -1,17 +1,18 @@
-package com.automatics.utilities.helpers;
+package com.automatics.utilities.alltablestyles;
 
 import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 
-public class TableColumnsEditable extends EditingSupport
-{
+import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 
-	private TableViewer viewer = null;
-	private CellEditor editor = null;
+public class TCPageNameColumnEditable extends EditingSupport {
+
+	private TableViewer viewer;
+	private CellEditor editor;
 	
-	public TableColumnsEditable(TableViewer viewer) {
+	public TCPageNameColumnEditable(TableViewer viewer) {
 		super(viewer);
 		this.viewer = viewer;
 		this.editor = new TextCellEditor(this.viewer.getTable());
@@ -27,19 +28,23 @@ public class TableColumnsEditable extends EditingSupport
 	@Override
 	protected boolean canEdit(Object element) {
 		// TODO Auto-generated method stub
+		TCStepsGSON step = (TCStepsGSON)element;
+		if(step.stepPageName.equals("NA"))
+			return false;
 		return true;
 	}
 
 	@Override
 	protected Object getValue(Object element) {
 		// TODO Auto-generated method stub
-		return element.toString();
+		return ((TCStepsGSON)element).stepPageName;
 	}
 
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		getViewer().update(value, null);
+		((TCStepsGSON) element).stepPageName = value.toString(); 
+		viewer.update(element, null);
 	}
 
 }
