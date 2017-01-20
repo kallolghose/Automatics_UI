@@ -8,6 +8,7 @@ import com.mongodb.DB;
 
 public class Utilities 
 {
+	
 	public static DB getMongoDB()
 	{
 		DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");

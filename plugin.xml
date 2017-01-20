@@ -52,6 +52,24 @@
             name="Object List"
             restorable="true">
       </view>
+      <view
+            class="com.automatics.packages.Views.ParameterView"
+            id="com.automatics.pacakges.Views.Parametes"
+            name="Parameters"
+            restorable="true">
+      </view>
+      <view
+            class="com.automatics.packages.Views.ConfigParameter"
+            id="com.automatics.pacakges.Views.ConfigParametersView"
+            name="Config Parmaters"
+            restorable="true">
+      </view>
+      <view
+            class="com.automatics.packages.Views.TestCaseParamView"
+            id="com.automatics.pacakges.Views.TestCaseParamView"
+            name="Test Case Parameters"
+            restorable="true">
+      </view>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
@@ -81,8 +99,16 @@
                relative="org.eclipse.ui.editorss">
          </view>
          <view
+               closeable="false"
+               id="com.automatics.pacakges.Views.OMList"
+               minimized="false"
+               relationship="stack"
+               relative="Automatics.ObjectMap"
+               visible="true">
+         </view>
+         <view
                closeable="true"
-               id="com.automatics.pacakges.Views.LogView"
+               id="com.automatics.pacakges.Views.ConfigParametersView"
                minimized="false"
                relationship="bottom"
                relative="org.eclipse.ui.editorss"
@@ -90,18 +116,10 @@
          </view>
          <view
                closeable="true"
-               id="org.eclipse.ui.console.ConsoleView"
-               minimized="true"
-               relationship="stack"
-               relative="com.automatics.pacakges.Views.LogView"
-               visible="true">
-         </view>
-         <view
-               closeable="false"
-               id="com.automatics.pacakges.Views.OMList"
+               id="com.automatics.pacakges.Views.TestCaseParamView"
                minimized="false"
                relationship="stack"
-               relative="Automatics.ObjectMap"
+               relative="com.automatics.pacakges.Views.ConfigParametersView"
                visible="true">
          </view>
       </perspectiveExtension>

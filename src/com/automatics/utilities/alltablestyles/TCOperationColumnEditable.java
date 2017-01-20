@@ -1,5 +1,7 @@
 package com.automatics.utilities.alltablestyles;
 
+import java.util.ArrayList;
+
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
@@ -9,6 +11,8 @@ import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
 
 import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
+import com.automatics.utilities.gsons.operation.AllOperationGSON;
+import com.automatics.utilities.gsons.operation.OperationGSON;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
 
@@ -19,15 +23,31 @@ public class TCOperationColumnEditable extends EditingSupport
 	private ComboBoxViewerCellEditor editor = null;
 	
 	public TCOperationColumnEditable(TableViewer viewer) {
+
 		super(viewer);
-		this.viewer = viewer;
-		//this.editor = new TextCellEditor(this.viewer.getTable());
-		
-		AutomaticsDBOperationQueries.getAllOPN(Utilities.getMongoDB());
-		
-		this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
-		this.editor.setContenProvider(new ArrayContentProvider());
-		this.editor.setInput(new String[]{"OpenURL","Click"});
+		try
+		{
+			this.viewer = viewer;
+			//this.editor = new TextCellEditor(this.viewer.getTable());
+			
+			AllOperationGSON allOPN = Utilities.getGSONFromJSON(AutomaticsDBOperationQueries.getAllOPN(Utilities.getMongoDB()).toString(),
+																AllOperationGSON.class);
+			
+			ArrayList<String> opnName = new ArrayList<String>();
+	
+			for(OperationGSON opn : allOPN.Records)
+			{
+				opnName.add(opn.opnName);
+			}
+			this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
+			this.editor.setContenProvider(new ArrayContentProvider());
+			this.editor.setInput(opnName);
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : TCOperationColumnEditable()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
 		// TODO Auto-generated constructor stub
 	}
 
