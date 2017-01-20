@@ -1,5 +1,7 @@
 package com.automatics.utilities.alltablestyles;
 
+import java.util.ArrayList;
+
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.EditingSupport;
@@ -9,11 +11,13 @@ public class ParametersEditing extends EditingSupport
 {
 	private TableViewer viewer;
 	private CellEditor editor;
+	private int index;
 	
-	public ParametersEditing(TableViewer viewer) {
+	public ParametersEditing(TableViewer viewer, int index) {
 		super(viewer);
 		this.viewer = viewer;
 		this.editor = new TextCellEditor(this.viewer.getTable());
+		this.index = index;
 		// TODO Auto-generated constructor stub
 	}
 
@@ -32,13 +36,14 @@ public class ParametersEditing extends EditingSupport
 	@Override
 	protected Object getValue(Object element) {
 		// TODO Auto-generated method stub
-		return element.toString();
+		return ((ArrayList<String>)element).get(index);
 	}
 
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		viewer.update(value.toString(), null);
+		((ArrayList<String>) element).set(index, value.toString());
+		viewer.update(element, null);
 	}
 	
 }

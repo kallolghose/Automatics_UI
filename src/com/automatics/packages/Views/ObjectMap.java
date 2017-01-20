@@ -27,6 +27,7 @@ import com.automatics.utilities.save.model.ObjectMapSaveTask;
 
 public class ObjectMap extends ViewPart {
 
+	public static String ID = "Automatics.ObjectMap";
 	private static Tree objectNameTree, pageNameTree;
 	private static Tree objectTree;
 	
@@ -109,7 +110,6 @@ public class ObjectMap extends ViewPart {
 		objectNameRoot.setExpanded(true);
 		
 		DragSource dragSource = new DragSource(objectNameTree, DND.DROP_MOVE | DND.DROP_COPY);
-		
 		setDragListeners(dragSource);
 	}
 	
@@ -136,7 +136,7 @@ public class ObjectMap extends ViewPart {
 				 if (TextTransfer.getInstance().isSupportedType(event.dataType))
 				 {
 					  OMDetails omD = (OMDetails) (selected[0].getData("eltData"));
-	                  event.data = omD.pageName + "__" + omD.objName + "__" + pageNameTree.getSelection()[0].getData("ObjectMapName").toString();
+	                  event.data = "OBJECTDATA__"+omD.pageName + "__" + omD.objName + "__" + pageNameTree.getSelection()[0].getData("ObjectMapName").toString();
 	             }
 			}
 			

@@ -30,6 +30,8 @@ import com.mongodb.DB;
 
 public class ObjectList extends ViewPart {
 
+	public static String ID = "com.automatics.pacakges.Views.OMList";
+	
 	private Tree omListTree;
 	private ObjectMapTaskService service = ObjectMapTaskService.getInstance();
 	

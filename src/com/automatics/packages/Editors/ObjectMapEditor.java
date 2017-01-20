@@ -4,9 +4,16 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPerspectiveDescriptor;
+import org.eclipse.ui.IPerspectiveRegistry;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
+import com.automatics.packages.Perspective;
 import com.automatics.packages.Model.ObjectMapTask;
 import com.automatics.packages.Model.ObjectMapTaskService;
 import com.automatics.utilities.alltablestyles.OMLocatorInfoColumnEditable;
@@ -178,6 +185,23 @@ public class ObjectMapEditor extends EditorPart {
 		{
 			OMGson omGson = omTask.getOmGson();
 			viewer.setInput(omGson.omDetails);
+			
+			//Get which perspective
+			IWorkbench wb = PlatformUI.getWorkbench();
+			IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+			IWorkbenchPage page = window.getActivePage();
+			IPerspectiveDescriptor perspectiveNow = page.getPerspective();
+			String labelID = perspectiveNow.getId();
+			
+			//Change the perspective if not Automatics Perspective
+			if(!labelID.equalsIgnoreCase(Perspective.perspectiveID)) 
+			{
+				IPerspectiveRegistry perspectiveRegistry = window.getWorkbench()
+															.getPerspectiveRegistry();
+				IPerspectiveDescriptor openAutomaticsPerspective = perspectiveRegistry
+				        .findPerspectiveWithId(Perspective.perspectiveID);
+				page.setPerspective(openAutomaticsPerspective);
+			}
 		}
 		catch(Exception e)
 		{

@@ -84,14 +84,6 @@
                visible="true">
          </view>
          <view
-               closeable="true"
-               id="org.eclipse.jdt.ui.PackageExplorer"
-               minimized="true"
-               relationship="stack"
-               relative="Automatics.TestCase_TestSuite_List"
-               visible="true">
-         </view>
-         <view
                closeable="false"
                id="Automatics.ObjectMap"
                minimized="false"

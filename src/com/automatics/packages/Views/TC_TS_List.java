@@ -14,6 +14,7 @@ import javax.json.JsonValue;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -77,6 +78,8 @@ public class TC_TS_List extends ViewPart {
 	}
 
 	public void createPartControl(Composite parent) {
+		try
+		{
 		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		Composite mainComposite = new Composite(parent, SWT.NONE);
@@ -183,8 +186,16 @@ public class TC_TS_List extends ViewPart {
 		
 		
 		// TODO Auto-generated method stub
+		//Show object list view
+		IViewPart objectListView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectList.ID);
 		setListeners();
 		loadTestSuiteTestCaseTreeView();
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : CreatePartLayout] - Exception " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	public void loadTestSuiteTestCaseTreeView()
@@ -259,17 +270,6 @@ public class TC_TS_List extends ViewPart {
 			testSuiteList.addListener(SWT.MouseDoubleClick, new Listener() {
 				public void handleEvent(Event event) 
 				{
-					/*
-					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
-					try
-					{
-						handlerService.executeCommand("com.automatics.packages.Editors.openEditor", null);
-					}
-					catch(Exception exp)
-					{
-						System.out.println(exp.getMessage());
-						exp.printStackTrace();
-					}*/
 					try
 					{
 						//Get All Workbench
