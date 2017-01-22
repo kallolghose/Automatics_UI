@@ -249,7 +249,6 @@ public class ObjectMap extends ViewPart {
 	
 	public static void loadObjectMap(String omName)
 	{
-		System.out.println(omName);
 		ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
 		trtmObjectmap.setText(omT.getOmName());
@@ -299,6 +298,25 @@ public class ObjectMap extends ViewPart {
 		{
 			System.out.println(e.getMessage());
 		}
+	}
+	
+	public static ArrayList<String> getAllOjectMapNamesSelected()
+	{
+		try
+		{
+			ArrayList<String> arr = new ArrayList<String>();
+			for(TreeItem tItem : objectTree.getItems())
+			{
+				arr.add(tItem.getText());
+			}
+			return arr;
+		}
+		catch(Exception e)
+		{
+			System.out.println("[ ObjectMap : getAllObjectMapNamesSelected()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	public void setFocus() {

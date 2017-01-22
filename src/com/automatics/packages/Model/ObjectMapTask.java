@@ -14,10 +14,10 @@ public class ObjectMapTask
     public static final String FIELD_OM_IDENTIFIER = "identifier";
     public static final OMGson FIELD_OM_GSON = null;
     
-    public String omName;
-    public String omDesc;
-    public String omIdentifier;
-    public OMGson omGson;
+    private String omName;
+    private String omDesc;
+    private String omIdentifier;
+    private OMGson omGson;
     
     public ObjectMapTask(String omName)
     {

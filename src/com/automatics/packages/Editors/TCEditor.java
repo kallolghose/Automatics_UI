@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javax.json.JsonObject;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
@@ -18,6 +20,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
+import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
+import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.packages.Perspective;
 import com.automatics.packages.Model.TaskService;
 import com.automatics.packages.Model.TestCaseTask;
@@ -29,9 +33,13 @@ import com.automatics.utilities.alltablestyles.TCObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCOperationColumnEditable;
 import com.automatics.utilities.alltablestyles.TCPageNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCVariableColumnEditable;
+import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.TableColumnsEditable;
+import com.automatics.utilities.helpers.Utilities;
+import com.automatics.utilities.save.model.ObjectMapSaveService;
+import com.automatics.utilities.save.model.ObjectMapSaveTask;
 
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.SWT;
@@ -41,6 +49,8 @@ import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
@@ -49,12 +59,15 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.internal.dialogs.ViewContentProvider;
 import org.eclipse.wb.swt.TableViewerColumnSorter;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
@@ -70,6 +83,7 @@ public class TCEditor extends EditorPart {
 	private TestCaseEditorInput input;
 	private Table testscriptTable;
 	private TableViewer testscriptsViewer; 
+	private boolean isDirty = false;
 	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
@@ -78,7 +92,62 @@ public class TCEditor extends EditorPart {
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
-
+		try
+		{
+			boolean warning = false;
+			List<TCStepsGSON> steps = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+			testscriptTable.forceFocus();
+			if(steps != null)
+			{
+				for(TCStepsGSON step : steps)
+				{
+					if(step.stepOperation.equals(""))
+					{
+						warning = true;
+						break;
+					}
+				}
+				if(!warning)
+				{
+					TCGson tcSaveGson = tcTask.getTcGson();
+					//Update tast
+					//1. Update Test Steps
+					tcSaveGson.tcSteps = steps;
+					
+					//2. Update the object map
+					tcSaveGson.tcObjectMapLink = ObjectMap.getAllOjectMapNamesSelected();
+					
+					//3. Update the paramaters
+					tcSaveGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
+					tcTask.setTcGson(tcSaveGson);
+					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, tcSaveGson));
+					if(jsonObj !=null)
+					{
+						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
+						isDirty = false;
+						firePropertyChange(PROP_DIRTY);
+					}
+					else 
+					{
+						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
+											 "Some Unexpected Error Occured", "ERR");
+						throw new RuntimeException("Error In Test Case Save");
+					}
+				}
+				else
+				{
+					//Display error message
+					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
+										"One or more Operation(s) is not specified. Please provide value(s) for them", 
+										"WARN").open();
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : doSave() ] - Exception  : " + e.getMessage() );
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -105,7 +174,7 @@ public class TCEditor extends EditorPart {
 	@Override
 	public boolean isDirty() {
 		// TODO Auto-generated method stub
-		return false;
+		return isDirty;
 	}
 
 	@Override
@@ -118,172 +187,191 @@ public class TCEditor extends EditorPart {
 	public void createPartControl(Composite parent) {
 		try
 		{
-		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
-		
-		TabFolder tcEditorTabFolder = new TabFolder(parent, SWT.BOTTOM);
-		
-		TabItem tbtmScripts = new TabItem(tcEditorTabFolder, SWT.NONE);
-		tbtmScripts.setText("Scripts");
-		
-		Composite script_composite = new Composite(tcEditorTabFolder, SWT.NONE);
-		tbtmScripts.setControl(script_composite);
-		script_composite.setLayout(new GridLayout(1, false));
-		
-		Composite composite = new Composite(script_composite, SWT.BORDER);
-		GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		gd_composite.heightHint = 17;
-		gd_composite.widthHint = 576;
-		composite.setLayoutData(gd_composite);
-		
-		//Implementation of table using TableViewer
-		testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
-		testscriptsViewer.setContentProvider(new ArrayContentProvider());
-		testscriptTable = testscriptsViewer.getTable();
-		testscriptTable.setLinesVisible(true);
-		testscriptTable.setHeaderVisible(true);
-		testscriptTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		
-		
-		TableViewerColumn snoViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
-		snoViewer.setLabelProvider(new ColumnLabelProvider() {
-			public Image getImage(Object element) {
-				// TODO Auto-generated method stub
-				return null;
+			parent.setLayout(new FillLayout(SWT.HORIZONTAL));
+			
+			TabFolder tcEditorTabFolder = new TabFolder(parent, SWT.BOTTOM);
+			
+			TabItem tbtmScripts = new TabItem(tcEditorTabFolder, SWT.NONE);
+			tbtmScripts.setText("Scripts");
+			
+			Composite script_composite = new Composite(tcEditorTabFolder, SWT.NONE);
+			tbtmScripts.setControl(script_composite);
+			script_composite.setLayout(new GridLayout(1, false));
+			
+			Composite composite = new Composite(script_composite, SWT.BORDER);
+			GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+			gd_composite.heightHint = 17;
+			gd_composite.widthHint = 576;
+			composite.setLayoutData(gd_composite);
+			
+			//Implementation of table using TableViewer
+			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
+			testscriptsViewer.setContentProvider(new ArrayContentProvider());
+			testscriptTable = testscriptsViewer.getTable();
+			testscriptTable.setLinesVisible(true);
+			testscriptTable.setHeaderVisible(true);
+			testscriptTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+			
+			
+			TableViewerColumn snoViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
+			snoViewer.setLabelProvider(new ColumnLabelProvider() {
+				public Image getImage(Object element) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				public String getText(Object element) {
+					// TODO Auto-generated method stub
+					TCStepsGSON step = (TCStepsGSON) element;
+					return "" + step.stepNo;
+				}
+			});
+			
+			TableColumn snoCol = snoViewer.getColumn();
+			snoCol.setResizable(false);
+			snoCol.setWidth(57);
+			snoCol.setText("S.No");
+			
+			TableViewerColumn oprViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
+			oprViewer.setLabelProvider(new ColumnLabelProvider() {
+				public Image getImage(Object element) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				public String getText(Object element) {
+					// TODO Auto-generated method stub
+					TCStepsGSON step = (TCStepsGSON) element;
+					return step.stepOperation;
+				}
+			});
+			TableColumn operationCol = oprViewer.getColumn();
+			operationCol.setWidth(107);
+			operationCol.setText("Operation");
+			oprViewer.setEditingSupport(new TCOperationColumnEditable(testscriptsViewer));
+			
+			TableViewerColumn pgViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
+			pgViewer.setLabelProvider(new ColumnLabelProvider() {
+				public Image getImage(Object element) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				public String getText(Object element) {
+					// TODO Auto-generated method stub
+					TCStepsGSON step = (TCStepsGSON)element;
+					return step.stepPageName;
+				}
+			});
+			TableColumn pageNameCol = pgViewer.getColumn();
+			pageNameCol.setWidth(114);
+			pageNameCol.setText("Page Name");
+			pgViewer.setEditingSupport(new TCPageNameColumnEditable(testscriptsViewer));
+			
+			
+			TableViewerColumn objViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
+			objViewer.setLabelProvider(new ColumnLabelProvider() {
+				public Image getImage(Object element) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				public String getText(Object element) {
+					// TODO Auto-generated method stub
+					TCStepsGSON step = (TCStepsGSON)element;
+					return step.stepObjName;
+				}
+			});
+			TableColumn objCol = objViewer.getColumn();
+			objCol.setWidth(106);
+			objCol.setText("Object Name");
+			objViewer.setEditingSupport(new TCObjectNameColumnEditable(testscriptsViewer));
+			
+			TableViewerColumn argColViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
+			argColViewer.setLabelProvider(new ColumnLabelProvider() {
+				public Image getImage(Object element) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				public String getText(Object element) {
+					// TODO Auto-generated method stub
+					TCStepsGSON step = (TCStepsGSON)element;
+					return step.stepArgument;
+				}
+			});
+			TableColumn argCol = argColViewer.getColumn();
+			argCol.setWidth(100);
+			argCol.setText("Argument");
+			argColViewer.setEditingSupport(new TCArgumentsColumnEditable(testscriptsViewer));
+			
+			TableViewerColumn varColViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
+			varColViewer.setLabelProvider(new ColumnLabelProvider() {
+				public Image getImage(Object element) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				public String getText(Object element) {
+					// TODO Auto-generated method stub
+					TCStepsGSON step = (TCStepsGSON)element;
+					return step.stepVarName;
+				}
+			});
+			TableColumn varNameCol = varColViewer.getColumn();
+			varNameCol.setWidth(100);
+			varNameCol.setText("Variable Name");
+			varColViewer.setEditingSupport(new TCVariableColumnEditable(testscriptsViewer));
+			// TODO Auto-generated method stub
+			
+			TableViewerColumn objmapViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
+			objmapViewer.setLabelProvider(new ColumnLabelProvider() {
+				public Image getImage(Object element) {
+					// TODO Auto-generated method stub
+					return null;
+				}
+				public String getText(Object element) {
+					// TODO Auto-generated method stub
+					TCStepsGSON step = (TCStepsGSON)element;
+					return step.omName;
+				}
+			});
+			TableColumn objmapCol = objmapViewer.getColumn();
+			objmapCol.setResizable(false);
+			objmapCol.setText("ObjMapCol");
+	
+			//Load Test Steps
+			loadTestSteps(testscriptsViewer);
+			//Open Object Map View
+			IViewPart objectMapView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectMap.ID);
+			
+			//load object maps
+			for(String omName : tcTask.getTcGson().tcObjectMapLink)
+			{
+				ObjectMap.loadObjectMap(omName);
 			}
-			public String getText(Object element) {
-				// TODO Auto-generated method stub
-				TCStepsGSON step = (TCStepsGSON) element;
-				return "" + step.stepNo;
-			}
-		});
-		
-		TableColumn snoCol = snoViewer.getColumn();
-		snoCol.setResizable(false);
-		snoCol.setWidth(57);
-		snoCol.setText("S.No");
-		
-		TableViewerColumn oprViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
-		oprViewer.setLabelProvider(new ColumnLabelProvider() {
-			public Image getImage(Object element) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			public String getText(Object element) {
-				// TODO Auto-generated method stub
-				TCStepsGSON step = (TCStepsGSON) element;
-				return step.stepOperation;
-			}
-		});
-		TableColumn operationCol = oprViewer.getColumn();
-		operationCol.setWidth(107);
-		operationCol.setText("Operation");
-		oprViewer.setEditingSupport(new TCOperationColumnEditable(testscriptsViewer));
-		
-		TableViewerColumn pgViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
-		pgViewer.setLabelProvider(new ColumnLabelProvider() {
-			public Image getImage(Object element) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			public String getText(Object element) {
-				// TODO Auto-generated method stub
-				TCStepsGSON step = (TCStepsGSON)element;
-				return step.stepPageName;
-			}
-		});
-		TableColumn pageNameCol = pgViewer.getColumn();
-		pageNameCol.setWidth(114);
-		pageNameCol.setText("Page Name");
-		pgViewer.setEditingSupport(new TCPageNameColumnEditable(testscriptsViewer));
-		
-		
-		TableViewerColumn objViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
-		objViewer.setLabelProvider(new ColumnLabelProvider() {
-			public Image getImage(Object element) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			public String getText(Object element) {
-				// TODO Auto-generated method stub
-				TCStepsGSON step = (TCStepsGSON)element;
-				return step.stepObjName;
-			}
-		});
-		TableColumn objCol = objViewer.getColumn();
-		objCol.setWidth(106);
-		objCol.setText("Object Name");
-		objViewer.setEditingSupport(new TCObjectNameColumnEditable(testscriptsViewer));
-		
-		TableViewerColumn argColViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
-		argColViewer.setLabelProvider(new ColumnLabelProvider() {
-			public Image getImage(Object element) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			public String getText(Object element) {
-				// TODO Auto-generated method stub
-				TCStepsGSON step = (TCStepsGSON)element;
-				return step.stepArgument;
-			}
-		});
-		TableColumn argCol = argColViewer.getColumn();
-		argCol.setWidth(100);
-		argCol.setText("Argument");
-		argColViewer.setEditingSupport(new TCArgumentsColumnEditable(testscriptsViewer));
-		
-		TableViewerColumn varColViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
-		varColViewer.setLabelProvider(new ColumnLabelProvider() {
-			public Image getImage(Object element) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			public String getText(Object element) {
-				// TODO Auto-generated method stub
-				TCStepsGSON step = (TCStepsGSON)element;
-				return step.stepVarName;
-			}
-		});
-		TableColumn varNameCol = varColViewer.getColumn();
-		varNameCol.setWidth(100);
-		varNameCol.setText("Variable Name");
-		varColViewer.setEditingSupport(new TCVariableColumnEditable(testscriptsViewer));
-		// TODO Auto-generated method stub
-		
-		TableViewerColumn objmapViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
-		objmapViewer.setLabelProvider(new ColumnLabelProvider() {
-			public Image getImage(Object element) {
-				// TODO Auto-generated method stub
-				return null;
-			}
-			public String getText(Object element) {
-				// TODO Auto-generated method stub
-				TCStepsGSON step = (TCStepsGSON)element;
-				return step.omName;
-			}
-		});
-		TableColumn objmapCol = objmapViewer.getColumn();
-		objmapCol.setResizable(false);
-		objmapCol.setText("ObjMapCol");
-
-		//Load Test Steps
-		loadTestSteps(testscriptsViewer);
-		//Open Object Map View
-		IViewPart objectMapView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectMap.ID);
-		
-		//load object maps
-		for(String omName : tcTask.getTcGson().tcObjectMapLink)
-		{
-			ObjectMap.loadObjectMap(omName);
-		}
-		
-		DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
-		setDropListener(dropTarget); //Set Drop Listener
+			
+			DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
+			setDropListener(dropTarget); //Set Drop Listener
+			addListeners();
 		}
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + " : createcontent - Exception : " + e.getMessage());
 			e.getMessage();
 		}
+	}
+	
+	public void addListeners()
+	{
+		/*
+		testscriptTable.addListener(SWT.MouseHover, new Listener() {
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				Point p = new Point(event.x, event.y);
+				ViewerCell cell = testscriptsViewer.getCell(p);
+				
+				if(cell==null)
+				{
+					System.out.println("Cell Null");
+				}
+			}
+		});
+		*/
 	}
 	
 	public void setDropListener(DropTarget target)
@@ -316,10 +404,29 @@ public class TCEditor extends EditorPart {
 						newStep.omName = data[3];
 						tcIP.add(newStep);
 						testscriptsViewer.refresh();
+						if(!isDirty)
+						{
+							isDirty = true;
+							firePropertyChange(PROP_DIRTY);
+						}
 					}
 					else if(data[0].equals("PARAMS"))
 					{
-						System.out.println(data[1]);
+						Point point = new Point(event.x,event.y);
+						TableItem item = (TableItem)event.item;
+						if(item!=null) //if item has a value then
+						{
+							int index = new Integer(item.toString());
+							List<TCStepsGSON> tcIPatPos = (ArrayList<TCStepsGSON>) testscriptsViewer.getInput();
+							TCStepsGSON tcStep = tcIPatPos.get(index);
+							tcStep.stepArgument = data[1];
+							testscriptsViewer.refresh();
+							if(!isDirty)
+							{
+								isDirty = true;
+								firePropertyChange(PROP_DIRTY);
+							}
+						}
 					}
 				}
 			}
@@ -383,7 +490,11 @@ public class TCEditor extends EditorPart {
 		// TODO Auto-generated method stub
 		try
 		{
-			IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
+			if(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TestCaseParamView.ID)==null)
+			{
+				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
+			}
+			
 			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 			
 			//Get which perspective
@@ -392,6 +503,7 @@ public class TCEditor extends EditorPart {
 			IWorkbenchPage page = window.getActivePage();
 			IPerspectiveDescriptor perspectiveNow = page.getPerspective();
 			String labelID = perspectiveNow.getId();
+			
 			
 			//Change the perspective if not Automatics Perspective
 			if(!labelID.equalsIgnoreCase(Perspective.perspectiveID)) 

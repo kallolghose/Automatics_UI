@@ -13,6 +13,8 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
+import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
+import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
 import com.automatics.packages.Perspective;
 import com.automatics.packages.Model.ObjectMapTask;
 import com.automatics.packages.Model.ObjectMapTaskService;
@@ -22,6 +24,14 @@ import com.automatics.utilities.alltablestyles.OMObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.OMPageNameColumnEditable;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
+import com.automatics.utilities.helpers.Utilities;
+import com.automatics.utilities.save.model.ObjectMapSaveService;
+import com.automatics.utilities.save.model.ObjectMapSaveTask;
+import com.google.gson.Gson;
+
+import java.util.*;
+
+import javax.json.JsonObject;
 
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.SWT;
@@ -35,6 +45,14 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.wb.swt.ResourceManager;
+import org.eclipse.swt.custom.CCombo;
 
 public class ObjectMapEditor extends EditorPart {
 
@@ -42,6 +60,9 @@ public class ObjectMapEditor extends EditorPart {
 	private ObjectMapTask omTask;
 	private ObjectMapEditorInput input;
 	private Table objectMapDataTable;
+	private boolean isDirty = false;
+	private TableViewer objectMapTableViewer;
+	private ToolItem btnAdd,btnDelete;
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -50,13 +71,63 @@ public class ObjectMapEditor extends EditorPart {
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
+		try
+		{
+			boolean warning= false;
+			List<OMDetails> list = (List<OMDetails>) objectMapTableViewer.getInput();
+			objectMapDataTable.forceFocus();
+			if(list !=null)
+			{
+				for(OMDetails stepDetails : list)
+				{
+					if(stepDetails.pageName.equals("") || stepDetails.objName.equals(""))
+					{
+						warning = true;
+						break;
+					}
+				}
+				if(!warning)
+				{
+					//Go and save the object map
+					OMGson saveGSON = omTask.getOmGson();
+					saveGSON.omDetails = list;
+					omTask.setOmGson(saveGSON); //Add the value to task
+					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, saveGSON));
+					if(jsonObj !=null)
+					{
+						AutomaticsDBObjectMapQueries.updateOM(Utilities.getMongoDB(), saveGSON.omName, jsonObj);
+						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
+						isDirty = false;
+						firePropertyChange(PROP_DIRTY);
+					}
+					else 
+					{
+						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
+											 "Some Unexpected Error Occured", "ERR");
+						throw new RuntimeException("Error In Object Map Save");
+					}
+				}
+				else
+				{
+					//Display Warning
+					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
+										"One or more PageName/ObjectName is not specified. Please provide value(s) for them", 
+										"WARN").open();
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " - doSave()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
 
 	}
 
 	@Override
 	public void doSaveAs() {
 		// TODO Auto-generated method stub
-
+		System.out.println("Save AS");
 	}
 
 	@Override
@@ -78,7 +149,7 @@ public class ObjectMapEditor extends EditorPart {
 	@Override
 	public boolean isDirty() {
 		// TODO Auto-generated method stub
-		return false;
+		return isDirty;
 	}
 
 	@Override
@@ -95,12 +166,26 @@ public class ObjectMapEditor extends EditorPart {
 		parentComposite.setLayout(new GridLayout(1, false));
 		
 		Composite composite = new Composite(parentComposite, SWT.BORDER);
+		
 		GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_composite.widthHint = 587;
-		gd_composite.heightHint = 20;
+		gd_composite.heightHint = 22;
 		composite.setLayoutData(gd_composite);
 		
-		TableViewer objectMapTableViewer = new TableViewer(parentComposite, SWT.BORDER | SWT.FULL_SELECTION);
+		ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
+		iconsToolBar.setBounds(0, 0, 258, 22);
+		
+		btnAdd = new ToolItem(iconsToolBar, SWT.NONE);
+		btnAdd.setToolTipText("Add new object details");
+		btnAdd.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
+		btnAdd.setSelection(true);
+		
+		btnDelete = new ToolItem(iconsToolBar, SWT.NONE);
+		btnDelete.setToolTipText("Delete object details");
+		btnDelete.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
+		btnDelete.setSelection(true);
+		
+		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());
 		objectMapDataTable = objectMapTableViewer.getTable();
 		objectMapDataTable.setLinesVisible(true);
@@ -175,8 +260,56 @@ public class ObjectMapEditor extends EditorPart {
 		locatorType.setText("Locator Type");
 		locatorTypeColViewer.setEditingSupport(new OMLocatorTypeColumnEditable(objectMapTableViewer));
 		
+		
 		// TODO Auto-generated method stub
+		setListeners();
 		loadObjectMapDetails(objectMapTableViewer);
+	}
+	
+	public void setListeners()
+	{
+		try
+		{
+			btnAdd.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					OMDetails newDetails = new OMDetails();
+					newDetails.pageName = "";
+					newDetails.objName = "";
+					newDetails.locatorInfo = "";
+					newDetails.locatorType = "ADDBTN";
+					List<OMDetails> list = (List<OMDetails>)objectMapTableViewer.getInput();
+					list.add(newDetails);
+					objectMapTableViewer.refresh();
+					//Set the dirty field for editor
+					isDirty = true;
+					firePropertyChange(PROP_DIRTY);
+				}
+			});
+			
+			btnDelete.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					List<OMDetails> list = (List<OMDetails>)objectMapTableViewer.getInput();
+					int indices [] =objectMapTableViewer.getTable().getSelectionIndices();
+					for(int index : indices)
+					{
+						list.remove(index);
+					}
+					
+					objectMapTableViewer.refresh();
+					//Set the dirty variable for editor
+					isDirty = true;
+					firePropertyChange(PROP_DIRTY);
+				}
+			});
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " - setListener] - Exceptioen : " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	public void loadObjectMapDetails(TableViewer viewer)
@@ -215,5 +348,4 @@ public class ObjectMapEditor extends EditorPart {
 		// TODO Auto-generated method stub
 
 	}
-
 }

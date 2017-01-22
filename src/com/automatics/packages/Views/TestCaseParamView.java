@@ -3,6 +3,7 @@ package com.automatics.packages.Views;
 import java.util.ArrayList;
 import java.util.EventObject;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -11,6 +12,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
@@ -28,6 +30,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.wb.swt.SWTResourceManager;
 
@@ -47,14 +50,17 @@ import org.eclipse.swt.dnd.DragSourceListener;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.wb.swt.ResourceManager;
 
 public class TestCaseParamView extends ViewPart {
 	
 	public static String ID = "com.automatics.pacakges.Views.TestCaseParamView";
 	
+	private String draggedColumnName = "";
 	private static Table testcaseParamTable;
 	private static TableViewer testcaseParamViewer;
-	private Button newTCParamBtn;
 	
 	public TestCaseParamView() {
 		// TODO Auto-generated constructor stub
@@ -73,12 +79,14 @@ public class TestCaseParamView extends ViewPart {
 		gd_buttonComposite.heightHint = 21;
 		buttonComposite.setLayoutData(gd_buttonComposite);
 		
-		newTCParamBtn = new Button(buttonComposite, SWT.NONE);
-		newTCParamBtn.setFont(SWTResourceManager.getFont("Segoe UI", 7, SWT.BOLD));
-		newTCParamBtn.setBounds(0, 0, 75, 20);
-		newTCParamBtn.setText("Add Parameter");
+		ToolBar IconsToolBar = new ToolBar(buttonComposite, SWT.FLAT | SWT.RIGHT);
+		IconsToolBar.setBounds(0, 0, 89, 23);
 		
-		testcaseParamViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION);
+		ToolItem tltmNewItem = new ToolItem(IconsToolBar, SWT.NONE);
+		tltmNewItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
+		tltmNewItem.setSelection(true);
+		
+		testcaseParamViewer = new TableViewer(parentComposite, SWT.CHECK | SWT.FULL_SELECTION);
 		testcaseParamViewer.setLabelProvider(new TestParamsLabelProvider());
 		testcaseParamViewer.setContentProvider(new TestParamsContentProvider());
 		testcaseParamTable = testcaseParamViewer.getTable();
@@ -86,9 +94,9 @@ public class TestCaseParamView extends ViewPart {
 		testcaseParamTable.setHeaderVisible(true);
 		testcaseParamTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		addEditorToColumnHeader(testcaseParamViewer);
+		//addEditorToColumnHeader(testcaseParamViewer);
 		
-		DragSource dragSource = new DragSource(testcaseParamTable, DND.DROP_COPY);
+		DragSource dragSource = new DragSource(testcaseParamTable, DND.DROP_COPY );
 		setListeners();
 		setDragListener(dragSource);
 		// TODO Auto-generated method stub
@@ -97,12 +105,24 @@ public class TestCaseParamView extends ViewPart {
 	
 	public void setListeners()
 	{
-		newTCParamBtn.addListener(SWT.MouseDown, new Listener() {
-			public void handleEvent(Event event) {
-				// TODO Auto-generated method stub
+		try
+		{
+			//Add listener to get the column name
+			testcaseParamTable.addListener(SWT.MouseDown, new Listener() {
 				
-			}
-		});
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					Point p = new Point(event.x, event.y);
+					ViewerCell cell = testcaseParamViewer.getCell(p);
+					draggedColumnName = testcaseParamTable.getColumn(cell.getColumnIndex()).getText();
+				}
+			});
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + ":setListeners] - Exception :" + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	/*
@@ -125,7 +145,7 @@ public class TestCaseParamView extends ViewPart {
 			TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(viewer,  new FocusCellOwnerDrawHighlighter(viewer));
 			ColumnViewerEditorActivationStrategy activationSupport = new ColumnViewerEditorActivationStrategy(viewer){
 				protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event){
-					System.out.println(event.eventType);
+
 					if(event.eventType == ColumnViewerEditorActivationEvent.MOUSE_DOUBLE_CLICK_SELECTION)
 					{
 						EventObject source = event.sourceEvent;
@@ -170,10 +190,10 @@ public class TestCaseParamView extends ViewPart {
 				// TODO Auto-generated method stub
 				try
 				{
-					DragSource ds = (DragSource) event.widget;
-			        Table table = (Table) ds.getControl();
-			        TableItem [] selection = table.getSelection();
-			        event.data = "PARAMS__TEST{" + table.getColumn(selection.length-1).getText()+"}";
+					//DragSource ds = (DragSource) event.widget;
+			        //Table table = (Table) ds.getControl();
+			        //TableItem [] selection = table.getSelection();
+			        event.data = "PARAMS__TEST{" + draggedColumnName +"}";
 				}
 				catch(Exception e)
 				{
@@ -238,6 +258,38 @@ public class TestCaseParamView extends ViewPart {
 		}
 	}
 	
+	public static List<TCParams> getAllTestCaseParameters()
+	{
+		try
+		{
+			List<TCParams> params = new ArrayList<TCParams>();
+			ArrayList<ArrayList<String>> iParams = (ArrayList<ArrayList<String>>)testcaseParamViewer.getInput();
+			for(int i=0;i<iParams.size();i++)
+			{
+				ArrayList<String> iteration = iParams.get(i);
+				List<ItrParams> storeItrVals = new ArrayList<ItrParams>();
+				for(int k=0;k<iteration.size();k++)
+				{
+					ItrParams itrparams = new ItrParams();
+					itrparams.iparamName = testcaseParamTable.getColumn(k).getText();
+					itrparams.iparamValue = iteration.get(k);
+					storeItrVals.add(itrparams);
+				}
+				
+				TCParams newParam = new TCParams();
+				newParam.iterNum = (i+1);
+				newParam.iterParams = storeItrVals;
+				params.add(newParam);
+			}
+			return params;
+		}
+		catch(Exception e)
+		{
+			System.out.println("[TestCaseParamView : getAllTestCaseParameters()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
+	}
 
 	@Override
 	public void setFocus() {
