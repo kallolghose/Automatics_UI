@@ -10,11 +10,13 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPerspectiveDescriptor;
 import org.eclipse.ui.IPerspectiveRegistry;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -35,6 +37,7 @@ import com.automatics.utilities.alltablestyles.TCPageNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCVariableColumnEditable;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
+import com.automatics.utilities.gsons.testcase.TCParams;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.TableColumnsEditable;
 import com.automatics.utilities.helpers.Utilities;
@@ -45,6 +48,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowData;
+import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
@@ -75,6 +79,8 @@ import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
 
 public class TCEditor extends EditorPart {
 	
@@ -84,6 +90,9 @@ public class TCEditor extends EditorPart {
 	private Table testscriptTable;
 	private TableViewer testscriptsViewer; 
 	private boolean isDirty = false;
+	
+	private ToolItem addBtn, delBtn;
+	private boolean isFocus = false;
 	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
@@ -110,17 +119,19 @@ public class TCEditor extends EditorPart {
 				if(!warning)
 				{
 					TCGson tcSaveGson = tcTask.getTcGson();
-					//Update tast
+					//Update task
 					//1. Update Test Steps
 					tcSaveGson.tcSteps = steps;
 					
 					//2. Update the object map
 					tcSaveGson.tcObjectMapLink = ObjectMap.getAllOjectMapNamesSelected();
 					
-					//3. Update the paramaters
+					//3. Update the parameters
 					tcSaveGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
+					
 					tcTask.setTcGson(tcSaveGson);
 					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, tcSaveGson));
+					System.out.println(jsonObj.toString());
 					if(jsonObj !=null)
 					{
 						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
@@ -138,7 +149,7 @@ public class TCEditor extends EditorPart {
 				{
 					//Display error message
 					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
-										"One or more Operation(s) is not specified. Please provide value(s) for them", 
+										"One or more Step(s) are not completed. Please provide value(s) for them.", 
 										"WARN").open();
 				}
 			}
@@ -198,11 +209,25 @@ public class TCEditor extends EditorPart {
 			tbtmScripts.setControl(script_composite);
 			script_composite.setLayout(new GridLayout(1, false));
 			
-			Composite composite = new Composite(script_composite, SWT.BORDER);
+			Composite composite = new Composite(script_composite, SWT.NONE);
 			GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-			gd_composite.heightHint = 17;
+			gd_composite.heightHint = 24;
 			gd_composite.widthHint = 576;
 			composite.setLayoutData(gd_composite);
+			
+			ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
+			iconsToolBar.setBounds(0, 0, 123, 23);
+			
+			addBtn = new ToolItem(iconsToolBar, SWT.NONE);
+			addBtn.setWidth(30);
+			addBtn.setToolTipText("Add Testcase Step");
+			addBtn.setSelection(true);
+			addBtn.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
+			
+			delBtn = new ToolItem(iconsToolBar, SWT.NONE);
+			delBtn.setToolTipText("Delete Testcase step");
+			delBtn.setSelection(true);
+			delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
 			
 			//Implementation of table using TableViewer
 			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
@@ -347,7 +372,8 @@ public class TCEditor extends EditorPart {
 			
 			DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
 			setDropListener(dropTarget); //Set Drop Listener
-			addListeners();
+			setListeners();
+			addEditorListerner();
 		}
 		catch(Exception e)
 		{
@@ -356,7 +382,61 @@ public class TCEditor extends EditorPart {
 		}
 	}
 	
-	public void addListeners()
+	public void addEditorListerner()
+	{
+		getSite().getPage().addPartListener(new IPartListener2() {
+			
+			public void partVisible(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public void partOpened(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public void partInputChanged(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public void partHidden(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public void partDeactivated(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				//Code for saving the test parameters when focus is lost
+				isFocus = false;
+				TCGson tcUpdateGson = tcTask.getTcGson();
+				List<TCParams> tcsomeParams = TestCaseParamView.getAllTestCaseParameters();
+				if(tcsomeParams!=null)
+				{
+					tcUpdateGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
+					tcTask.setTcGson(tcUpdateGson);
+				}
+			}
+			
+			public void partClosed(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public void partBroughtToTop(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			public void partActivated(IWorkbenchPartReference partRef) {
+				// TODO Auto-generated method stub
+				
+			}
+		});
+	}
+	
+	public void setListeners()
 	{
 		/*
 		testscriptTable.addListener(SWT.MouseHover, new Listener() {
@@ -372,6 +452,79 @@ public class TCEditor extends EditorPart {
 			}
 		});
 		*/
+		addBtn.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				try
+				{
+					int selectedIndex = testscriptTable.getSelectionIndex(); 
+					List<TCStepsGSON> list = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+					if(selectedIndex!=-1)
+					{
+						//Add at particular index
+						TCStepsGSON step = new TCStepsGSON();
+						step.stepNo = selectedIndex + 1;
+						step.stepOperation = "";
+						step.stepPageName = "";
+						step.stepObjName = "";
+						step.stepArgument = "";
+						step.stepVarName = "";
+						list.add(selectedIndex+1, step);
+						list = updateCountTestCase(list);
+						testscriptsViewer.refresh();
+						testscriptsViewer.editElement(step, 0);
+						isDirty = true;
+						firePropertyChange(PROP_DIRTY);
+					}
+					else
+					{
+						//Add at the bottom of the table
+						TCStepsGSON step = new TCStepsGSON();
+						step.stepNo = list.size()+1;
+						step.stepOperation = "";
+						step.stepPageName = "";
+						step.stepObjName = "";
+						step.stepArgument = "";
+						step.stepVarName = "";
+						list.add(step);
+						testscriptsViewer.refresh();
+						testscriptsViewer.editElement(step, 0);
+						isDirty = true;
+						firePropertyChange(PROP_DIRTY);
+					}
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " : addListeners()] - Exception : " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		delBtn.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				try
+				{
+					int selectedIndex = testscriptTable.getSelectionIndex();
+					List<TCStepsGSON> list = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+					if(selectedIndex!=-1)
+					{
+						list.remove(selectedIndex);
+						list = updateCountTestCase(list);
+						testscriptsViewer.refresh();
+						isDirty = true;
+						firePropertyChange(PROP_DIRTY);
+					}
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " : addListeners()] - Exception : " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		});
+		
 	}
 	
 	public void setDropListener(DropTarget target)
@@ -493,17 +646,19 @@ public class TCEditor extends EditorPart {
 			if(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TestCaseParamView.ID)==null)
 			{
 				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
+				
 			}
-			
-			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
-			
+			if(!isFocus)
+			{
+				TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
+				isFocus = true;
+			}
 			//Get which perspective
 			IWorkbench wb = PlatformUI.getWorkbench();
 			IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
 			IWorkbenchPage page = window.getActivePage();
 			IPerspectiveDescriptor perspectiveNow = page.getPerspective();
 			String labelID = perspectiveNow.getId();
-			
 			
 			//Change the perspective if not Automatics Perspective
 			if(!labelID.equalsIgnoreCase(Perspective.perspectiveID)) 
@@ -520,8 +675,15 @@ public class TCEditor extends EditorPart {
 			System.out.println("["+getClass().getName() + " - SetFocus] : Exception "+e.getMessage());
 			e.printStackTrace();
 		}
-		
-		
-		
+	}
+	
+	//Update the test case step count
+	public List<TCStepsGSON> updateCountTestCase(List<TCStepsGSON> steps)
+	{
+		for(int i=0;i<steps.size();i++)
+		{
+			steps.get(i).stepNo = (i+1);
+		}
+		return steps;
 	}
 }

@@ -138,7 +138,6 @@ public class TestCaseEditor extends EditorPart {
 	@Override
 	public void setFocus() {
 		// TODO Auto-generated method stub
-
 	}
 
 }

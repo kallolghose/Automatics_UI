@@ -282,6 +282,7 @@ public class ObjectMapEditor extends EditorPart {
 					List<OMDetails> list = (List<OMDetails>)objectMapTableViewer.getInput();
 					list.add(newDetails);
 					objectMapTableViewer.refresh();
+					objectMapTableViewer.editElement(newDetails, 0);
 					//Set the dirty field for editor
 					isDirty = true;
 					firePropertyChange(PROP_DIRTY);

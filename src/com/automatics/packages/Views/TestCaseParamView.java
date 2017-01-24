@@ -8,11 +8,14 @@ import java.util.List;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
@@ -61,6 +64,10 @@ public class TestCaseParamView extends ViewPart {
 	private String draggedColumnName = "";
 	private static Table testcaseParamTable;
 	private static TableViewer testcaseParamViewer;
+	private ToolItem addBtn, delBtn;
+	private Menu addMenu;
+	private MenuItem addItem1,addItem2;
+	private ToolBar IconsToolBar;
 	
 	public TestCaseParamView() {
 		// TODO Auto-generated constructor stub
@@ -73,20 +80,31 @@ public class TestCaseParamView extends ViewPart {
 		Composite parentComposite = new Composite(parent, SWT.NONE);
 		parentComposite.setLayout(new GridLayout(1, false));
 		
-		Composite buttonComposite = new Composite(parentComposite, SWT.BORDER);
+		Composite buttonComposite = new Composite(parentComposite, SWT.NONE);
 		GridData gd_buttonComposite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_buttonComposite.widthHint = 585;
-		gd_buttonComposite.heightHint = 21;
+		gd_buttonComposite.heightHint = 25;
 		buttonComposite.setLayoutData(gd_buttonComposite);
 		
-		ToolBar IconsToolBar = new ToolBar(buttonComposite, SWT.FLAT | SWT.RIGHT);
-		IconsToolBar.setBounds(0, 0, 89, 23);
+		IconsToolBar = new ToolBar(buttonComposite, SWT.FLAT | SWT.RIGHT);
+		IconsToolBar.setBounds(0, 0, 205, 25);
 		
-		ToolItem tltmNewItem = new ToolItem(IconsToolBar, SWT.NONE);
-		tltmNewItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
-		tltmNewItem.setSelection(true);
+		addBtn = new ToolItem(IconsToolBar, SWT.DROP_DOWN);
+		addBtn.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
+		addBtn.setSelection(true);
 		
-		testcaseParamViewer = new TableViewer(parentComposite, SWT.CHECK | SWT.FULL_SELECTION);
+		//Add menu items
+		addMenu = new Menu(IconsToolBar);
+		addItem1 = new MenuItem(addMenu, SWT.NONE);
+		addItem1.setText("Add Test Parameter");
+		addItem2 = new MenuItem(addMenu, SWT.NONE);
+		addItem2.setText("Add Test Values");
+		
+		delBtn = new ToolItem(IconsToolBar, SWT.NONE);
+		delBtn.setSelection(true);
+		delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
+		
+		testcaseParamViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION);
 		testcaseParamViewer.setLabelProvider(new TestParamsLabelProvider());
 		testcaseParamViewer.setContentProvider(new TestParamsContentProvider());
 		testcaseParamTable = testcaseParamViewer.getTable();
@@ -112,11 +130,70 @@ public class TestCaseParamView extends ViewPart {
 				
 				public void handleEvent(Event event) {
 					// TODO Auto-generated method stub
-					Point p = new Point(event.x, event.y);
-					ViewerCell cell = testcaseParamViewer.getCell(p);
-					draggedColumnName = testcaseParamTable.getColumn(cell.getColumnIndex()).getText();
+					try
+					{
+						Point p = new Point(event.x, event.y);
+						ViewerCell cell = testcaseParamViewer.getCell(p);
+						if(cell!=null)
+						{
+							draggedColumnName = testcaseParamTable.getColumn(cell.getColumnIndex()).getText();
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + " : SetListeners()] - Exception : " + e.getMessage());
+						e.printStackTrace();
+					}
 				}
 			});
+			
+			addBtn.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					 // TODO Auto-generated method stub
+					 if (event.detail == SWT.ARROW) 
+					 {
+						  Rectangle rect = addBtn.getBounds();
+					      Point pt = new Point(rect.x, rect.y + rect.height);
+					      pt = IconsToolBar.toDisplay(pt);
+					      addMenu.setLocation(pt.x, pt.y);
+					      addMenu.setVisible(true);
+					 }
+				}
+			});
+			
+			delBtn.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			
+			addItem1.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					//Create a new column for the table
+					
+				}
+			});
+			
+			addItem2.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					//Add a new row to the table
+					ArrayList<ArrayList<String>> data = (ArrayList<ArrayList<String>>)testcaseParamViewer.getInput();
+					int colCount = testcaseParamTable.getColumnCount();
+					
+					ArrayList<String> newData = new ArrayList<String>();
+					for(int i=0;i<colCount;i++)
+					{
+						newData.add("");
+					}
+					data.add(newData);
+					testcaseParamViewer.refresh();
+					testcaseParamViewer.editElement(newData, 0);
+				}
+			});
+			
 		}
 		catch(Exception e)
 		{
@@ -264,24 +341,27 @@ public class TestCaseParamView extends ViewPart {
 		{
 			List<TCParams> params = new ArrayList<TCParams>();
 			ArrayList<ArrayList<String>> iParams = (ArrayList<ArrayList<String>>)testcaseParamViewer.getInput();
-			for(int i=0;i<iParams.size();i++)
+			if(iParams!=null)
 			{
-				ArrayList<String> iteration = iParams.get(i);
-				List<ItrParams> storeItrVals = new ArrayList<ItrParams>();
-				for(int k=0;k<iteration.size();k++)
+				for(int i=0;i<iParams.size();i++)
 				{
-					ItrParams itrparams = new ItrParams();
-					itrparams.iparamName = testcaseParamTable.getColumn(k).getText();
-					itrparams.iparamValue = iteration.get(k);
-					storeItrVals.add(itrparams);
+					ArrayList<String> iteration = iParams.get(i);
+					List<ItrParams> storeItrVals = new ArrayList<ItrParams>();
+					for(int k=0;k<iteration.size();k++)
+					{
+						ItrParams itrparams = new ItrParams();
+						itrparams.iparamName = testcaseParamTable.getColumn(k).getText();
+						itrparams.iparamValue = iteration.get(k);
+						storeItrVals.add(itrparams);
+					}
+					
+					TCParams newParam = new TCParams();
+					newParam.iterNum = (i+1);
+					newParam.iterParams = storeItrVals;
+					params.add(newParam);
 				}
-				
-				TCParams newParam = new TCParams();
-				newParam.iterNum = (i+1);
-				newParam.iterParams = storeItrVals;
-				params.add(newParam);
+				return params;
 			}
-			return params;
 		}
 		catch(Exception e)
 		{

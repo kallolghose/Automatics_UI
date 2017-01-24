@@ -19,5 +19,4 @@ public class NewProject extends AbstractHandler {
         projectPop.open();
 		return null;
 	}
-
 }
