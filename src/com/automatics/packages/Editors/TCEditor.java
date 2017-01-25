@@ -130,6 +130,7 @@ public class TCEditor extends EditorPart {
 					tcSaveGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
 					
 					tcTask.setTcGson(tcSaveGson);
+					
 					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, tcSaveGson));
 					System.out.println(jsonObj.toString());
 					if(jsonObj !=null)
@@ -384,7 +385,7 @@ public class TCEditor extends EditorPart {
 	
 	public void addEditorListerner()
 	{
-		getSite().getPage().addPartListener(new IPartListener2() {
+		getEditorSite().getPage().addPartListener(new IPartListener2() {
 			
 			public void partVisible(IWorkbenchPartReference partRef) {
 				// TODO Auto-generated method stub
@@ -410,13 +411,13 @@ public class TCEditor extends EditorPart {
 				// TODO Auto-generated method stub
 				//Code for saving the test parameters when focus is lost
 				isFocus = false;
-				TCGson tcUpdateGson = tcTask.getTcGson();
-				List<TCParams> tcsomeParams = TestCaseParamView.getAllTestCaseParameters();
-				if(tcsomeParams!=null)
-				{
-					tcUpdateGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
-					tcTask.setTcGson(tcUpdateGson);
-				}
+				//TCGson tcUpdateGson = tcTask.getTcGson();
+				//List<TCParams> tcsomeParams = TestCaseParamView.getAllTestCaseParameters();
+				//if(tcsomeParams!=null)
+				//{
+				//	tcUpdateGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
+				//	tcTask.setTcGson(tcUpdateGson);
+				//}
 			}
 			
 			public void partClosed(IWorkbenchPartReference partRef) {
@@ -426,7 +427,7 @@ public class TCEditor extends EditorPart {
 			
 			public void partBroughtToTop(IWorkbenchPartReference partRef) {
 				// TODO Auto-generated method stub
-				
+				System.out.println("Brought Up : " + tcTask.getTcName());
 			}
 			
 			public void partActivated(IWorkbenchPartReference partRef) {
@@ -650,6 +651,7 @@ public class TCEditor extends EditorPart {
 			}
 			if(!isFocus)
 			{
+				TestCaseParamView.currentTask = tcTask;
 				TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 				isFocus = true;
 			}

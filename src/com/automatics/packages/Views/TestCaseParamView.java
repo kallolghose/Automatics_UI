@@ -12,6 +12,8 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
@@ -37,6 +39,7 @@ import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.wb.swt.SWTResourceManager;
 
+import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.utilities.alltablestyles.ParametersEditing;
 import com.automatics.utilities.alltablestyles.TestCaseParamColumnLabelProvider;
 import com.automatics.utilities.alltablestyles.TestParamsContentProvider;
@@ -68,6 +71,7 @@ public class TestCaseParamView extends ViewPart {
 	private Menu addMenu;
 	private MenuItem addItem1,addItem2;
 	private ToolBar IconsToolBar;
+	public static TestCaseTask currentTask;
 	
 	public TestCaseParamView() {
 		// TODO Auto-generated constructor stub
@@ -194,6 +198,56 @@ public class TestCaseParamView extends ViewPart {
 				}
 			});
 			
+			getSite().getPage().addPartListener(new IPartListener2() {
+				
+				public void partVisible(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void partOpened(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void partInputChanged(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void partHidden(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void partDeactivated(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					if(currentTask!=null)
+					{
+						testcaseParamTable.forceFocus();
+						TCGson tcGSON = currentTask.getTcGson();
+						tcGSON.tcParams = getAllTestCaseParameters();
+						currentTask.setTcGson(tcGSON);
+					}
+					
+				}
+				
+				public void partClosed(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void partBroughtToTop(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void partActivated(IWorkbenchPartReference partRef) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			
 		}
 		catch(Exception e)
 		{
@@ -231,10 +285,6 @@ public class TestCaseParamView extends ViewPart {
 							return false;
 						}
 						return true;
-					}
-					else
-					{
-						System.out.println("hello");
 					}
 					return true;
 				}

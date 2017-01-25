@@ -217,7 +217,7 @@ public class TC_TS_List extends ViewPart {
 				testSuiteItem.setData("eltType", "TESTSUITE");
 				
 				//Get all the test cases for the test case
-				System.out.println(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString());
+				//System.out.println(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString());
 				TSGson tsGson = Utilities.getGSONFromJSON(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString(), TSGson.class);
 				
 				//Create task of test suite
