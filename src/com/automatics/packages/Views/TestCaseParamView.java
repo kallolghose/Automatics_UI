@@ -346,23 +346,34 @@ public class TestCaseParamView extends ViewPart {
 	
 	public static void loadTestCaseParameters(TCGson tcGSON)
 	{
-		removeAllColumns();
-		addColumns(tcGSON.tcParams.get(0));
-		
-		//Create ArrayList 
-		ArrayList<ArrayList<String>> arrayList = new ArrayList<ArrayList<String>>();
-		Iterator<TCParams> itr = tcGSON.tcParams.iterator();
-		while(itr.hasNext())
+		try
 		{
-			TCParams params = itr.next();
-			ArrayList<String> paramsArr = new ArrayList<String>();
-			for(ItrParams p : params.iterParams)
+			if(tcGSON.tcParams!=null)
 			{
-				paramsArr.add(p.iparamValue);
+				removeAllColumns();
+				addColumns(tcGSON.tcParams.get(0));
+				
+				//Create ArrayList 
+				ArrayList<ArrayList<String>> arrayList = new ArrayList<ArrayList<String>>();
+				Iterator<TCParams> itr = tcGSON.tcParams.iterator();
+				while(itr.hasNext())
+				{
+					TCParams params = itr.next();
+					ArrayList<String> paramsArr = new ArrayList<String>();
+					for(ItrParams p : params.iterParams)
+					{
+						paramsArr.add(p.iparamValue);
+					}
+					arrayList.add(paramsArr);
+				}
+				testcaseParamViewer.setInput(arrayList);
 			}
-			arrayList.add(paramsArr);
 		}
-		testcaseParamViewer.setInput(arrayList);
+		catch(Exception e)
+		{
+			System.out.println("[TestCaseParamView - loadTestCaseParameters() ] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 

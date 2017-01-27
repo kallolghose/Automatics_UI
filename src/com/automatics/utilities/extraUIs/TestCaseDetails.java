@@ -1,6 +1,8 @@
 package com.automatics.utilities.extraUIs;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -17,6 +19,7 @@ import org.eclipse.swt.widgets.Button;
 
 import com.automatics.packages.Views.TC_TS_List;
 import com.automatics.utilities.gsons.testcase.TCGson;
+import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
 
 public class TestCaseDetails extends Shell {
@@ -155,13 +158,26 @@ public class TestCaseDetails extends Shell {
 				String appType = applicationType.getText();
 				appType = tcTypeMapping.get(appType);
 				//Add data to GSON class and send it over
+				//Create a step for the newly created testcase
+				TCStepsGSON newStep = new TCStepsGSON();
+				newStep.stepNo=1;
+				newStep.stepOperation = "";
+				newStep.stepPageName = "";
+				newStep.stepObjName = "";
+				newStep.stepArgument = "";
+				newStep.stepVarName = "";
+				newStep.omName = "";
+				List<TCStepsGSON> step = new ArrayList<TCStepsGSON>();
+				step.add(newStep);
+				
 				TCGson tcData = new TCGson();
 				tcData.tcName = tcName;
 				tcData.tcDesc = tcDesc;
 				tcData.tcType = appType;
 				tcData.tcIdentifier = tcName;
 				tcData.tcObjectMapLink = null;
-				tcData.tcSteps = null;
+				tcData.tcSteps = step;
+				tcData.tcParams = null;
 				TC_TS_List.addTestCase(tcData);
 				dispose();
 			}

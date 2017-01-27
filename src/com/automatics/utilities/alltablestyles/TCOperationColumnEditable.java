@@ -73,7 +73,12 @@ public class TCOperationColumnEditable extends EditingSupport
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TCStepsGSON) element).stepOperation = value.toString(); 
+		String updateVal = "";
+		if(value==null)
+			updateVal = "";
+		else
+			updateVal = value.toString();
+		((TCStepsGSON) element).stepOperation = updateVal; 
 		viewer.update(element, null);
 	}
 

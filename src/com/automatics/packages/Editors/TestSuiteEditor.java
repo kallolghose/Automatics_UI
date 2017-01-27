@@ -55,6 +55,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.ResourceManager;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.DropTargetListener;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 
 public class TestSuiteEditor extends EditorPart {
 
@@ -67,6 +73,7 @@ public class TestSuiteEditor extends EditorPart {
 	private DB db;
 	private boolean isDirty = false;
 	private ToolItem addBtn,delBtn;
+	
 	
 	public TestSuiteEditor() {
 		// TODO Auto-generated constructor stub
@@ -297,11 +304,104 @@ public class TestSuiteEditor extends EditorPart {
 		tblclmnColumn_4.setWidth(100);
 		tblclmnColumn_4.setText("Column5");
 		tableViewerColumn_4.setEditingSupport(new TSFifthColumnEditable(testsuiteviewer));
+		
+		DropTarget testsuitedropTarget = new DropTarget(testsuitetable, DND.DROP_MOVE);
 		//Load the data to test suite table
 		loadTestSuiteData();
 		setListeners();
+		setDropListener(testsuitedropTarget);
 	}
 
+	public void setDropListener(DropTarget target)
+	{
+		try
+		{
+			final TextTransfer textTransfer = TextTransfer.getInstance();
+			final Transfer type[] = new Transfer[]{textTransfer};
+			target.setTransfer(type);
+			target.addDropListener(new DropTargetListener() {
+				
+				public void dropAccept(DropTargetEvent event) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void drop(DropTargetEvent event) {
+					// TODO Auto-generated method stub
+					if(textTransfer.isSupportedType(event.currentDataType))
+					{
+						String text = (String)event.data;
+						String data[] = text.split("__");
+						if(data[0].equalsIgnoreCase("TESTSUITEDATA"))
+						{
+							List<TSTCGson> list = (List<TSTCGson>)testsuiteviewer.getInput();
+							TSTCGson newtsDetails = new TSTCGson();
+							newtsDetails.tcName = data[1];
+							List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
+							
+							//Add five blank parameters
+							for(int i=1;i<testsuitetable.getColumnCount();i++)
+							{
+								TSTCParamGson newParam = new TSTCParamGson();
+								newParam.tcparamName = testsuitetable.getColumn(i).getText();
+								newParam.tcparamValue = "";
+								paramList.add(newParam);
+							}
+							newtsDetails.tcParams = paramList;
+							list.add(newtsDetails);
+							testsuiteviewer.refresh();
+							isDirty = true;
+							firePropertyChange(PROP_DIRTY);
+						}
+					}
+				}
+				
+				public void dragOver(DropTargetEvent event) {
+					// TODO Auto-generated method stub
+					event.feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL;
+					if(textTransfer.isSupportedType(event.currentDataType))
+					{
+						Object o = textTransfer.nativeToJava(event.currentDataType);
+						String t = (String)o;
+						if(t!=null)
+						{}
+					}
+				}
+				
+				public void dragOperationChanged(DropTargetEvent event) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void dragLeave(DropTargetEvent event) {
+					// TODO Auto-generated method stub
+					
+				}
+				
+				public void dragEnter(DropTargetEvent event) {
+					// TODO Auto-generated method stub
+					if(event.detail == DND.DROP_DEFAULT)
+					{
+						if((event.operations & DND.DROP_COPY)!=0)
+						{
+							event.detail = DND.DROP_COPY;
+						}
+						else
+						{
+							event.detail = DND.DROP_NONE;
+						}
+					}
+					
+				}
+			});
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : setDragListener()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
 	public void setListeners()
 	{
 		testsuitetable.addListener(SWT.Selection, new Listener() {

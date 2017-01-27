@@ -40,7 +40,11 @@ public class TCArgumentsColumnEditable extends EditingSupport
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TCStepsGSON) element).stepArgument = value.toString(); 
+		String updateVal = "";
+		if(value!=null)
+			updateVal = value.toString();
+		
+		((TCStepsGSON) element).stepArgument = updateVal; 
 		viewer.update(element, null);
 	}
 	

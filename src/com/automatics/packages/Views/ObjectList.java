@@ -8,6 +8,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
@@ -22,11 +23,17 @@ import com.automatics.packages.Editors.TCEditor;
 import com.automatics.packages.Editors.TestCaseEditorInput;
 import com.automatics.packages.Model.ObjectMapTask;
 import com.automatics.packages.Model.ObjectMapTaskService;
+import com.automatics.packages.Model.TestCaseTask;
+import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.utilities.gsons.objectmap.OMGson;
+import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.helpers.Utilities;
 import com.automatics.utilities.save.model.ObjectMapSaveService;
 import com.automatics.utilities.save.model.ObjectMapSaveTask;
 import com.mongodb.DB;
+
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 
 public class ObjectList extends ViewPart {
 
@@ -34,6 +41,7 @@ public class ObjectList extends ViewPart {
 	
 	private Tree omListTree;
 	private ObjectMapTaskService service = ObjectMapTaskService.getInstance();
+	private MenuItem addToTestCase,newObjMap,opnObjMap,copyObjMap,pasteObjMap,delObjMap;
 	
 	public ObjectList() {
 		// TODO Auto-generated constructor stub
@@ -48,8 +56,8 @@ public class ObjectList extends ViewPart {
 		
 		omListTree = new Tree(composite, SWT.BORDER);
 		// TODO Auto-generated method stub
-		setListerners();
 		loadOMList();
+		setListerners();
 	}
 
 	public void setListerners()
@@ -80,6 +88,26 @@ public class ObjectList extends ViewPart {
 				}
 			}
 		});
+		
+		addToTestCase.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				if(TCEditor.currentTestCase!=null) 
+				{
+					TestCaseTask currentTask = TestCaseTaskService.getInstance().getTaskByTcName(TCEditor.currentTestCase);
+					TCGson tcGson = currentTask.getTcGson();
+					TreeItem [] selected = omListTree.getSelection();
+					ArrayList<String> omArr = new ArrayList<String>();
+					if(selected[0].getData("eltType").toString().equalsIgnoreCase("OBJECTMAP"))
+					{
+						omArr.add(selected[0].getText());
+						ObjectMap.loadObjectMap(selected[0].getText());
+					}
+					tcGson.tcObjectMapLink = omArr;
+					currentTask.setTcGson(tcGson);
+				}
+			}
+		});
 	}
 	
 	public void loadOMList()
@@ -88,6 +116,36 @@ public class ObjectList extends ViewPart {
 		{
 			TreeItem root = new TreeItem(omListTree, SWT.NONE);
 			root.setText("App_Name");
+			root.setData("eltType","APPNAME");
+			root.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
+			
+			Menu menu = new Menu(omListTree);
+			omListTree.setMenu(menu);
+			
+			addToTestCase = new MenuItem(menu, SWT.NONE);
+			addToTestCase.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/arrow_left.png"));
+			addToTestCase.setText("Add To Test Case");
+			
+			new MenuItem(menu, SWT.SEPARATOR);
+			
+			newObjMap = new MenuItem(menu, SWT.NONE);
+			newObjMap.setText("New");
+			
+			opnObjMap = new MenuItem(menu, SWT.NONE);
+			opnObjMap.setText("Open");
+			
+			new MenuItem(menu, SWT.SEPARATOR);
+			
+			copyObjMap = new MenuItem(menu, SWT.NONE);
+			copyObjMap.setText("Copy");
+			
+			pasteObjMap = new MenuItem(menu, SWT.NONE);
+			pasteObjMap.setText("Paste");
+			
+			delObjMap = new MenuItem(menu, SWT.NONE);
+			delObjMap.setText("Delete");
+			
+			
 			DB db = Utilities.getMongoDB();
 			ArrayList<String> omList = AutomaticsDBObjectMapQueries.getAllOM(db);
 			for(String om : omList)
@@ -95,6 +153,7 @@ public class ObjectList extends ViewPart {
 				TreeItem omTree = new TreeItem(root, SWT.NONE);
 				omTree.setText(om);
 				omTree.setData("eltType", "OBJECTMAP");
+				omTree.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/om_logo_new.png"));
 				
 				//Get Specific OMs add load the same
 				OMGson omGson = Utilities.getGSONFromJSON(AutomaticsDBObjectMapQueries.getOM(db,om).toString(), OMGson.class);
@@ -122,5 +181,4 @@ public class ObjectList extends ViewPart {
 		// TODO Auto-generated method stub
 
 	}
-
 }

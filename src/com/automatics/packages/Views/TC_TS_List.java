@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -61,11 +62,20 @@ import com.automatics.packages.Model.TestSuiteTask;
 import com.automatics.packages.Model.TestSuiteTaskService;
 import com.automatics.utilities.elements.Project;
 import com.automatics.utilities.gsons.testcase.TCGson;
+import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
+import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
 import com.automatics.utilities.helpers.SaveClass;
 import com.automatics.utilities.helpers.Utilities;
 import com.mongodb.*;
+
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DragSourceListener;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
 
 public class TC_TS_List extends ViewPart {
 
@@ -244,13 +254,18 @@ public class TC_TS_List extends ViewPart {
 			//Load all test cases to the test case list
 			TreeItem appName = new TreeItem(testCaseList, SWT.NONE);
 			appName.setText("App_Name");
+			appName.setData("eltType","APPNAME");
 			appName.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
+			
+			DragSource dragSource = new DragSource(testCaseList, DND.DROP_MOVE);
+			setDragListener(dragSource);
 			
 			ArrayList<String> allTCList = AutomaticsDBTestCaseQueries.getAllTC(db);
 			for(String tcName : allTCList)
 			{
 				TreeItem testCaseItem = new TreeItem(appName,SWT.NONE);
 				testCaseItem.setText(tcName);
+				testCaseItem.setData("eltType","TESTCASE");
 				testCaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 				//Add test case task
 				if(tcService.getTaskByTcName(tcName)==null) //Add task only if the task is not added
@@ -264,6 +279,50 @@ public class TC_TS_List extends ViewPart {
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + "-loadTestSuiteTestCaseTreeView()] Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	public void setDragListener(DragSource source)
+	{
+		try
+		{
+			Transfer[] types = new Transfer[] {TextTransfer.getInstance()};
+			source.setTransfer(types);
+			source.addDragListener(new DragSourceListener() {
+				
+				TreeItem []selected;
+				
+				public void dragStart(DragSourceEvent event) {
+					// TODO Auto-generated method stub
+					selected = testCaseList.getSelection();
+					if(selected==null)
+					{
+						event.doit=false;
+					}
+					if(selected[0].getData("eltType").toString().equalsIgnoreCase("APPNAME") || selected[0].getText().equals(""))
+					{
+						event.doit=false;
+					}
+				}
+				
+				public void dragSetData(DragSourceEvent event) {
+					 // TODO Auto-generated method stub}
+					 if (TextTransfer.getInstance().isSupportedType(event.dataType))
+					 {
+						 event.data= "TESTSUITEDATA__" + selected[0].getText();
+					 }
+				}
+				
+				public void dragFinished(DragSourceEvent event) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : setDragListner()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -480,26 +539,103 @@ public class TC_TS_List extends ViewPart {
 			TreeItem [] selectedNode = testSuiteList.getSelection();
 			if(selectedNode[0] != null)
 			{
-				System.out.println(selectedNode[0].getText());
-				System.out.println(selectedNode[0].getData("eltType"));
 				if(selectedNode[0].getData("eltType").toString().equalsIgnoreCase("TESTSUITE"))
 				{
 					TreeItem testcaseItem = new TreeItem(selectedNode[0],SWT.NONE);
 					testcaseItem.setData("eltType","TESTCASE"); //Set the type of object (Here TESTCASE)
+					testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 					testcaseItem.setText(gson.tcName);
+					
+					//Add the test case to test suite as well
+					String tsName = selectedNode[0].getText();
+					TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
+					TestSuiteTask tsTask = tsService.getTaskByTSName(tsName);
+					TSGson  tsGson = tsTask.getTsGson();
+					List<TSTCGson> list = tsGson.tsTCLink;
+					
+					//Add the test suite details
+					TSTCGson details = new TSTCGson();
+					details.tcName = gson.tcName;
+					List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
+					TSTCParamGson param1 = new TSTCParamGson();
+					param1.tcparamName = "Column1";
+					param1.tcparamValue = "";
+					TSTCParamGson param2 = new TSTCParamGson();
+					param2.tcparamName = "Column2";
+					param2.tcparamValue = "";
+					TSTCParamGson param3 = new TSTCParamGson();
+					param3.tcparamName = "Column3";
+					param3.tcparamValue = "";
+					TSTCParamGson param4 = new TSTCParamGson();
+					param4.tcparamName = "Column4";
+					param4.tcparamValue = "";
+					TSTCParamGson param5 = new TSTCParamGson();
+					param5.tcparamName = "Column5";
+					param5.tcparamValue = "";
+					paramList.add(param1);
+					paramList.add(param2);
+					paramList.add(param3);
+					paramList.add(param4);
+					paramList.add(param5);
+					details.tcParams = paramList;
+					//Added 
+					list.add(details);
+					tsGson.tsTCLink = list;
+					tsTask.setTsGson(tsGson);
+					
 				}
 				else if(selectedNode[0].getData("eltType").toString().equalsIgnoreCase("TESTCASE"))
 				{
 					TreeItem parent = selectedNode[0].getParentItem();
 					TreeItem testcaseItem = new TreeItem(parent,SWT.NONE);
 					testcaseItem.setData("eltType","TESTCASE"); //Set the type of object (Here TESTCASE)
+					testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 					testcaseItem.setText(gson.tcName);
+					
+					//Add the test case to test suite as well
+					String tsName = selectedNode[0].getText();
+					TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
+					TestSuiteTask tsTask = tsService.getTaskByTSName(tsName);
+					TSGson  tsGson = tsTask.getTsGson();
+					List<TSTCGson> list = tsGson.tsTCLink;
+					
+					//Add the test suite details
+					TSTCGson details = new TSTCGson();
+					details.tcName = gson.tcName;
+					List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
+					TSTCParamGson param1 = new TSTCParamGson();
+					param1.tcparamName = "Column1";
+					param1.tcparamValue = "";
+					TSTCParamGson param2 = new TSTCParamGson();
+					param2.tcparamName = "Column2";
+					param2.tcparamValue = "";
+					TSTCParamGson param3 = new TSTCParamGson();
+					param3.tcparamName = "Column3";
+					param3.tcparamValue = "";
+					TSTCParamGson param4 = new TSTCParamGson();
+					param4.tcparamName = "Column4";
+					param4.tcparamValue = "";
+					TSTCParamGson param5 = new TSTCParamGson();
+					param5.tcparamName = "Column5";
+					param5.tcparamValue = "";
+					paramList.add(param1);
+					paramList.add(param2);
+					paramList.add(param3);
+					paramList.add(param4);
+					paramList.add(param5);
+					details.tcParams = paramList;
+					//Added 
+					list.add(details);
+					tsGson.tsTCLink = list;
+					tsTask.setTsGson(tsGson);
+					
 				}
 				else if(selectedNode[0].getData("eltType").toString().equalsIgnoreCase("APPLICATION"))
 				{
 					TreeItem parent = selectedNode[0].getItem(0);
 					TreeItem testcaseItem = new TreeItem(parent,SWT.NONE);
 					testcaseItem.setData("eltType","TESTCASE"); //Set the type of object (Here TESTCASE)
+					testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 					testcaseItem.setText(gson.tcName);
 				}
 			}
@@ -510,6 +646,17 @@ public class TC_TS_List extends ViewPart {
 			testcaseItem.setData("eltType","TESTCASE"); //Set the type of object (Here TESTCASE)
 			testcaseItem.setText(gson.tcName);
 			
+			//Create the task for the newly created test suite
+			TestCaseTask newTask = new TestCaseTask(gson.tcName, gson.tcDesc, gson.tcType, gson.tcIdentifier, gson);
+			TestCaseTaskService tcService = TestCaseTaskService.getInstance();
+			tcService.addTasks(newTask);
+			//Open the editor
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+			IWorkbenchPage page = window.getActivePage();
+			TestCaseEditorInput input = new TestCaseEditorInput(gson.tcName);
+	        page.openEditor(input, TCEditor.ID);
+		
 			//Add the gson to usavedBuffer of test case
 			SaveClass.unsaveBufferTestCase.put(gson.tcName, gson);
 		}

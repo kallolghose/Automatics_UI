@@ -85,6 +85,7 @@ import org.eclipse.swt.widgets.ToolItem;
 public class TCEditor extends EditorPart {
 	
 	public static String ID = "com.automatics.packages.Editors.tcEditor";
+	public static String currentTestCase = null;
 	private TestCaseTask tcTask;
 	private TestCaseEditorInput input;
 	private Table testscriptTable;
@@ -366,9 +367,12 @@ public class TCEditor extends EditorPart {
 			IViewPart objectMapView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectMap.ID);
 			
 			//load object maps
-			for(String omName : tcTask.getTcGson().tcObjectMapLink)
+			if(tcTask.getTcGson().tcObjectMapLink!=null)
 			{
-				ObjectMap.loadObjectMap(omName);
+				for(String omName : tcTask.getTcGson().tcObjectMapLink)
+				{
+					ObjectMap.loadObjectMap(omName);
+				}
 			}
 			
 			DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
@@ -379,7 +383,7 @@ public class TCEditor extends EditorPart {
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + " : createcontent - Exception : " + e.getMessage());
-			e.getMessage();
+			e.printStackTrace();
 		}
 	}
 	
@@ -470,6 +474,7 @@ public class TCEditor extends EditorPart {
 						step.stepObjName = "";
 						step.stepArgument = "";
 						step.stepVarName = "";
+						step.omName = "";
 						list.add(selectedIndex+1, step);
 						list = updateCountTestCase(list);
 						testscriptsViewer.refresh();
@@ -487,6 +492,7 @@ public class TCEditor extends EditorPart {
 						step.stepObjName = "";
 						step.stepArgument = "";
 						step.stepVarName = "";
+						step.omName = "";
 						list.add(step);
 						testscriptsViewer.refresh();
 						testscriptsViewer.editElement(step, 0);
@@ -551,10 +557,12 @@ public class TCEditor extends EditorPart {
 					{
 						List<TCStepsGSON> tcIP = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
 						TCStepsGSON newStep = new TCStepsGSON();
-						newStep.stepOperation = "";
 						newStep.stepNo = tcIP.size()+1;
+						newStep.stepOperation = "";
 						newStep.stepPageName = data[1];
 						newStep.stepObjName = data[2];
+						newStep.stepArgument = "";
+						newStep.stepVarName = "";
 						newStep.omName = data[3];
 						tcIP.add(newStep);
 						testscriptsViewer.refresh();
@@ -644,10 +652,11 @@ public class TCEditor extends EditorPart {
 		// TODO Auto-generated method stub
 		try
 		{
+			currentTestCase = tcTask.getTcName();
+			
 			if(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TestCaseParamView.ID)==null)
 			{
 				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
-				
 			}
 			if(!isFocus)
 			{

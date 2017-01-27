@@ -43,7 +43,10 @@ public class TCPageNameColumnEditable extends EditingSupport {
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TCStepsGSON) element).stepPageName = value.toString(); 
+		String updateVal = "";
+		if(value!=null)
+			updateVal = value.toString();
+		((TCStepsGSON) element).stepPageName = updateVal; 
 		viewer.update(element, null);
 	}
 

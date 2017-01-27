@@ -1,5 +1,6 @@
 package com.automatics.utilities.alltablestyles;
 
+import org.eclipse.debug.internal.ui.sourcelookup.UpAction;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.EditingSupport;
@@ -42,7 +43,10 @@ public class TCObjectNameColumnEditable extends EditingSupport{
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TCStepsGSON) element).stepObjName = value.toString(); 
+		String updateVal = "";
+		if(value!=null)
+			updateVal = value.toString();
+		((TCStepsGSON) element).stepObjName = updateVal; 
 		viewer.update(element, null);
 	}
 

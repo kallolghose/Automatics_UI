@@ -176,6 +176,7 @@ public class ObjectMap extends ViewPart {
 				catch(Exception e)
 				{
 					System.out.println("[" + getClass().getName() + "-pageNameTree.addListener - Exception] : " + e.getMessage());
+					e.printStackTrace();
 				}
 			}
 		});

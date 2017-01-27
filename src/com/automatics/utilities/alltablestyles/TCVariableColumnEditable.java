@@ -40,7 +40,10 @@ public class TCVariableColumnEditable extends EditingSupport
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TCStepsGSON) element).stepVarName = value.toString(); 
+		String updateVal = "";
+		if(value!=null)
+			updateVal = value.toString();
+		((TCStepsGSON) element).stepVarName = updateVal; 
 		viewer.update(element, null);
 	}
 
