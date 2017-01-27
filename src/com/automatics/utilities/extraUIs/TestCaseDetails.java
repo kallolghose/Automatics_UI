@@ -24,6 +24,7 @@ public class TestCaseDetails extends Shell {
 	private Text testcaseDesc;
 	private Button btnCancel, btnOk;
 	private Combo applicationType;
+	private Label errLabel;
 	private HashMap<String, String> tcTypeMapping = Utilities.getTCApplicationTypeMapping();
 	/**
 	 * Launch the application.
@@ -50,7 +51,7 @@ public class TestCaseDetails extends Shell {
 	 * @param display
 	 */
 	public TestCaseDetails(Shell shell) {
-		super(shell, SWT.CLOSE | SWT.MIN | SWT.TITLE);
+		super(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		Composite composite = new Composite(this, SWT.NONE);
@@ -62,9 +63,9 @@ public class TestCaseDetails extends Shell {
 		
 		Label lblNewLabel = new Label(composite_1, SWT.NONE);
 		lblNewLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		lblNewLabel.setFont(SWTResourceManager.getFont("Segoe UI", 12, SWT.NORMAL));
+		lblNewLabel.setFont(SWTResourceManager.getFont("Segoe UI", 11, SWT.BOLD));
 		lblNewLabel.setBounds(10, 10, 127, 21);
-		lblNewLabel.setText("Createa Test Case");
+		lblNewLabel.setText("Create Test Case");
 		
 		Label lblCreateNewTest = new Label(composite_1, SWT.NONE);
 		lblCreateNewTest.setForeground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_DARK_SHADOW));
@@ -105,6 +106,14 @@ public class TestCaseDetails extends Shell {
 		btnOk = new Button(composite, SWT.NONE);
 		btnOk.setBounds(278, 332, 75, 25);
 		btnOk.setText("Create");
+		
+		errLabel = new Label(composite, SWT.NONE);
+		errLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		errLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		errLabel.setBounds(10, 337, 262, 15);
+		errLabel.setText("Display Error Message");
+		errLabel.setVisible(false);
+		
 		createContents();
 		setListeners();
 	}
@@ -121,6 +130,26 @@ public class TestCaseDetails extends Shell {
 		btnOk.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
+				//Perform validations
+				if(testcaseName.getText().equalsIgnoreCase(""))
+				{
+					errLabel.setText("Please enter test case name");
+					errLabel.setVisible(true);
+					return;
+				}
+				if(testcaseDesc.getText().equalsIgnoreCase(""))
+				{
+					errLabel.setText("Please enter test case description");
+					errLabel.setVisible(true);
+					return;
+				}
+				if(applicationType.getText().equalsIgnoreCase(""))
+				{
+					errLabel.setText("Please select application type");
+					errLabel.setVisible(true);
+					return;
+				}
+				errLabel.setVisible(false);
 				String tcName = testcaseName.getText();
 				String tcDesc = testcaseDesc.getText();
 				String appType = applicationType.getText();

@@ -22,6 +22,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
@@ -207,6 +208,7 @@ public class TC_TS_List extends ViewPart {
 			application_name_item.setText("App_Name"); //Set This Later
 			application_name_item.setData("eltType", "APPLICATION");
 			application_name_item.setExpanded(true);
+			application_name_item.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
 			ArrayList<String> allTSList = AutomaticsDBTestSuiteQueries.getAllTS(db); //Get all test suites
 			
 			for(String tsName : allTSList)
@@ -215,6 +217,7 @@ public class TC_TS_List extends ViewPart {
 				TreeItem testSuiteItem = new TreeItem(application_name_item, SWT.NONE);
 				testSuiteItem.setText(tsName);
 				testSuiteItem.setData("eltType", "TESTSUITE");
+				testSuiteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/ts_logo.png"));
 				
 				//Get all the test cases for the test case
 				//System.out.println(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString());
@@ -234,18 +237,21 @@ public class TC_TS_List extends ViewPart {
 					TreeItem testsuite_testcaseItem = new TreeItem(testSuiteItem, SWT.NONE);
 					testsuite_testcaseItem.setText(tstcGson.tcName);
 					testsuite_testcaseItem.setData("eltType","TESTCASE");
+					testsuite_testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 				}
 			}
 			
 			//Load all test cases to the test case list
 			TreeItem appName = new TreeItem(testCaseList, SWT.NONE);
 			appName.setText("App_Name");
+			appName.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
 			
 			ArrayList<String> allTCList = AutomaticsDBTestCaseQueries.getAllTC(db);
 			for(String tcName : allTCList)
 			{
 				TreeItem testCaseItem = new TreeItem(appName,SWT.NONE);
 				testCaseItem.setText(tcName);
+				testCaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 				//Add test case task
 				if(tcService.getTaskByTcName(tcName)==null) //Add task only if the task is not added
 				{
