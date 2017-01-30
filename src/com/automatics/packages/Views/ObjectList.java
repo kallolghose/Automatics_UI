@@ -80,9 +80,7 @@ public class ObjectList extends ViewPart {
 					{
 						ObjectMapEditorInput input = new ObjectMapEditorInput(selected[0].getText());
 				        page.openEditor(input, ObjectMapEditor.ID);
-					}
-							
-							
+					}	
 				}
 				catch(Exception e)
 				{
@@ -125,6 +123,13 @@ public class ObjectList extends ViewPart {
 					System.out.println(e.getMessage());
 					e.printStackTrace();
 				}
+			}
+		});
+		
+		opnObjMap.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				
 			}
 		});
 	}

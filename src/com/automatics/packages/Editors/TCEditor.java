@@ -137,6 +137,8 @@ public class TCEditor extends EditorPart {
 					if(jsonObj !=null)
 					{
 						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
+						Utilities.createJavaFiles(tcSaveGson);
+						System.out.println(System.getProperty("user.dir"));
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
 					}
@@ -558,9 +560,11 @@ public class TCEditor extends EditorPart {
 						TableItem item = (TableItem)event.item;
 						if(item!=null)
 						{
-							int index = new Integer(item.toString());
+							String findIndex[] = item.toString().split("\\{|\\}");
+							System.out.println(findIndex[1]);
+							int index = new Integer(findIndex[1]);
 							List<TCStepsGSON> tcIP = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
-							TCStepsGSON tcStep = tcIP.get(index);
+							TCStepsGSON tcStep = tcIP.get(index-1);
 							tcStep.stepPageName = data[1];
 							tcStep.stepObjName = data[2];
 							tcStep.omName = data[3];
@@ -592,9 +596,10 @@ public class TCEditor extends EditorPart {
 						TableItem item = (TableItem)event.item;
 						if(item!=null) //if item has a value then
 						{
-							int index = new Integer(item.toString()); //Check for integer
+							String findIndex[] = item.toString().split("\\{|\\}");
+							int index = new Integer(findIndex[1]);
 							List<TCStepsGSON> tcIPatPos = (ArrayList<TCStepsGSON>) testscriptsViewer.getInput();
-							TCStepsGSON tcStep = tcIPatPos.get(index);
+							TCStepsGSON tcStep = tcIPatPos.get(index-1);
 							tcStep.stepArgument = data[1];
 							testscriptsViewer.refresh();
 							if(!isDirty)

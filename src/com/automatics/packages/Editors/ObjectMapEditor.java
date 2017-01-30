@@ -97,6 +97,7 @@ public class ObjectMapEditor extends EditorPart {
 					{
 						AutomaticsDBObjectMapQueries.updateOM(Utilities.getMongoDB(), saveGSON.omName, jsonObj);
 						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
+						Utilities.createObjectMap(saveGSON);
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
 					}
