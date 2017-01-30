@@ -61,6 +61,7 @@ import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.packages.Model.TestSuiteTask;
 import com.automatics.packages.Model.TestSuiteTaskService;
 import com.automatics.utilities.elements.Project;
+import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.gsons.testsuite.TSGson;
@@ -121,6 +122,7 @@ public class TC_TS_List extends ViewPart {
 		newCascadeMenu.setMenu(cascadePopUp);
 		
 		MenuItem newProjectMenu = new MenuItem(cascadePopUp, SWT.NONE);
+		newProjectMenu.setEnabled(false);
 		newProjectMenu.setText("Project");
 		newProjectMenu.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -646,6 +648,13 @@ public class TC_TS_List extends ViewPart {
 			testcaseItem.setData("eltType","TESTCASE"); //Set the type of object (Here TESTCASE)
 			testcaseItem.setText(gson.tcName);
 			
+			//Add the new task to the DB
+			JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, gson));
+			if(jsonObj!=null)
+			{
+				AutomaticsDBTestCaseQueries.postTC(Utilities.getMongoDB(), jsonObj);
+			}
+			
 			//Create the task for the newly created test suite
 			TestCaseTask newTask = new TestCaseTask(gson.tcName, gson.tcDesc, gson.tcType, gson.tcIdentifier, gson);
 			TestCaseTaskService tcService = TestCaseTaskService.getInstance();
@@ -693,6 +702,26 @@ public class TC_TS_List extends ViewPart {
 			TreeItem testsuiteItem = new TreeItem(parent, SWT.NONE);
 			testsuiteItem.setText(gson.tsName);
 			testsuiteItem.setData("eltType","TESTSUITE");
+			testsuiteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/ts_logo.png"));
+
+			//Add the new task to the DB
+			JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, gson));
+			if(jsonObj!=null)
+			{
+				AutomaticsDBTestSuiteQueries.postTS(Utilities.getMongoDB(), jsonObj);
+			}
+			
+			//Add task to test suite task service
+			TestSuiteTask newTask = new TestSuiteTask(gson.tsName, gson.tsDesc, gson.tsIdentifier, gson);
+			TestSuiteTaskService service = TestSuiteTaskService.getInstance();
+			service.addTasks(newTask);
+			
+			//Open the test suite editor
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+			IWorkbenchPage page = window.getActivePage();
+			TestSuiteEditorInput input = new TestSuiteEditorInput(gson.tsName);
+			page.openEditor(input, TestSuiteEditor.ID);
 			
 			//Add the test suite to test suite buffer
 			SaveClass.unsaveBufferTestSuite.put(gson.tsName, gson);

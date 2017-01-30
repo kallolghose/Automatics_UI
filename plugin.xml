@@ -139,6 +139,11 @@
                      label="Test Suite"
                      style="push">
                </command>
+               <command
+                     commandId="com.automatics.packages.new.ObjectMap"
+                     label="Object Map"
+                     style="push">
+               </command>
             </menu>
             <command
                   commandId="com.automatics.packages.handler.exitHandler"
@@ -230,6 +235,11 @@
             defaultHandler="com.automatics.packages.Handler.NewTestSuite"
             id="com.automatics.packages.new.TestSuite"
             name="NewTestSuite">
+      </command>
+      <command
+            defaultHandler="com.automatics.packages.Handler.NewObjectMap"
+            id="com.automatics.packages.new.ObjectMap"
+            name="NewObjectMap">
       </command>
    </extension>
    <extension

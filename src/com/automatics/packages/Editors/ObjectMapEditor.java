@@ -278,7 +278,7 @@ public class ObjectMapEditor extends EditorPart {
 					newDetails.pageName = "";
 					newDetails.objName = "";
 					newDetails.locatorInfo = "";
-					newDetails.locatorType = "ADDBTN";
+					newDetails.locatorType = "";
 					List<OMDetails> list = (List<OMDetails>)objectMapTableViewer.getInput();
 					list.add(newDetails);
 					objectMapTableViewer.refresh();

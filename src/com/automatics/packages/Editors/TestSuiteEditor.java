@@ -84,6 +84,7 @@ public class TestSuiteEditor extends EditorPart {
 		// TODO Auto-generated method stub
 		try
 		{
+			testsuitetable.forceFocus();
 			boolean warning = false;
 			List<TSTCGson> testscriptDetail = (ArrayList<TSTCGson>)testsuiteviewer.getInput();
 			for(TSTCGson tstcGson : testscriptDetail)
@@ -210,6 +211,8 @@ public class TestSuiteEditor extends EditorPart {
 			}
 			public String getText(Object element) {
 				// TODO Auto-generated method stub
+				if(element==null)
+					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
 				return tctsGSON.tcName;
 			}
@@ -228,6 +231,8 @@ public class TestSuiteEditor extends EditorPart {
 			}
 			public String getText(Object element) {
 				// TODO Auto-generated method stub
+				if(element==null)
+					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
 				return tctsGSON.tcParams.get(0).tcparamValue;
 			}
@@ -245,6 +250,8 @@ public class TestSuiteEditor extends EditorPart {
 			}
 			public String getText(Object element) {
 				// TODO Auto-generated method stub
+				if(element==null)
+					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
 				return tctsGSON.tcParams.get(1).tcparamValue;
 			}
@@ -262,6 +269,8 @@ public class TestSuiteEditor extends EditorPart {
 			}
 			public String getText(Object element) {
 				// TODO Auto-generated method stub
+				if(element==null)
+					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
 				return tctsGSON.tcParams.get(2).tcparamValue;
 			}
@@ -279,6 +288,8 @@ public class TestSuiteEditor extends EditorPart {
 			}
 			public String getText(Object element) {
 				// TODO Auto-generated method stub
+				if(element==null)
+					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
 				return tctsGSON.tcParams.get(3).tcparamValue;
 			}
@@ -296,6 +307,8 @@ public class TestSuiteEditor extends EditorPart {
 			}
 			public String getText(Object element) {
 				// TODO Auto-generated method stub
+				if(element==null)
+					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
 				return tctsGSON.tcParams.get(4).tcparamValue;
 			}
@@ -407,8 +420,8 @@ public class TestSuiteEditor extends EditorPart {
 		testsuitetable.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
-				isDirty = true;
-				firePropertyChange(PROP_DIRTY);
+				//isDirty = true;
+				//firePropertyChange(PROP_DIRTY);
 			}
 		});
 		
@@ -418,23 +431,86 @@ public class TestSuiteEditor extends EditorPart {
 			{
 				try
 				{
+					//Set Dirty
+					isDirty = true;
+					firePropertyChange(PROP_DIRTY);
+					
 					int selectedIndex = testsuitetable.getSelectionIndex();
 					List<TSTCGson> list = (ArrayList<TSTCGson>) testsuiteviewer.getInput();
+					
+					if(list==null) //Initialize the same
+					{
+						list = new ArrayList<TSTCGson>();
+						testsuiteviewer.setInput(list);
+					}
+					
+					//Create a new test details GSON
+					List<TSTCParamGson> newList =  new ArrayList<TSTCParamGson>();
+					TSTCParamGson param1 = new TSTCParamGson();
+					param1.tcparamName = "Column1";
+					param1.tcparamValue = "";
+					TSTCParamGson param2 = new TSTCParamGson();
+					param2.tcparamName = "Column2";
+					param2.tcparamValue = "";
+					TSTCParamGson param3 = new TSTCParamGson();
+					param3.tcparamName = "Column3";
+					param3.tcparamValue = "";
+					TSTCParamGson param4 = new TSTCParamGson();
+					param4.tcparamName = "Column4";
+					param4.tcparamValue = "";
+					TSTCParamGson param5 = new TSTCParamGson();
+					param5.tcparamName = "Column5";
+					param5.tcparamValue = "";
+					newList.add(param1);newList.add(param2);newList.add(param3);newList.add(param4);newList.add(param5);
+					
+					TSTCGson tsdetails = new TSTCGson();
+					tsdetails.tcName = "";
+					tsdetails.tcParams = newList;
+					
 					if(selectedIndex!=-1)
 					{
-						TSTCGson tsdetails = new TSTCGson();
-						tsdetails.tcName = "";
-						List<TSTCParamGson> newList =  new ArrayList<TSTCParamGson>();
+						list.add(selectedIndex, tsdetails);
+						testsuiteviewer.editElement(tsdetails, 0);
+						testsuiteviewer.refresh();
 						
 					}
 					else
 					{
-						
+						list.add(tsdetails);
+						testsuiteviewer.editElement(tsdetails, 0);
+						testsuiteviewer.refresh();
 					}
 				}
 				catch(Exception e)
 				{
 					System.out.println("[" + getClass().getName() + " : setListeners()] - Exception : " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		delBtn.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				try
+				{
+					int selectedIndex = testsuitetable.getSelectionIndex();
+					if(selectedIndex!=-1)
+					{
+						List<TSTCGson> list = (ArrayList<TSTCGson>) testsuiteviewer.getInput();
+						if(list!=null)
+						{
+							list.remove(selectedIndex);
+							testsuiteviewer.refresh();
+							isDirty = true;
+							firePropertyChange(PROP_DIRTY);
+						}
+						
+					}
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " : delBtn:addListener()] - Exception  : " + e.getMessage());
 					e.printStackTrace();
 				}
 			}

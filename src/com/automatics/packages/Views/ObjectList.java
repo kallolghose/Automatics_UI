@@ -2,11 +2,14 @@ package com.automatics.packages.Views;
 
 import java.util.ArrayList;
 
+import javax.json.JsonObject;
+
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.swt.layout.FillLayout;
@@ -39,7 +42,7 @@ public class ObjectList extends ViewPart {
 
 	public static String ID = "com.automatics.pacakges.Views.OMList";
 	
-	private Tree omListTree;
+	private static Tree omListTree;
 	private ObjectMapTaskService service = ObjectMapTaskService.getInstance();
 	private MenuItem addToTestCase,newObjMap,opnObjMap,copyObjMap,pasteObjMap,delObjMap;
 	
@@ -105,6 +108,22 @@ public class ObjectList extends ViewPart {
 					}
 					tcGson.tcObjectMapLink = omArr;
 					currentTask.setTcGson(tcGson);
+				}
+			}
+		});
+		
+		newObjMap.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				try
+				{
+					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
+					handlerService.executeCommand("com.automatics.packages.new.ObjectMap", event);
+				}
+				catch(Exception e)
+				{
+					System.out.println(e.getMessage());
+					e.printStackTrace();
 				}
 			}
 		});
@@ -176,6 +195,45 @@ public class ObjectList extends ViewPart {
 		}
 	}
 		
+	public static void createOjectMap(OMGson gson)
+	{
+		try
+		{
+			//Create a node
+			TreeItem omTree = new TreeItem(omListTree.getItem(0), SWT.NONE);
+			omTree.setText(gson.omName);
+			omTree.setData("eltType", "OBJECTMAP");
+			omTree.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/om_logo_new.png"));
+			omTree.setChecked(true);
+			
+			ObjectMapTask newTask = new ObjectMapTask(gson.omName, gson.omDesc, gson.omIdentifier, gson);
+			ObjectMapTaskService service = ObjectMapTaskService.getInstance();
+			service.addTasks(newTask);
+
+			ObjectMapSaveTask omTask = new ObjectMapSaveTask(gson.omName,gson);
+			ObjectMapSaveService.getInstance().addSaveTask(omTask);
+			
+			//Open the object map editor
+			IWorkbench workbench = PlatformUI.getWorkbench();
+			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+			IWorkbenchPage page = window.getActivePage();
+			ObjectMapEditorInput input = new ObjectMapEditorInput(gson.omName);
+			page.openEditor(input, ObjectMapEditor.ID);
+			
+			//Save the object map in DB
+			JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, gson));
+			if(jsonObj!=null)
+			{
+				AutomaticsDBObjectMapQueries.postOM(Utilities.getMongoDB(), jsonObj);
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[ObjectList - createObjectMap()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void setFocus() {
 		// TODO Auto-generated method stub

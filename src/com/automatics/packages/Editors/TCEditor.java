@@ -555,17 +555,31 @@ public class TCEditor extends EditorPart {
 					String data[] = text.split("__");
 					if(data[0].equals("OBJECTDATA"))
 					{
-						List<TCStepsGSON> tcIP = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
-						TCStepsGSON newStep = new TCStepsGSON();
-						newStep.stepNo = tcIP.size()+1;
-						newStep.stepOperation = "";
-						newStep.stepPageName = data[1];
-						newStep.stepObjName = data[2];
-						newStep.stepArgument = "";
-						newStep.stepVarName = "";
-						newStep.omName = data[3];
-						tcIP.add(newStep);
-						testscriptsViewer.refresh();
+						TableItem item = (TableItem)event.item;
+						if(item!=null)
+						{
+							int index = new Integer(item.toString());
+							List<TCStepsGSON> tcIP = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+							TCStepsGSON tcStep = tcIP.get(index);
+							tcStep.stepPageName = data[1];
+							tcStep.stepObjName = data[2];
+							tcStep.omName = data[3];
+							testscriptsViewer.refresh();
+						}
+						else
+						{
+							List<TCStepsGSON> tcIP = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+							TCStepsGSON newStep = new TCStepsGSON();
+							newStep.stepNo = tcIP.size()+1;
+							newStep.stepOperation = "";
+							newStep.stepPageName = data[1];
+							newStep.stepObjName = data[2];
+							newStep.stepArgument = "";
+							newStep.stepVarName = "";
+							newStep.omName = data[3];
+							tcIP.add(newStep);
+							testscriptsViewer.refresh();
+						}
 						if(!isDirty)
 						{
 							isDirty = true;
@@ -578,7 +592,7 @@ public class TCEditor extends EditorPart {
 						TableItem item = (TableItem)event.item;
 						if(item!=null) //if item has a value then
 						{
-							int index = new Integer(item.toString());
+							int index = new Integer(item.toString()); //Check for integer
 							List<TCStepsGSON> tcIPatPos = (ArrayList<TCStepsGSON>) testscriptsViewer.getInput();
 							TCStepsGSON tcStep = tcIPatPos.get(index);
 							tcStep.stepArgument = data[1];

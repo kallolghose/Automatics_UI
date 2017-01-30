@@ -250,6 +250,11 @@ public class ObjectMap extends ViewPart {
 	
 	public static void loadObjectMap(String omName)
 	{
+		//Remove all children
+		for(int i=0;i<objectTree.getItemCount();i++)
+		{
+			objectTree.getItem(0).dispose();
+		}
 		ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
 		trtmObjectmap.setText(omT.getOmName());

@@ -24,6 +24,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.jface.dialogs.IInputValidator;
+import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
@@ -36,6 +38,7 @@ import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.wb.swt.SWTResourceManager;
 
@@ -176,7 +179,27 @@ public class TestCaseParamView extends ViewPart {
 				public void handleEvent(Event event) {
 					// TODO Auto-generated method stub
 					//Create a new column for the table
+					InputDialog getNewTestParam = new InputDialog(getSite().getShell(), "New Test Case Param",
+														 "Enter New Test Case Parameter Name : ", "", new ParamNameValidator());
 					
+					if(getNewTestParam.open() == Window.OK)
+					{
+						ArrayList<ArrayList<String>> ipData = (ArrayList<ArrayList<String>>)testcaseParamViewer.getInput();
+						for(ArrayList<String> data : ipData)
+						{
+							data.add("");
+						}
+						
+						int index = testcaseParamTable.getColumnCount();
+						TableViewerColumn columnViewer = new TableViewerColumn(testcaseParamViewer, SWT.NONE);
+						columnViewer.setLabelProvider(new TestCaseParamColumnLabelProvider(index));
+						TableColumn tableColumn = columnViewer.getColumn();
+						tableColumn.setResizable(true);
+						tableColumn.setWidth(100);
+						tableColumn.setText(getNewTestParam.getValue());
+						columnViewer.setEditingSupport(new ParametersEditing(testcaseParamViewer, index));
+						testcaseParamViewer.refresh();
+					}
 				}
 			});
 			
@@ -437,4 +460,25 @@ public class TestCaseParamView extends ViewPart {
 		// TODO Auto-generated method stub
 
 	}
+}
+
+class ParamNameValidator implements IInputValidator
+{
+
+	public String isValid(String newText) {
+		// TODO Auto-generated method stub
+		String inValidPattern = ".*[!@#\\$%^&\\*\\(\\)-\\+=\\{\\}\\[\\]\\|\\.]+.*";
+		if(newText.equalsIgnoreCase(""))
+		{
+			return "Please enter any value !!";
+		}
+		
+		if(newText.matches(inValidPattern))
+		{
+			return "Cannot Contain Special Characters !!";
+		}
+		
+		return null;
+	}
+	
 }

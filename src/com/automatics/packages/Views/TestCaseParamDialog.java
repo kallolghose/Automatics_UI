@@ -23,6 +23,7 @@ public class TestCaseParamDialog extends Dialog {
 	public TestCaseParamDialog(Shell parentShell) {
 		super(parentShell);
 		setShellStyle(SWT.CLOSE | SWT.TITLE);
+	
 	}
 
 	/**
