@@ -1,21 +1,29 @@
 package com.automatics.utilities.alltablestyles;
 
+import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.swt.SWT;
 
+import com.automatics.packages.Editors.ObjectMapEditor;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 
 public class OMLocatorTypeColumnEditable extends EditingSupport 
 {
 	private TableViewer viewer;
-	private CellEditor editor;
+	//private CellEditor editor;
+	private ComboBoxViewerCellEditor editor = null;
 	
 	public OMLocatorTypeColumnEditable(TableViewer viewer) {
 		super(viewer);
 		this.viewer = viewer;
-		this.editor = new TextCellEditor(this.viewer.getTable());
+		//this.editor = new TextCellEditor(this.viewer.getTable());
+		this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
+		this.editor.setContenProvider(new ArrayContentProvider());
+		this.editor.setInput(ObjectMapEditor.getLocatorType());
 		// TODO Auto-generated constructor stub
 	}
 

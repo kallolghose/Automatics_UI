@@ -350,4 +350,18 @@ public class ObjectMapEditor extends EditorPart {
 		// TODO Auto-generated method stub
 
 	}
+	
+	public static ArrayList<String> getLocatorType()
+	{
+		ArrayList<String> arr = new ArrayList<String>();
+		arr.add("className");
+		arr.add("css");
+		arr.add("id");
+		arr.add("linkText");
+		arr.add("name");
+		arr.add("partialLinkText");
+		arr.add("tagName");
+		arr.add("xpath");
+		return arr;
+	}
 }
