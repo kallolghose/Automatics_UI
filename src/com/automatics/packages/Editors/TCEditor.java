@@ -24,6 +24,7 @@ import org.eclipse.ui.part.EditorPart;
 
 import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
+import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
 import com.automatics.packages.Perspective;
 import com.automatics.packages.Model.TaskService;
 import com.automatics.packages.Model.TestCaseTask;
@@ -136,6 +137,7 @@ public class TCEditor extends EditorPart {
 					System.out.println(jsonObj.toString());
 					if(jsonObj !=null)
 					{
+							
 						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
 						Utilities.createJavaFiles(tcSaveGson);
 						System.out.println(System.getProperty("user.dir"));

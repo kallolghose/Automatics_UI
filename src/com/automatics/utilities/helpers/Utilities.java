@@ -263,18 +263,18 @@ public class Utilities
 			String javaStmt = "";
 			String appName = "App_Name";
 			
-			javaStmt = javaStmt + "package " + appName + ";\n";
+			javaStmt = javaStmt + "package " + appName + ";\n\n";
 			javaStmt = javaStmt + "import io.appium.java_client.AppiumDriver;\n";
 			javaStmt = javaStmt + "import io.appium.java_client.MobileDriver;\n";
 			javaStmt = javaStmt + "import org.openqa.selenium.WebElement;\n";
 			javaStmt = javaStmt + "import org.openqa.selenium.support.FindBy;\n";
-			javaStmt = javaStmt + "import AutoMaTics.Utils;\n";
+			javaStmt = javaStmt + "import AutoMaTics.Utils;\n\n";
 			
-			javaStmt = javaStmt + "public class " + omGson.omName + " {\n";
+			javaStmt = javaStmt + "public class " + omGson.omName + " {\n\n";
 			for(OMDetails details : omGson.omDetails)
 			{
 				javaStmt = javaStmt + "\t@FindBy(" + details.locatorType + " = \"" + details.locatorInfo + "\");\n";
-				javaStmt = javaStmt + "\tpublic static WebElement " + "\n\n";
+				javaStmt = javaStmt + "\tpublic static WebElement " + details.pageName + "__" + details.objName + "\n\n";
 			}
 			
 			javaStmt = javaStmt + "\tAppiumDriver driver;\n";
