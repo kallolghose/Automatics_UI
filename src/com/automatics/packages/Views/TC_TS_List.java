@@ -84,6 +84,7 @@ public class TC_TS_List extends ViewPart {
 	private static Tree testCaseList;
 	private TestCaseTaskService tcService = TestCaseTaskService.getInstance();
 	private TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
+	private MenuItem copyItem,pasteItem,deleteItem;
 	
 	public TC_TS_List() {
 		// TODO Auto-generated constructor stub
@@ -179,13 +180,13 @@ public class TC_TS_List extends ViewPart {
 		
 		new MenuItem(testsuitePopUp, SWT.SEPARATOR);
 		
-		MenuItem copyItem = new MenuItem(testsuitePopUp, SWT.NONE);
+		copyItem = new MenuItem(testsuitePopUp, SWT.NONE);
 		copyItem.setText("Copy");
 		
-		MenuItem pasteItem = new MenuItem(testsuitePopUp, SWT.NONE);
+		pasteItem = new MenuItem(testsuitePopUp, SWT.NONE);
 		pasteItem.setText("Paste");
 		
-		MenuItem deleteItem = new MenuItem(testsuitePopUp, SWT.NONE);
+		deleteItem = new MenuItem(testsuitePopUp, SWT.NONE);
 		deleteItem.setText("Delete");
 	
 		TabItem testCaseTab = new TabItem(tabFolder, SWT.NONE);
@@ -321,6 +322,39 @@ public class TC_TS_List extends ViewPart {
 					
 				}
 			});
+			
+			
+			deleteItem.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+				
+					TreeItem item = testSuiteList.getSelection()[0];
+					String value = item.getData("eltType").toString();
+					if(!value.equals("APPLICATION")&& value.equals("TESTSUITE")){
+					item.dispose();
+				AutomaticsDBTestSuiteQueries.deleteTS(Utilities.getMongoDB(), item.getText());
+					
+					}else{
+						if(!value.equals("APPLICATION") && value.equals("TESTCASE")){
+						TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
+						TestSuiteTask tsTask = tsService.getTaskByTSName(item.getParentItem().getText());
+						TSGson  tsGson = tsTask.getTsGson();
+						List<TSTCGson> list = tsGson.tsTCLink;
+						
+						for (int i=0;i<list.size();i++) 
+						{
+							TSTCGson tstcGson = list.get(i); 
+							if(tstcGson.tcName.equals(item.getText())){
+								list.remove(i);
+							}
+						}
+						item.dispose();
+						AutomaticsDBTestCaseQueries.deleteTC(Utilities.getMongoDB(), item.getText());
+					}
+					}
+				}
+			});
+			
 		}
 		catch(Exception e)
 		{

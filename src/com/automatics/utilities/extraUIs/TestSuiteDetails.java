@@ -1,5 +1,7 @@
 package com.automatics.utilities.extraUIs;
 
+import java.util.List;
+
 import javax.swing.text.html.ListView;
 
 import org.eclipse.swt.SWT;
@@ -20,6 +22,7 @@ import com.automatics.packages.Views.TC_TS_List;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
+import com.automatics.utilities.helpers.Utilities;
 
 public class TestSuiteDetails extends Shell {
 	private Text testsuiteName;
@@ -143,8 +146,26 @@ public class TestSuiteDetails extends Shell {
 				// TODO Auto-generated method stub
 				try
 				{
+					
 					String tsName = testsuiteName.getText();
+					
+					final List<String> collValidityMessage=Utilities.validateEntityValues(tsName);
+					for (String validityMessage : collValidityMessage) {
+						errLabel.setText(validityMessage);
+						errLabel.setVisible(true);
+						return;
+					}
+					
+					errLabel.setVisible(false);
+
 					String tsDesc = testsuiteDesc.getText();
+					final List<String> colldescriptionMessage=Utilities.validateDescriptionValue(tsDesc);
+					for (String message : colldescriptionMessage) {
+						errLabel.setText(message);
+						errLabel.setVisible(true);
+						return;
+					}
+					
 					TSGson gson = new TSGson();
 					gson.tsName = tsName;
 					gson.tsDesc = tsDesc;

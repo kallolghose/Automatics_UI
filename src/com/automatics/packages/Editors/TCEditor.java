@@ -6,7 +6,12 @@ import java.util.List;
 
 import javax.json.JsonObject;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -93,8 +98,11 @@ public class TCEditor extends EditorPart {
 	private TableViewer testscriptsViewer; 
 	private boolean isDirty = false;
 	
-	private ToolItem addBtn, delBtn;
+	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor;
 	private boolean isFocus = false;
+	
+	private List<TCStepsGSON> listOfTestCaseSteps;
+	private TCStepsGSON gson;
 	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
@@ -103,68 +111,7 @@ public class TCEditor extends EditorPart {
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
-		try
-		{
-			boolean warning = false;
-			List<TCStepsGSON> steps = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
-			testscriptTable.forceFocus();
-			if(steps != null)
-			{
-				for(TCStepsGSON step : steps)
-				{
-					if(step.stepOperation.equals(""))
-					{
-						warning = true;
-						break;
-					}
-				}
-				if(!warning)
-				{
-					TCGson tcSaveGson = tcTask.getTcGson();
-					//Update task
-					//1. Update Test Steps
-					tcSaveGson.tcSteps = steps;
-					
-					//2. Update the object map
-					tcSaveGson.tcObjectMapLink = ObjectMap.getAllOjectMapNamesSelected();
-					
-					//3. Update the parameters
-					tcSaveGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
-					
-					tcTask.setTcGson(tcSaveGson);
-					
-					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, tcSaveGson));
-					System.out.println(jsonObj.toString());
-					if(jsonObj !=null)
-					{
-							
-						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
-						Utilities.createJavaFiles(tcSaveGson);
-						System.out.println(System.getProperty("user.dir"));
-						isDirty = false;
-						firePropertyChange(PROP_DIRTY);
-					}
-					else 
-					{
-						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
-											 "Some Unexpected Error Occured", "ERR");
-						throw new RuntimeException("Error In Test Case Save");
-					}
-				}
-				else
-				{
-					//Display error message
-					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
-										"One or more Step(s) are not completed. Please provide value(s) for them.", 
-										"WARN").open();
-				}
-			}
-		}
-		catch(Exception e)
-		{
-			System.out.println("[" + getClass().getName() + " : doSave() ] - Exception  : " + e.getMessage() );
-			e.printStackTrace();
-		}
+		saveActionPerform();
 	}
 
 	@Override
@@ -234,6 +181,26 @@ public class TCEditor extends EditorPart {
 			delBtn.setToolTipText("Delete Testcase step");
 			delBtn.setSelection(true);
 			delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
+			
+			saveItem = new ToolItem(iconsToolBar, SWT.NONE);
+			saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
+			saveItem.setToolTipText("Save");
+			saveItem.setSelection(true);
+			
+			copyItem = new ToolItem(iconsToolBar, SWT.NONE);
+			copyItem.setToolTipText("Copy");
+			copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
+			copyItem.setSelection(true);
+			
+			pasteItem = new ToolItem(iconsToolBar, SWT.NONE);
+			pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
+			pasteItem.setToolTipText("Paste");
+			pasteItem.setSelection(true);
+			
+			openEditor = new ToolItem(iconsToolBar, SWT.NONE);
+			openEditor.setToolTipText("View In Editor");
+			openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
+			openEditor.setSelection(true);
 			
 			//Implementation of table using TableViewer
 			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
@@ -536,6 +503,65 @@ public class TCEditor extends EditorPart {
 			}
 		});
 		
+		
+		saveItem.addListener(SWT.Selection, new Listener() {
+			
+			public void handleEvent(Event event) {
+				try
+				{
+				saveActionPerform();
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " Save: addListeners()] - Exception : " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		});
+		copyItem.addListener(SWT.Selection, new Listener() {
+			
+			public void handleEvent(Event event) {
+				try{
+				listOfTestCaseSteps=(List<TCStepsGSON>) testscriptsViewer.getInput();
+				 gson=listOfTestCaseSteps.get(testscriptTable.getSelectionIndex());
+				 isDirty = true;
+					firePropertyChange(PROP_DIRTY);
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " Copy: addListeners()] - Exception : " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		});
+		pasteItem.addListener(SWT.Selection, new Listener() {
+			
+			public void handleEvent(Event event) {
+				try{
+				listOfTestCaseSteps.add(testscriptTable.getSelectionIndex(),gson);
+				testscriptsViewer.refresh();
+				isDirty = true;
+				firePropertyChange(PROP_DIRTY);
+			}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + "Paste : addListeners()] - Exception : " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+				
+		});
+		openEditor.addListener(SWT.Selection, new Listener(){
+			
+			public void handleEvent(Event event) 
+			{
+				IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
+				IPath location = Path.fromOSString("Automation_Suite/ObjectMap/App_Name/" + tcTask.getTcName() + ".java"); 
+				IFile projectFile = workspace.getRoot().getFile(location);
+				Utilities.openEditor(projectFile, null);
+			}
+		});
+		
 	}
 	
 	public void setDropListener(DropTarget target)
@@ -664,6 +690,71 @@ public class TCEditor extends EditorPart {
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + ":loadTestSteps] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * saveActionPerform;
+	 */
+	private void saveActionPerform() {
+		try
+		{
+			boolean warning = false;
+			List<TCStepsGSON> steps = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+			testscriptTable.forceFocus();
+			if(steps != null)
+			{
+				for(TCStepsGSON step : steps)
+				{
+					if(step.stepOperation.equals(""))
+					{
+						warning = true;
+						break;
+					}
+				}
+				if(!warning)
+				{
+					TCGson tcSaveGson = tcTask.getTcGson();
+					//Update task
+					//1. Update Test Steps
+					tcSaveGson.tcSteps = steps;
+					
+					//2. Update the object map
+					tcSaveGson.tcObjectMapLink = ObjectMap.getAllOjectMapNamesSelected();
+					
+					//3. Update the parameters
+					tcSaveGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
+					
+					tcTask.setTcGson(tcSaveGson);
+					
+					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, tcSaveGson));
+					System.out.println(jsonObj.toString());
+					if(jsonObj !=null)
+					{
+						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
+						isDirty = false;
+						firePropertyChange(PROP_DIRTY);
+					}
+					else 
+					{
+						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
+											 "Some Unexpected Error Occured", "ERR");
+						throw new RuntimeException("Error In Test Case Save");
+					}
+				}
+				else
+				{
+					//Display error message
+					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
+										"One or more Step(s) are not completed. Please provide value(s) for them.", 
+										"WARN").open();
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : doSave() ] - Exception  : " + e.getMessage() );
 			e.printStackTrace();
 		}
 	}

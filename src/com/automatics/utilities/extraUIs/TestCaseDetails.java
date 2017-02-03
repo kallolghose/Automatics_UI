@@ -134,6 +134,24 @@ public class TestCaseDetails extends Shell {
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
 				//Perform validations
+				
+				final List<String> collValidityMessage=Utilities.validateEntityValues(testcaseName.getText());
+				for (String validityMessage : collValidityMessage) {
+					errLabel.setText(validityMessage);
+					errLabel.setVisible(true);
+					return;
+				}
+				
+				errLabel.setVisible(false);
+				String tsDrescriptor=testcaseDesc.getText();
+				final List<String> colldescriptionMessage=Utilities.validateDescriptionValue(tsDrescriptor);
+				for (String message : colldescriptionMessage) {
+					errLabel.setText(message);
+					errLabel.setVisible(true);
+					return;
+				}
+
+				
 				if(testcaseName.getText().equalsIgnoreCase(""))
 				{
 					errLabel.setText("Please enter test case name");

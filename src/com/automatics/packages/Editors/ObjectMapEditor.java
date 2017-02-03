@@ -1,6 +1,11 @@
 package com.automatics.packages.Editors;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
@@ -62,7 +67,9 @@ public class ObjectMapEditor extends EditorPart {
 	private Table objectMapDataTable;
 	private boolean isDirty = false;
 	private TableViewer objectMapTableViewer;
-	private ToolItem btnAdd,btnDelete;
+	private ToolItem btnAdd,btnDelete, pasteItem, copyItem, openEditor, saveItem;
+	private List<OMDetails> list;
+	private int index;
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -186,6 +193,26 @@ public class ObjectMapEditor extends EditorPart {
 		btnDelete.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
 		btnDelete.setSelection(true);
 		
+		saveItem = new ToolItem(iconsToolBar, SWT.NONE);
+		saveItem.setToolTipText("Save");
+		saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
+		saveItem.setSelection(true);
+		
+		copyItem = new ToolItem(iconsToolBar, SWT.NONE);
+		copyItem.setToolTipText("Copy");
+		copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
+		copyItem.setSelection(true);
+		
+		pasteItem = new ToolItem(iconsToolBar, SWT.NONE);
+		pasteItem.setToolTipText("Paste");
+		pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
+		pasteItem.setSelection(true);
+		
+		openEditor = new ToolItem(iconsToolBar, SWT.NONE);
+		openEditor.setToolTipText("View Editor");
+		openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
+		openEditor.setSelection(true);
+		
 		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());
 		objectMapDataTable = objectMapTableViewer.getTable();
@@ -306,6 +333,70 @@ public class ObjectMapEditor extends EditorPart {
 					firePropertyChange(PROP_DIRTY);
 				}
 			});
+			
+			saveItem.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+					try{
+					saveActionPerform();
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + "tltmNewItem - setListener] - Exceptioen : " + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
+			copyItem.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+				try
+					{
+						list=(List<OMDetails>) objectMapTableViewer.getInput();
+						index=objectMapDataTable.getSelectionIndex();
+						list.get(index);
+						isDirty = true;
+						firePropertyChange(PROP_DIRTY);
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + "tltmForCopy - setListener] - Exceptioen : " + e.getMessage());
+						e.printStackTrace();
+					}
+					}
+				
+			});
+			pasteItem.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+					try
+					{	
+						final int pasteIndex=objectMapDataTable.getSelectionIndex();
+						list.add(pasteIndex, list.get(index));
+						objectMapTableViewer.refresh();
+						isDirty = true;
+						firePropertyChange(PROP_DIRTY);
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + "pasteItem - setListener] - Exceptioen : " + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
+			openEditor.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+					
+					IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
+					IPath location = Path.fromOSString("Automation_Suite/Object Map/App_Name/" + omTask.getOmName()+ ".java"); 
+					IFile projectFile = workspace.getRoot().getFile(location);
+					Utilities.openEditor(projectFile, null);
+					
+				}
+			});
+			
+			
 		}
 		catch(Exception e)
 		{
@@ -344,11 +435,61 @@ public class ObjectMapEditor extends EditorPart {
 			e.printStackTrace();
 		}
 	}
-
-	@Override
-	public void setFocus() {
-		// TODO Auto-generated method stub
-
+	
+	/**
+	 * saveActionPerform.
+	 */
+	private void saveActionPerform() {
+		try
+		{
+			boolean warning= false;
+			List<OMDetails> list = (List<OMDetails>) objectMapTableViewer.getInput();
+			objectMapDataTable.forceFocus();
+			if(list !=null)
+			{
+				for(OMDetails stepDetails : list)
+				{
+					if(stepDetails.pageName.equals("") || stepDetails.objName.equals(""))
+					{
+						warning = true;
+						break;
+					}
+				}
+				if(!warning)
+				{
+					//Go and save the object map
+					OMGson saveGSON = omTask.getOmGson();
+					saveGSON.omDetails = list;
+					omTask.setOmGson(saveGSON); //Add the value to task
+					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, saveGSON));
+					if(jsonObj !=null)
+					{
+						AutomaticsDBObjectMapQueries.updateOM(Utilities.getMongoDB(), saveGSON.omName, jsonObj);
+						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
+						isDirty = false;
+						firePropertyChange(PROP_DIRTY);
+					}
+					else 
+					{
+						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
+											 "Some Unexpected Error Occured", "ERR");
+						throw new RuntimeException("Error In Object Map Save");
+					}
+				}
+				else
+				{
+					//Display Warning
+					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
+										"One or more PageName/ObjectName is not specified. Please provide value(s) for them", 
+										"WARN").open();
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " - doSave()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	public static ArrayList<String> getLocatorType()
@@ -364,4 +505,12 @@ public class ObjectMapEditor extends EditorPart {
 		arr.add("xpath");
 		return arr;
 	}
+
+	@Override
+	public void setFocus() {
+		// TODO Auto-generated method stub
+
+	}
+	
+	
 }

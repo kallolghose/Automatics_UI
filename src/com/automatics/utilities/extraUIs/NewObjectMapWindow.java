@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Button;
 import com.automatics.packages.Views.ObjectList;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
+import com.automatics.utilities.helpers.Utilities;
 
 public class NewObjectMapWindow extends Shell {
 	private Text objectmapName;
@@ -122,23 +123,25 @@ public class NewObjectMapWindow extends Shell {
 		btnCreate.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
-				if(objectmapName.getText().equalsIgnoreCase(""))
-				{
-					errLabel.setText("Please enter a valid Object Map Name.");
-					errLabel.setVisible(true);
-					return;
-				}
-				if(objectmapDesc.getText().equalsIgnoreCase(""))
-				{
-					errLabel.setText("Please enter a valid Object Map Description.");
+				
+				String omName = objectmapName.getText();
+				String omDesc = objectmapDesc.getText();
+				
+				final List<String> collValidityMessage=Utilities.validateEntityValues(omName);
+				for (String validityMessage : collValidityMessage) {
+					errLabel.setText(validityMessage);
 					errLabel.setVisible(true);
 					return;
 				}
 				
 				errLabel.setVisible(false);
-				
-				String omName = objectmapName.getText();
-				String omDesc = objectmapDesc.getText();
+				final List<String> colldescriptionMessage=Utilities.validateDescriptionValue(omDesc);
+				for (String message : colldescriptionMessage) {
+					errLabel.setText(message);
+					errLabel.setVisible(true);
+					return;
+				}
+				errLabel.setVisible(false);
 				
 				List<OMDetails> omDetailsList = new ArrayList<OMDetails>();
 				

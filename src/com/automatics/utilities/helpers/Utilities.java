@@ -8,6 +8,9 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -317,11 +320,6 @@ public class Utilities
 		}
 	}
 	
-	public static String validateEntityValues(String str)
-	{
-		return "";
-	}
-	
 	private static String beforeafterContentPath = "D:\\KG00360770\\ATT\\Automatic_DC\\Automatics\\RequiredFiles";
 	
 	private static String readBeforeContent()
@@ -402,11 +400,10 @@ public class Utilities
 		}
 	}
 	
-	private static void openEditor(IFile file, String editorID)
+	public static void openEditor(IFile file, String editorID)
 	{
 		try
 		{
-			System.out.println("Again Path : " + file.getFullPath());
 			IWorkbench workbench = PlatformUI.getWorkbench();
 		    IEditorRegistry editorRegistry = workbench.getEditorRegistry();
 		    if (editorID == null || editorRegistry.findEditor(editorID) == null)
@@ -423,4 +420,63 @@ public class Utilities
 			e.printStackTrace();
 		}
 	} 
+	
+	
+	/**
+	 * validateEntityValues.
+	 * @param str {@link String}
+	 * @return String
+	 */
+	public static List<String> validateEntityValues(String str)
+	{
+		final List<String> collvalidityMessage=new ArrayList<String>();
+		Pattern blankCheck = Pattern.compile("^\\s*$");
+		Pattern blankCheck1 = Pattern.compile("^\\d");
+		Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-])");
+		
+		final   Matcher  blankCheckForTsName = blankCheck.matcher(str); 
+	    final	Matcher  blankCheckForTsNameForNumberCheck = blankCheck1.matcher(str);
+	    final	Matcher  blankCheckForTsNameForSpecialCherecterCheck = blankCheck2.matcher(str);
+
+		if(blankCheckForTsName.find())
+		{ 
+			collvalidityMessage.add("Please enter name");
+		}
+		if(blankCheckForTsNameForNumberCheck.find())
+		{ 
+			collvalidityMessage.add("Name should not start with digit");
+		}
+		if(blankCheckForTsNameForSpecialCherecterCheck.find())
+		{ 
+			collvalidityMessage.add("Special Cherecter not allowed in name");
+		}
+		return collvalidityMessage;
+    }
+
+	/**
+	 * validateDescriptionValue.
+	 * @param str {@link String}
+	 * @return String
+	 */
+	public static List<String> validateDescriptionValue(String str)
+	{
+		try
+		{
+			final List<String> collMessage=new ArrayList<String>();
+			Pattern blankCheck = Pattern.compile("^\\s*$");
+			final Matcher blankCheckForTsName = blankCheck.matcher(str); 
+			if(blankCheckForTsName.find())
+			{ 
+				collMessage.add("Please enter Description, it canot be blank");
+			}
+			return collMessage;
+		}
+		catch(Exception e)
+		{
+			System.out.println("[Utitlites - validationDescriptionValue()] : Exception - " + e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
+		
+	}
 }
