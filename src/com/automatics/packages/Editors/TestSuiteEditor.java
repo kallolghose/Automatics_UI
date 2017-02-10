@@ -590,6 +590,7 @@ public class TestSuiteEditor extends EditorPart {
 			{
 				TSGson tssaveGson = tsTask.getTsGson();
 				tssaveGson.tsTCLink = testscriptDetail;
+				
 				//Save the file new data in the task
 				tsTask.setTsGson(tssaveGson);
 				

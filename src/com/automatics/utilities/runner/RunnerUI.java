@@ -1,5 +1,7 @@
 package com.automatics.utilities.runner;
 
+import java.util.List;
+
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.layout.FillLayout;
@@ -18,12 +20,20 @@ import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TableViewerColumn;
+import org.eclipse.swt.widgets.Control;
+
+import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
+import com.automatics.utilities.helpers.Utilities;
 
 public class RunnerUI {
 
 	protected Shell shlRunner;
-	private Table table;
-
+	private Table testsuiterunnerTable;
+	private TableViewer  testsuitetableViewer;
+	private List<String> allTestSuites;
 	/**
 	 * Launch the application.
 	 * @param args
@@ -57,7 +67,7 @@ public class RunnerUI {
 	 */
 	protected void createContents() {
 		shlRunner = new Shell();
-		shlRunner.setSize(470, 572);
+		shlRunner.setSize(554, 572);
 		shlRunner.setText("Runner");
 		shlRunner.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
@@ -81,39 +91,36 @@ public class RunnerUI {
 		runItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/run.png"));
 		
 		Composite allTSContainer = new Composite(testSuiteComposite, SWT.BORDER);
-		allTSContainer.setLayout(new GridLayout(1, false));
+		allTSContainer.setLayout(new FillLayout(SWT.HORIZONTAL));
 		GridData gd_allTSContainer = new GridData(SWT.FILL, SWT.CENTER, true, true, 1, 1);
-		gd_allTSContainer.heightHint = 222;
-		gd_allTSContainer.widthHint = 440;
+		gd_allTSContainer.heightHint = 219;
+		gd_allTSContainer.widthHint = 439;
 		allTSContainer.setLayoutData(gd_allTSContainer);
 		
+		testsuitetableViewer = new TableViewer(allTSContainer, SWT.CHECK | SWT.FULL_SELECTION);
+		testsuiterunnerTable = testsuitetableViewer.getTable();
+		testsuiterunnerTable.setLinesVisible(true);
+		testsuiterunnerTable.setHeaderVisible(true);
 		
-		//====
+		TableViewerColumn tableViewerColumn = new TableViewerColumn(testsuitetableViewer, SWT.NONE);
+		TableColumn tblclmnSelect = tableViewerColumn.getColumn();
+		tblclmnSelect.setResizable(false);
+		tblclmnSelect.setWidth(25);
 		
-		Composite testsuiteCompo = new Composite(allTSContainer, SWT.NONE);
-		testsuiteCompo.setLayout(new GridLayout(1, false));
-		GridData gd_testsuiteCompo = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
-		gd_testsuiteCompo.heightHint = 125;
-		gd_testsuiteCompo.widthHint = 432;
-		testsuiteCompo.setLayoutData(gd_testsuiteCompo);
+		TableViewerColumn tsSuiteViewer = new TableViewerColumn(testsuitetableViewer, SWT.NONE);
+		TableColumn tsColumn = tsSuiteViewer.getColumn();
+		tsColumn.setWidth(236);
+		tsColumn.setText("Test Suite ");
 		
-		Button btnTestSuiteName = new Button(testsuiteCompo, SWT.CHECK);
-		btnTestSuiteName.setForeground(SWTResourceManager.getColor(SWT.COLOR_GRAY));
-		btnTestSuiteName.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
-		btnTestSuiteName.setText("Test Suite Name");
+		TableViewerColumn tableViewerColumn_1 = new TableViewerColumn(testsuitetableViewer, SWT.NONE);
+		TableColumn tblclmnParallelThreadCount = tableViewerColumn_1.getColumn();
+		tblclmnParallelThreadCount.setWidth(140);
+		tblclmnParallelThreadCount.setText("Parallel Thread Count");
 		
-		table = new Table(testsuiteCompo, SWT.BORDER | SWT.FULL_SELECTION);
-		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		table.setLinesVisible(true);
-		
-		Label label = new Label(allTSContainer, SWT.SEPARATOR | SWT.HORIZONTAL);
-		GridData gd_label = new GridData(SWT.LEFT, SWT.CENTER, false, false, 1, 1);
-		gd_label.widthHint = 422;
-		label.setLayoutData(gd_label);
-		
-		
-		
-		//========== UPTO THIS
+		TableViewerColumn statusViewer = new TableViewerColumn(testsuitetableViewer, SWT.NONE);
+		TableColumn statusColumn = statusViewer.getColumn();
+		statusColumn.setWidth(110);
+		statusColumn.setText("Status");
 		
 		Composite runnerComposite = new Composite(parentComposite, SWT.BORDER);
 		runnerComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -125,6 +132,26 @@ public class RunnerUI {
 		
 		Composite composite = new Composite(testRunConsole, SWT.NONE);
 		tsConsole1.setControl(composite);
+		shlRunner.setTabList(new Control[]{parentComposite});
 
+	}
+	
+	public void getAllTestSuites()
+	{
+		try
+		{
+			allTestSuites = AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
+			
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : getAllTestSuites()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	private void setAllTestSuiteToTable()
+	{
+		
 	}
 }

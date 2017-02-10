@@ -104,7 +104,7 @@ public class ObjectMapEditor extends EditorPart {
 					{
 						AutomaticsDBObjectMapQueries.updateOM(Utilities.getMongoDB(), saveGSON.omName, jsonObj);
 						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
-						Utilities.createObjectMap(saveGSON);
+						//Utilities.createObjectMap(saveGSON);
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
 					}
@@ -386,13 +386,9 @@ public class ObjectMapEditor extends EditorPart {
 			});
 			openEditor.addListener(SWT.Selection, new Listener() {
 				
-				public void handleEvent(Event event) {
-					
-					IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
-					IPath location = Path.fromOSString("Automation_Suite/Object Map/App_Name/" + omTask.getOmName()+ ".java"); 
-					IFile projectFile = workspace.getRoot().getFile(location);
-					Utilities.openEditor(projectFile, null);
-					
+				public void handleEvent(Event event) 
+				{
+					Utilities.createObjectMap(omTask.getOmGson());
 				}
 			});
 			

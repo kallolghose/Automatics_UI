@@ -169,7 +169,7 @@ public class TCEditor extends EditorPart {
 			composite.setLayoutData(gd_composite);
 			
 			ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
-			iconsToolBar.setBounds(0, 0, 123, 23);
+			iconsToolBar.setBounds(0, 0, 420, 23);
 			
 			addBtn = new ToolItem(iconsToolBar, SWT.NONE);
 			addBtn.setWidth(30);
@@ -555,10 +555,13 @@ public class TCEditor extends EditorPart {
 			
 			public void handleEvent(Event event) 
 			{
+				/*
 				IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
 				IPath location = Path.fromOSString("Automation_Suite/ObjectMap/App_Name/" + tcTask.getTcName() + ".java"); 
 				IFile projectFile = workspace.getRoot().getFile(location);
 				Utilities.openEditor(projectFile, null);
+				*/
+				Utilities.createJavaFiles(tcTask.getTcGson());
 			}
 		});
 		

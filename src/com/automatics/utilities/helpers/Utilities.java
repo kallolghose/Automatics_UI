@@ -42,6 +42,8 @@ import com.automatics.utilities.gsons.operation.OperationGSON;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.gsons.testsuite.TSGson;
+import com.automatics.utilities.gsons.testsuite.TSTCGson;
+import com.automatics.utilities.runner.TestSuiteRunnerAPI;
 import com.google.gson.Gson;
 import com.mongodb.DB;
 
@@ -51,7 +53,7 @@ public class Utilities
 	
 	public static DB getMongoDB()
 	{
-		DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+		DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 		return db;
 	}
 	
@@ -276,14 +278,14 @@ public class Utilities
 			javaStmt = javaStmt + "public class " + omGson.omName + " {\n\n";
 			for(OMDetails details : omGson.omDetails)
 			{
-				javaStmt = javaStmt + "\t@FindBy(" + details.locatorType + " = \"" + details.locatorInfo + "\");\n";
-				javaStmt = javaStmt + "\tpublic static WebElement " + details.pageName + "__" + details.objName + "\n\n";
+				javaStmt = javaStmt + "\t@FindBy(" + details.locatorType + " = \"" + details.locatorInfo + "\")\n";
+				javaStmt = javaStmt + "\tpublic static WebElement " + details.pageName + "__" + details.objName + ";\n\n";
 			}
 			
 			javaStmt = javaStmt + "\tAppiumDriver driver;\n";
 			javaStmt = javaStmt + "\tpublic " + omGson.omName + "(AppiumDriver driver){\n";
 			javaStmt = javaStmt + "\t\tthis.driver=driver;\n" ;
-			javaStmt = javaStmt + "}";
+			javaStmt = javaStmt + "\t}\n}";
 			
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\ObjectMap\\" + appName;
@@ -303,14 +305,30 @@ public class Utilities
 		}
 	}
 	
-	public static void createTestng(TSGson tsGson)
+	public static void createTestng(TSGson tsGson, TestSuiteRunnerAPI runner)
 	{
 		try
 		{
-			String suiteFile = "";
+			String suiteFile = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+					+ "<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\">\n";
+			
+			suiteFile = suiteFile + "<suite name=\"" + tsGson.tsName + "\" verbose=\"1\" parallel=\"tests\" thread-count=\""+
+									runner.threadCount+"\">\n";
+			for(TSTCGson tstcGson : tsGson.tsTCLink)
+			{
+				suiteFile = suiteFile + "\t<test name=\"" + tstcGson.tcName + "\">\n";
+				suiteFile = suiteFile + "\t\t<classes><class name=\"App_Name."+tstcGson.tcName+"\"></classes>";
+				suiteFile = suiteFile + "</test>\n";
+			}
+			
+			suiteFile = suiteFile + "</suite>";
+			
+			//Write Content to file
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 			String filepath = workspacePath + "\\" + PROJECT_NAME + "\\" + tsGson.tsName + ".xml";
 			PrintWriter writer = new PrintWriter(filepath);
+			writer.println(suiteFile);
+			writer.close();
 			
 		}
 		catch(Exception e)
