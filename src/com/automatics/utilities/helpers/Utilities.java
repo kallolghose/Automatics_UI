@@ -36,25 +36,44 @@ import sun.security.util.ResourcesMgr;
 
 import com.automatics.mongo.packages.AutomaticsDBConnection;
 import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
+import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.operation.OperationGSON;
+import com.automatics.utilities.gsons.testcase.ItrParams;
 import com.automatics.utilities.gsons.testcase.TCGson;
+import com.automatics.utilities.gsons.testcase.TCParams;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
+import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
 import com.automatics.utilities.runner.TestSuiteRunnerAPI;
 import com.google.gson.Gson;
 import com.mongodb.DB;
+import com.sun.org.apache.xpath.internal.operations.Gte;
 
 public class Utilities 
 {
+	private static DB db = null;
 	public static String PROJECT_NAME = "Automation_Suite";
 	
 	public static DB getMongoDB()
 	{
-		DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
+		db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 		return db;
+	}
+	
+	public static void closeMongoDB()
+	{
+		try
+		{
+			
+		}
+		catch(Exception e)
+		{
+			System.out.println("[Utilites : closeMongoDB()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -212,17 +231,11 @@ public class Utilities
 			//Create import statements
 			for(String omName : tcGson.tcObjectMapLink)
 			{
-				importObjStmt = importObjStmt +  "\nimport " + appName + "." + omName + ";\n";
-				orInstantiate = orInstantiate + omName +" " + omName + " = new " + omName + "(lDriver);\n\t\t";
-				ordetails = ordetails + "PageFactory.initElements(lDriver," + omName + ");\n\t\t";
+				importObjStmt = importObjStmt +  "\nimport com.automatics.data.objectMap." + omName + ";\n";
+				orInstantiate = orInstantiate + omName +" " + omName + " = new " + omName + "(driver);\n\t\t";
+				ordetails = ordetails + "PageFactory.initElements(driver," + omName + ");\n\t\t";
 			}
 			
-			//Replace <PackageName> <ORImport> <ClassName> <ORINSTANTIATE>	<ORDETAILS>
-			javaStmt = javaStmt.replace("<PackageName>", appName);
-			javaStmt = javaStmt.replace("<ORImport>", importObjStmt);
-			javaStmt = javaStmt.replace("<ClassName>", tcGson.tcName);
-			javaStmt = javaStmt.replace("<ORINSTANTIATE>", orInstantiate);
-			javaStmt = javaStmt.replace("<ORDETAILS>", ordetails);
 			
 			//Create class statement
 			String step = "";
@@ -243,9 +256,17 @@ public class Utilities
 			javaStmt = javaStmt + step;
 			javaStmt = javaStmt + readAfterContent();
 			
+			
+			javaStmt = javaStmt.replace("<PackageName>", "com.automatics.data.testScripts");
+			javaStmt = javaStmt.replace("<ORImport>", importObjStmt);
+			javaStmt = javaStmt.replace("<ClassName>", tcGson.tcName);
+			javaStmt = javaStmt.replace("<ORINSTANTIATE>", orInstantiate);
+			javaStmt = javaStmt.replace("<ORDETAILS>", ordetails);
+			javaStmt = javaStmt.replace("ARG2", "\"\"");
+			
 			//Write java to the file
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\TestScripts\\" + appName;
+			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.data\\com\\automatics\\data\\testScripts"; //com.automatics.data.testScripts
 			File folderCheck = new File(folderPath);
 			if(!folderCheck.exists())
 			{
@@ -266,14 +287,12 @@ public class Utilities
 		try
 		{
 			String javaStmt = "";
-			String appName = "App_Name";
+			String appName = "com.automatics.data.objectMap";
 			
 			javaStmt = javaStmt + "package " + appName + ";\n\n";
-			javaStmt = javaStmt + "import io.appium.java_client.AppiumDriver;\n";
-			javaStmt = javaStmt + "import io.appium.java_client.MobileDriver;\n";
-			javaStmt = javaStmt + "import org.openqa.selenium.WebElement;\n";
+			javaStmt = javaStmt + "import org.openqa.selenium.*;\n";
 			javaStmt = javaStmt + "import org.openqa.selenium.support.FindBy;\n";
-			javaStmt = javaStmt + "import AutoMaTics.Utils;\n\n";
+			javaStmt = javaStmt + "import com.automatics.data.library.common.Utils;\n\n";
 			
 			javaStmt = javaStmt + "public class " + omGson.omName + " {\n\n";
 			for(OMDetails details : omGson.omDetails)
@@ -282,13 +301,14 @@ public class Utilities
 				javaStmt = javaStmt + "\tpublic static WebElement " + details.pageName + "__" + details.objName + ";\n\n";
 			}
 			
-			javaStmt = javaStmt + "\tAppiumDriver driver;\n";
-			javaStmt = javaStmt + "\tpublic " + omGson.omName + "(AppiumDriver driver){\n";
+			javaStmt = javaStmt + "\tWebDriver driver;\n";
+			javaStmt = javaStmt + "\tpublic " + omGson.omName + "(WebDriver driver){\n";
+			javaStmt = javaStmt + "\t\tUtils.hEnvParams.put(\"App\",this.getClass().getPackage().getName());\n";
 			javaStmt = javaStmt + "\t\tthis.driver=driver;\n" ;
 			javaStmt = javaStmt + "\t}\n}";
 			
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\ObjectMap\\" + appName;
+			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.data\\com\\automatics\\data\\objectMap";
 			//Create folder if does not exists
 			File folderCheck = new File(folderPath);
 			if(!folderCheck.exists())
@@ -305,7 +325,7 @@ public class Utilities
 		}
 	}
 	
-	public static void createTestng(TSGson tsGson, TestSuiteRunnerAPI runner)
+	public static String createTestng(TSGson tsGson, TestSuiteRunnerAPI runner)
 	{
 		try
 		{
@@ -316,9 +336,7 @@ public class Utilities
 									runner.threadCount+"\">\n";
 			for(TSTCGson tstcGson : tsGson.tsTCLink)
 			{
-				suiteFile = suiteFile + "\t<test name=\"" + tstcGson.tcName + "\">\n";
-				suiteFile = suiteFile + "\t\t<classes><class name=\"App_Name."+tstcGson.tcName+"\"></classes>";
-				suiteFile = suiteFile + "</test>\n";
+				suiteFile = suiteFile + getTestWithParameters(tstcGson);
 			}
 			
 			suiteFile = suiteFile + "</suite>";
@@ -329,14 +347,58 @@ public class Utilities
 			PrintWriter writer = new PrintWriter(filepath);
 			writer.println(suiteFile);
 			writer.close();
-			
+			return filepath;
 		}
 		catch(Exception e)
 		{
 			System.out.println("[utilities : createTestng()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
+		return null;
 	}
+	private static String getTestWithParameters(TSTCGson tstcGson)
+	{
+		try
+		{
+			String parameter = "";
+			List<TSTCParamGson> params = tstcGson.tcParams;
+			//Get the test case
+			String tcName = tstcGson.tcName;
+			TCGson tcGson = getGSONFromJSON(AutomaticsDBTestCaseQueries.getTC(getMongoDB(), tcName).toString(), TCGson.class);
+			
+			int itrCntr = 1;
+			
+			for(TCParams tcParams : tcGson.tcParams)
+			{
+				parameter = parameter + "\n<test name=\""+tcName+"_TP_ITR"+itrCntr+"\">\n";
+				parameter = parameter + "\t<parameter name=\"Test_Name\" value=\""+ tstcGson.tcName +"\" />\n";
+				parameter = parameter + "\t<parameter name=\"Exe_Platform\" value=\""+ params.get(0).tcparamValue +"\" />\n";
+				parameter = parameter + "\t<parameter name=\"Exec_Type\" value=\""+ params.get(1).tcparamValue +"\" />\n";
+				parameter = parameter + "\t<parameter name=\"Run_on\" value=\""+ params.get(2).tcparamValue +"\" />\n";
+				
+				for(ItrParams tcParam : tcParams.iterParams)
+				{
+					parameter = parameter + "\t<parameter name=\""+ tcParam.iparamName +"\" value=\""+ tcParam.iparamValue +"\" />\n";
+				}
+				
+				parameter = parameter + "\n\t<classes>\n";
+				parameter = parameter + "\t\t<class name=\"com.automatics.data.testScripts." + tcName + "\"/>\n";
+				parameter = parameter + "\t</classes>\n";
+				parameter = parameter + "</test>\n";
+				itrCntr ++;
+			}
+			
+			
+			return parameter;
+		}
+		catch(Exception e)
+		{
+			System.out.println("[Utilities : getParameters()] - Exception  : " +e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	
 	private static String beforeafterContentPath = "D:\\KG00360770\\ATT\\Automatic_DC\\Automatics\\RequiredFiles";
 	
@@ -426,11 +488,11 @@ public class Utilities
 		    IEditorRegistry editorRegistry = workbench.getEditorRegistry();
 		    if (editorID == null || editorRegistry.findEditor(editorID) == null)
 		    {
-		    	editorID = workbench.getEditorRegistry().getDefaultEditor(file.getFullPath().toString()).getId();
+		    	editorID = workbench.getEditorRegistry().getDefaultEditor(file.getFullPath().toString()).getId();	
 		    }
 	
 		    IWorkbenchPage page = workbench.getActiveWorkbenchWindow().getActivePage();
-		    page.openEditor(new FileEditorInput(file), editorID, true, IWorkbenchPage.MATCH_ID);
+		    page.openEditor(new FileEditorInput(file), editorID, true, IWorkbenchPage.MATCH_INPUT);
 		}
 		catch(Exception e)
 		{

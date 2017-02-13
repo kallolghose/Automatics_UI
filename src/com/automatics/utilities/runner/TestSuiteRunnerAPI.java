@@ -9,4 +9,5 @@ public class TestSuiteRunnerAPI
 	public String threadCount;
 	public String status;
 	public TSGson tsGson;
+	
 }

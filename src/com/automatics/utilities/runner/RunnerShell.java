@@ -1,5 +1,6 @@
 package com.automatics.utilities.runner;
 
+import java.io.PrintStream;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -29,6 +30,7 @@ import com.automatics.utilities.helpers.Utilities;
 
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Text;
 
 public class RunnerShell extends Shell {
 	private Table testsuiteRunnerTable;
@@ -37,6 +39,7 @@ public class RunnerShell extends Shell {
 	private List<TestSuiteRunnerAPI> runners;
 	private ToolItem runItem;
 	private static Image CHECKED_IMG = ResourceManager.getPluginImage("Automatics", "images/icons/checked.png");
+	private Text consoleOutputTB;
 	/**
 	 * Launch the application.
 	 * @param args
@@ -61,8 +64,8 @@ public class RunnerShell extends Shell {
 	 * Create the shell.
 	 * @param display
 	 */
-	public RunnerShell(Display display) {
-		super(display, SWT.SHELL_TRIM);
+	public RunnerShell(Display parent) {  //(Shell parent)
+		super(parent, SWT.DIALOG_TRIM | SWT.MIN);
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		Composite parentComposite = new Composite(this, SWT.NONE);
@@ -170,8 +173,13 @@ public class RunnerShell extends Shell {
 		TabItem tbtmConsole = new TabItem(tabFolder, SWT.NONE);
 		tbtmConsole.setText("Console");
 		
-		Composite console = new Composite(tabFolder, SWT.NONE);
-		tbtmConsole.setControl(console);
+		Composite consoleDisplay = new Composite(tabFolder, SWT.NONE);
+		tbtmConsole.setControl(consoleDisplay);
+		consoleDisplay.setLayout(new FillLayout(SWT.HORIZONTAL));
+		
+		consoleOutputTB = new Text(consoleDisplay, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL | SWT.MULTI );
+		consoleOutputTB.setEditable(false);
+		
 		createContents();
 		getAllTestSuites();
 		setListeners();
@@ -202,13 +210,29 @@ public class RunnerShell extends Shell {
 					// TODO Auto-generated method stub
 					try
 					{
+						List<String> listOfTestngXmls = new ArrayList<String>();
 						List<TestSuiteRunnerAPI> list = (ArrayList<TestSuiteRunnerAPI>)testsuiteTableViewer.getInput();
 						for(int i=0;i<list.size();i++)
 						{
 							TestSuiteRunnerAPI runner = list.get(i); 
 							if(runner.selected)
-								Utilities.createTestng(runner.tsGson, runner);
+							{
+								String filePath = Utilities.createTestng(runner.tsGson, runner);
+								if(filePath!=null)
+									listOfTestngXmls.add(filePath);
+							}
 						}
+						
+						
+						PrintStream printStream = new PrintStream(new ConsoleOutputStream(consoleOutputTB));
+						System.setOut(printStream);
+						System.setErr(printStream);
+						
+						//TSExecutor executor = new TSExecutor(listOfTestngXmls);
+						//executor.startThread();
+						
+						TestSuiteExecutor tsExe = new TestSuiteExecutor(listOfTestngXmls);
+						tsExe.executeTestSuite();
 					}
 					catch(Exception e)
 					{

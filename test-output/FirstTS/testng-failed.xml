@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite thread-count="1" name="Failed suite [FirstTS]" parallel="tests">
+  <parameter name="Test_Name" value="SecondTC"/>
+  <parameter name="Run_on" value="Some"/>
+  <parameter name="ParamName1" value="ParamValue12"/>
+  <parameter name="ParamName2" value="ParamValue22"/>
+  <parameter name="Exe_Platform" value="Some"/>
+  <parameter name="Exec_Type" value="Some"/>
+  <parameter name="ParamName" value="ParamValue2"/>
+  <test name="FirstTC_TP_ITR1(failed)" parallel="tests">
+    <parameter name="Test_Name" value="FirstTC"/>
+    <parameter name="Run_on" value="Value3"/>
+    <parameter name="Exe_Platform" value="Value1"/>
+    <parameter name="Exec_Type" value="Value2"/>
+    <parameter name="ParamName" value="ParamValue1"/>
+    <classes>
+      <class name="com.automatics.data.testScripts.FirstTC">
+        <methods>
+          <include name="test"/>
+        </methods>
+      </class> <!-- com.automatics.data.testScripts.FirstTC -->
+      <class name="com.automatics.data.testScripts.SecondTC">
+        <methods>
+          <include name="preSuite"/>
+        </methods>
+      </class> <!-- com.automatics.data.testScripts.SecondTC -->
+    </classes>
+  </test> <!-- FirstTC_TP_ITR1(failed) -->
+  <test name="FirstTC_TP_ITR2(failed)" parallel="tests">
+    <parameter name="Test_Name" value="FirstTC"/>
+    <parameter name="Run_on" value="Value3"/>
+    <parameter name="Exe_Platform" value="Value1"/>
+    <parameter name="Exec_Type" value="Value2"/>
+    <parameter name="ParamName" value="ParamValue2"/>
+    <classes>
+      <class name="com.automatics.data.testScripts.FirstTC">
+        <methods>
+          <include name="test"/>
+        </methods>
+      </class> <!-- com.automatics.data.testScripts.FirstTC -->
+      <class name="com.automatics.data.testScripts.SecondTC">
+        <methods>
+          <include name="preSuite"/>
+        </methods>
+      </class> <!-- com.automatics.data.testScripts.SecondTC -->
+    </classes>
+  </test> <!-- FirstTC_TP_ITR2(failed) -->
+  <test name="SecondTC_TP_ITR1(failed)" parallel="tests">
+    <parameter name="Test_Name" value="SecondTC"/>
+    <parameter name="Run_on" value="Some"/>
+    <parameter name="ParamName1" value="ParamValue1"/>
+    <parameter name="ParamName2" value="ParamValue2"/>
+    <parameter name="Exe_Platform" value="Some"/>
+    <parameter name="Exec_Type" value="Some"/>
+    <classes>
+      <class name="com.automatics.data.testScripts.SecondTC">
+        <methods>
+          <include name="preSuite"/>
+          <include name="test"/>
+        </methods>
+      </class> <!-- com.automatics.data.testScripts.SecondTC -->
+    </classes>
+  </test> <!-- SecondTC_TP_ITR1(failed) -->
+  <test name="SecondTC_TP_ITR2(failed)" parallel="tests">
+    <parameter name="Test_Name" value="SecondTC"/>
+    <parameter name="Run_on" value="Some"/>
+    <parameter name="ParamName1" value="ParamValue12"/>
+    <parameter name="ParamName2" value="ParamValue22"/>
+    <parameter name="Exe_Platform" value="Some"/>
+    <parameter name="Exec_Type" value="Some"/>
+    <classes>
+      <class name="com.automatics.data.testScripts.SecondTC">
+        <methods>
+          <include name="preSuite"/>
+          <include name="test"/>
+        </methods>
+      </class> <!-- com.automatics.data.testScripts.SecondTC -->
+    </classes>
+  </test> <!-- SecondTC_TP_ITR2(failed) -->
+</suite> <!-- Failed suite [FirstTS] -->

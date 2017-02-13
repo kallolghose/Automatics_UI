@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import javax.json.JsonObject;
 
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -30,6 +31,7 @@ import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
+import com.automatics.utilities.helpers.MyTitleAreaDialog;
 import com.automatics.utilities.helpers.Utilities;
 import com.automatics.utilities.save.model.ObjectMapSaveService;
 import com.automatics.utilities.save.model.ObjectMapSaveTask;
@@ -45,6 +47,8 @@ public class ObjectList extends ViewPart {
 	private static Tree omListTree;
 	private ObjectMapTaskService service = ObjectMapTaskService.getInstance();
 	private MenuItem addToTestCase,newObjMap,opnObjMap,copyObjMap,pasteObjMap,delObjMap;
+	private ObjectMapTask copyTask;
+	
 	
 	public ObjectList() {
 		// TODO Auto-generated constructor stub
@@ -130,6 +134,53 @@ public class ObjectList extends ViewPart {
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
 				
+			}
+		});
+		
+		copyObjMap.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				try
+				{
+
+					TreeItem selected[] = omListTree.getSelection();
+					if (selected[0].getData("eltType").toString().equalsIgnoreCase("OBJECTMAP")) 
+					{
+						ObjectMapTaskService objectMapTaskService = ObjectMapTaskService.getInstance();
+						copyTask = objectMapTaskService.getTaskByOmName(selected[0].getText());
+					}
+
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " : copyObjMap ] - Exception  : " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		});
+		
+		pasteObjMap.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				MyTitleAreaDialog dialog = new MyTitleAreaDialog(omListTree
+						.getShell());
+				dialog.create();
+				if (dialog.open() == Window.OK) {
+					copyTask.setOmName(dialog.getFirstName());
+					OMGson omGson = copyTask.getOmGson();
+					omGson.omName = dialog.getFirstName();
+					TreeItem objectListItem = new TreeItem(omListTree
+							.getItem(0), SWT.NONE);
+					objectListItem.setText(omGson.omName);
+					objectListItem.setData("eltType", "OBJECTMAP");
+					objectListItem.setImage(ResourceManager.getPluginImage(
+							"Automatics", "images/icons/om_logo_new.png"));
+					JsonObject jsonObj = Utilities
+							.getJsonObjectFromString(Utilities.getJSONFomGSON(
+									OMGson.class, omGson));
+					if (jsonObj != null) {
+						AutomaticsDBObjectMapQueries.postOM(
+								Utilities.getMongoDB(), jsonObj);
+					}
+				}
 			}
 		});
 	}

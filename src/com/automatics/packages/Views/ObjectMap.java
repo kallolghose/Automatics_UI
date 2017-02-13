@@ -22,6 +22,7 @@ import org.eclipse.swt.dnd.Transfer;
 
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
+import com.automatics.utilities.helpers.Utilities;
 import com.automatics.utilities.save.model.ObjectMapSaveService;
 import com.automatics.utilities.save.model.ObjectMapSaveTask;
 
@@ -195,13 +196,23 @@ public class ObjectMap extends ViewPart {
 
 			OMGson omGson = omtask.getOmGson();
 			Iterator<OMDetails> itr = omGson.omDetails.iterator();
-			
+			ArrayList<String> pageNameList = new ArrayList<String>();
 			while(itr.hasNext())
 			{
 				OMDetails details = itr.next();
 				pageNames.add(details);
+				pageNameList.add(details.pageName);
+				/*
 				TreeItem pageItems = new TreeItem(pageRoot, SWT.NONE);
 				pageItems.setText(details.pageName);
+				pageItems.setData("ObjectMapName", omName);
+				*/
+			}
+			pageNameList = Utilities.removeDuplicatesFromArrayList(pageNameList);
+			for(String pageName : pageNameList)
+			{
+				TreeItem pageItems = new TreeItem(pageRoot, SWT.NONE);
+				pageItems.setText(pageName);
 				pageItems.setData("ObjectMapName", omName);
 			}
 			return pageNames;

@@ -15,6 +15,7 @@ import javax.json.JsonValue;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.jface.window.Window;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -47,6 +48,7 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.eclipse.jface.dialogs.MessageDialog;
 
 import com.automatics.mongo.packages.AutomaticsDBConnection;
 import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
@@ -67,6 +69,7 @@ import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
+import com.automatics.utilities.helpers.MyTitleAreaDialog;
 import com.automatics.utilities.helpers.SaveClass;
 import com.automatics.utilities.helpers.Utilities;
 import com.mongodb.*;
@@ -84,7 +87,12 @@ public class TC_TS_List extends ViewPart {
 	private static Tree testCaseList;
 	private TestCaseTaskService tcService = TestCaseTaskService.getInstance();
 	private TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-	private MenuItem copyItem,pasteItem,deleteItem;
+	private MenuItem copyItem,pasteItemForTS,deleteItem;	
+	
+	private MenuItem copyItemforTC, pasteItemforTC;
+	private TestSuiteTask copyTask;
+	private TestCaseTask copyTaskForTC;
+	
 	
 	public TC_TS_List() {
 		// TODO Auto-generated constructor stub
@@ -183,8 +191,8 @@ public class TC_TS_List extends ViewPart {
 		copyItem = new MenuItem(testsuitePopUp, SWT.NONE);
 		copyItem.setText("Copy");
 		
-		pasteItem = new MenuItem(testsuitePopUp, SWT.NONE);
-		pasteItem.setText("Paste");
+		pasteItemForTS = new MenuItem(testsuitePopUp, SWT.NONE);
+		pasteItemForTS.setText("Paste");
 		
 		deleteItem = new MenuItem(testsuitePopUp, SWT.NONE);
 		deleteItem.setText("Delete");
@@ -262,6 +270,15 @@ public class TC_TS_List extends ViewPart {
 			
 			DragSource dragSource = new DragSource(testCaseList, DND.DROP_MOVE);
 			setDragListener(dragSource);
+			
+			org.eclipse.swt.widgets.Menu testcasePopUp = new org.eclipse.swt.widgets.Menu(testCaseList);
+			testCaseList.setMenu(testcasePopUp);
+			
+			copyItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
+			copyItemforTC.setText("Copy");
+			
+			pasteItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
+			pasteItemforTC.setText("Paste");
 			
 			ArrayList<String> allTCList = AutomaticsDBTestCaseQueries.getAllTC(db);
 			for(String tcName : allTCList)
@@ -394,6 +411,185 @@ public class TC_TS_List extends ViewPart {
 				}
 			});
 			
+			copyItem.addListener(SWT.Selection, new Listener() {
+
+				public void handleEvent(Event event) {
+					try
+					{
+						TreeItem selected[] = testSuiteList.getSelection();
+						if (selected[0].getData("eltType").toString().equalsIgnoreCase("TESTSUITE")) 
+						{
+							copyTask = tsService.getTaskByTSName(selected[0]
+									.getText());
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + " : copyItem.addListener()] - Exception : " + e.getMessage());
+						e.printStackTrace();
+					} 
+
+				}
+			});
+			
+			pasteItemForTS.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					MyTitleAreaDialog dialog = new MyTitleAreaDialog(
+							testSuiteList.getShell());
+
+					dialog.create();
+					if (dialog.open() == Window.OK) {
+						copyTask.setTsName(dialog.getFirstName());
+						TSGson tsGson = copyTask.getTsGson();
+						tsGson.tsName = dialog.getFirstName();
+
+						TreeItem testSuiteItem = new TreeItem(testSuiteList
+								.getItem(0), SWT.NONE);
+						testSuiteItem.setText(tsGson.tsName);
+						testSuiteItem.setData("eltType", "TESTSUITE");
+						testSuiteItem.setImage(ResourceManager.getPluginImage(
+								"Automatics", "images/icons/ts_logo.png"));
+
+						String name = tsGson.tsName;
+						Iterator<TSTCGson> itr = tsGson.tsTCLink.iterator();
+
+						if (tsService.getTaskByTSName(name) == null) {
+							tsService.addTasks(copyTask);
+						}
+
+						while (itr.hasNext()) {
+							TSTCGson tstcGson = itr.next();
+							TreeItem testsuite_testcaseItem = new TreeItem(
+									testSuiteItem, SWT.NONE);
+							testsuite_testcaseItem.setText(tstcGson.tcName);
+							testsuite_testcaseItem.setData("eltType",
+									"TESTCASE");
+							testsuite_testcaseItem.setImage(ResourceManager
+									.getPluginImage("Automatics",
+											"images/icons/tc_logo.png"));
+
+						}
+
+						// Save the TCGson to DB
+						JsonObject jsonObj = Utilities
+								.getJsonObjectFromString(Utilities
+										.getJSONFomGSON(TSGson.class, tsGson));
+						if (jsonObj != null) {
+							AutomaticsDBTestSuiteQueries.postTS(
+									Utilities.getMongoDB(), jsonObj);
+						}
+
+					}
+				}
+			});
+			
+			deleteItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) 
+				{
+					try
+					{
+						TreeItem item = testSuiteList.getSelection()[0];
+						boolean result = MessageDialog.openConfirm(
+								testSuiteList.getShell(), "Confirm",
+								"Are you sure that you want to permanently  delete the seleted item");
+	
+						if (result) {
+							String value = item.getData("eltType").toString();
+							if (!value.equals("APPLICATION")
+									&& value.equals("TESTSUITE")) {
+	
+								AutomaticsDBTestSuiteQueries.deleteTS(
+										Utilities.getMongoDB(), item.getText());
+								item.dispose();
+	
+							} else {
+								if (!value.equals("APPLICATION")
+										&& value.equals("TESTCASE")) {
+									TestSuiteTaskService tsService = TestSuiteTaskService
+											.getInstance();
+									TestSuiteTask tsTask = tsService
+											.getTaskByTSName(item.getParentItem()
+													.getText());
+									TSGson tsGson = tsTask.getTsGson();
+									List<TSTCGson> list = tsGson.tsTCLink;
+	
+									for (int i = 0; i < list.size(); i++) {
+										TSTCGson tstcGson = list.get(i);
+										String name = tstcGson.tcName;
+										if (name.equals(item.getText())) {
+											list.remove(i);
+											AutomaticsDBTestCaseQueries.deleteTC(
+													Utilities.getMongoDB(), name);
+											item.dispose();
+											break;
+										}
+									}
+								}
+							}
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + " : deleteItem.addListener()] - Exception : " + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
+			
+			copyItemforTC.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					try
+					{
+						TreeItem selected[] = testCaseList.getSelection();
+						if (selected[0].getData("eltType").toString().equalsIgnoreCase("TESTCASE")) 
+						{
+							copyTaskForTC = tcService.getTaskByTcName(selected[0].getText());
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + " : copyItemforTC.addListener()] - Exception" + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
+			
+			pasteItemforTC.addListener(SWT.Selection, new Listener() {
+				
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					try
+					{
+						MyTitleAreaDialog dialog = new MyTitleAreaDialog(testCaseList.getShell());
+						dialog.create();
+						
+						if (dialog.open() == Window.OK) 
+						{
+							copyTaskForTC.setTcName(dialog.getFirstName());
+							TCGson tcGson = copyTaskForTC.getTcGson();
+							tcGson.tcName = dialog.getFirstName();
+							TreeItem testsuite_testcaseItem = new TreeItem(testCaseList.getItem(0), SWT.NONE);
+							testsuite_testcaseItem.setText(tcGson.tcName);
+							testsuite_testcaseItem.setData("eltType", "TESTCASE");
+							testsuite_testcaseItem.setImage(ResourceManager.getPluginImage("Automatics","images/icons/tc_logo.png"));
+							
+							// Save the TCGson to DB
+							JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, tcGson));
+							if (jsonObj != null) 
+							{
+								AutomaticsDBTestCaseQueries.postTC(Utilities.getMongoDB(), jsonObj);
+							}
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + " : pasteItemForTC.addListener()] : Exception : " + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
 			
 		}
 		catch(Exception exp)
@@ -766,5 +962,4 @@ public class TC_TS_List extends ViewPart {
 			e.printStackTrace();
 		}
 	}
-	
 }

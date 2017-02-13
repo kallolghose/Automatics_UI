@@ -160,6 +160,14 @@
                   tooltip="Open">
             </command>
          </menu>
+         <menu
+               label="Run">
+            <command
+                  commandId="com.automatics.packages.run.openRunUI"
+                  label="Open Runner"
+                  style="push">
+            </command>
+         </menu>
       </menuContribution>
    </extension>
    <extension
@@ -240,6 +248,11 @@
             defaultHandler="com.automatics.packages.Handler.NewObjectMap"
             id="com.automatics.packages.new.ObjectMap"
             name="NewObjectMap">
+      </command>
+      <command
+            defaultHandler="com.automatics.packages.Handler.OpenRunnerUI"
+            id="com.automatics.packages.run.openRunUI"
+            name="OpenRunUI">
       </command>
    </extension>
    <extension

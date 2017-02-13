@@ -1,13 +1,13 @@
 	
 	} catch (Exception e){
 			 
-			Reporter.exceptionHandler(sTestName, e, "Run Time");
+			Reporter.printError(sTestName, e, "Run Time");
 		}		  
 	}  
 	
 	@AfterTest 
 	public void afterTest(final ITestContext testContext) throws IOException, ParseException, HeadlessException, AWTException, InterruptedException {
-		
-		Utils.closeApp(testContext.getName());
+		JsonObject reportJson = Reporter.endTestCaseReport(testContext);
+		ExportReport.printExternal(testContext.getName(), reportJson);
 	}
 }

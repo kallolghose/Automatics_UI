@@ -7,5 +7,6 @@ public class TSGson
 	public String tsName;
 	public String tsDesc;
 	public String tsIdentifier;
+	public String projectName;
 	public List<TSTCGson> tsTCLink;
 }
