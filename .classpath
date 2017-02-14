@@ -17,6 +17,5 @@
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/mongo-automatics.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/testng-6.8.5.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/jcommander.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/com.automatics"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

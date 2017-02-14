@@ -170,6 +170,7 @@ public class TestSuiteEditor extends EditorPart {
 		pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
 			
 		viewEditor = new ToolItem(iconsToolbar, SWT.NONE);
+		viewEditor.setEnabled(false);
 		viewEditor.setToolTipText("View Editor");
 		viewEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 		

@@ -16,6 +16,9 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.window.Window;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPerspectiveDescriptor;
+import org.eclipse.ui.IPerspectiveListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
@@ -54,6 +57,7 @@ import com.automatics.mongo.packages.AutomaticsDBConnection;
 import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
+import com.automatics.packages.Editors.ObjectMapEditorInput;
 import com.automatics.packages.Editors.TCEditor;
 import com.automatics.packages.Editors.TestCaseEditorInput;
 import com.automatics.packages.Editors.TestSuiteEditor;
@@ -210,8 +214,11 @@ public class TC_TS_List extends ViewPart {
 		// TODO Auto-generated method stub
 		//Show object list view
 		IViewPart objectListView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectList.ID);
-		setListeners();
+		
 		loadTestSuiteTestCaseTreeView();
+		setListeners();
+		//addPerspectiveListener();
+		
 		}
 		catch(Exception e)
 		{
@@ -219,6 +226,52 @@ public class TC_TS_List extends ViewPart {
 			e.printStackTrace();
 		}
 	}
+	//Perspective Listener ============= Starts
+	/*public void addPerspectiveListener()
+	{
+		try
+		{
+			System.out.println("asdsadas");
+			PlatformUI.getWorkbench().getActiveWorkbenchWindow().addPerspectiveListener(new IPerspectiveListener() {
+				
+				public void perspectiveChanged(IWorkbenchPage page,IPerspectiveDescriptor perspective, String changeId) 
+				{
+					IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+					if(editor!=null)
+					{
+						if(editor.getEditorInput() instanceof TestCaseEditorInput)
+						{
+							System.out.println("Test Case");
+						}
+						else if(editor.getEditorInput() instanceof TestSuiteEditorInput)
+						{
+							System.out.println("Test Suite");
+						}
+						else if(editor.getEditorInput() instanceof ObjectMapEditorInput)
+						{
+							System.out.println("Object Map");
+						}
+						
+						System.out.println(editor.getTitle());
+					}
+				}
+				
+				public void perspectiveActivated(IWorkbenchPage page,IPerspectiveDescriptor perspective) 
+				{
+					
+				}
+			});
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " addPerspectiveListener()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}*/
+	//Perspective Listener ============= Ends
+	
+	
+	
 	
 	public void loadTestSuiteTestCaseTreeView()
 	{

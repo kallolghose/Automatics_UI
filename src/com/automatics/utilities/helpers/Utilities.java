@@ -67,7 +67,7 @@ public class Utilities
 	{
 		try
 		{
-			
+			db.getMongo().close();
 		}
 		catch(Exception e)
 		{

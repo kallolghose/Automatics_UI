@@ -2,6 +2,7 @@ package com.automatics.packages;
 
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
+import org.eclipse.ui.PlatformUI;
 
 public class Perspective implements IPerspectiveFactory {
 
@@ -10,7 +11,6 @@ public class Perspective implements IPerspectiveFactory {
 	public void createInitialLayout(IPageLayout layout) {
 		layout.setEditorAreaVisible(true);
 		layout.setFixed(true);
-		
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().addPerspectiveListener(new PerspectiveListener());
 	}
-
 }

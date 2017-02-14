@@ -31,6 +31,7 @@ import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
 import com.automatics.packages.Perspective;
+import com.automatics.packages.PerspectiveListener;
 import com.automatics.packages.Model.TaskService;
 import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.packages.Model.TestCaseTaskService;
@@ -88,6 +89,7 @@ import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 
+
 public class TCEditor extends EditorPart {
 	
 	public static String ID = "com.automatics.packages.Editors.tcEditor";
@@ -100,6 +102,7 @@ public class TCEditor extends EditorPart {
 	
 	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor;
 	private boolean isFocus = false;
+	private boolean isjavaeditorOpen = false;
 	
 	private List<TCStepsGSON> listOfTestCaseSteps;
 	private TCStepsGSON gson;
@@ -562,6 +565,17 @@ public class TCEditor extends EditorPart {
 				Utilities.openEditor(projectFile, null);
 				*/
 				Utilities.createJavaFiles(tcTask.getTcGson());
+				
+				IWorkbench workBench = PlatformUI.getWorkbench();
+				IWorkbenchWindow window = workBench.getActiveWorkbenchWindow();
+				IWorkbenchPage page = window.getActivePage();
+				
+				window.addPerspectiveListener(new PerspectiveListener());
+				IPerspectiveRegistry perspectiveRegistry = window.getWorkbench().getPerspectiveRegistry();
+				IPerspectiveDescriptor openAutomaticsPerspective = perspectiveRegistry.findPerspectiveWithId("org.eclipse.jdt.ui.JavaPerspective");
+				
+				page.setPerspective(openAutomaticsPerspective);
+				
 			}
 		});
 		
@@ -779,6 +793,7 @@ public class TCEditor extends EditorPart {
 				TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 				isFocus = true;
 			}
+			
 			//Get which perspective
 			IWorkbench wb = PlatformUI.getWorkbench();
 			IWorkbenchWindow window = wb.getActiveWorkbenchWindow();

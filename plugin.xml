@@ -292,5 +292,17 @@
             type="org.eclipse.jdt.launching.localJavaApplication">
       </launchConfigurationTabGroup>
    </extension>
+   <extension
+         id="automaticsProduct"
+         point="org.eclipse.core.runtime.products">
+      <product
+            application="Automatics.application"
+            name="AutoMaTics">
+         <property
+               name="appName"
+               value="AutoMaTics">
+         </property>
+      </product>
+   </extension>
 
 </plugin>
