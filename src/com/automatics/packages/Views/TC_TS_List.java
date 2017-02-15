@@ -57,6 +57,8 @@ import com.automatics.mongo.packages.AutomaticsDBConnection;
 import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
+import com.automatics.packages.EditorListeners;
+import com.automatics.packages.PerspectiveListener;
 import com.automatics.packages.Editors.ObjectMapEditorInput;
 import com.automatics.packages.Editors.TCEditor;
 import com.automatics.packages.Editors.TestCaseEditorInput;
@@ -217,7 +219,7 @@ public class TC_TS_List extends ViewPart {
 		
 		loadTestSuiteTestCaseTreeView();
 		setListeners();
-		//addPerspectiveListener();
+		addPerspectiveListerner();
 		
 		}
 		catch(Exception e)
@@ -226,50 +228,12 @@ public class TC_TS_List extends ViewPart {
 			e.printStackTrace();
 		}
 	}
-	//Perspective Listener ============= Starts
-	/*public void addPerspectiveListener()
-	{
-		try
-		{
-			System.out.println("asdsadas");
-			PlatformUI.getWorkbench().getActiveWorkbenchWindow().addPerspectiveListener(new IPerspectiveListener() {
-				
-				public void perspectiveChanged(IWorkbenchPage page,IPerspectiveDescriptor perspective, String changeId) 
-				{
-					IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-					if(editor!=null)
-					{
-						if(editor.getEditorInput() instanceof TestCaseEditorInput)
-						{
-							System.out.println("Test Case");
-						}
-						else if(editor.getEditorInput() instanceof TestSuiteEditorInput)
-						{
-							System.out.println("Test Suite");
-						}
-						else if(editor.getEditorInput() instanceof ObjectMapEditorInput)
-						{
-							System.out.println("Object Map");
-						}
-						
-						System.out.println(editor.getTitle());
-					}
-				}
-				
-				public void perspectiveActivated(IWorkbenchPage page,IPerspectiveDescriptor perspective) 
-				{
-					
-				}
-			});
-		}
-		catch(Exception e)
-		{
-			System.out.println("[" + getClass().getName() + " addPerspectiveListener()] - Exception : " + e.getMessage());
-			e.printStackTrace();
-		}
-	}*/
-	//Perspective Listener ============= Ends
 	
+	public void addPerspectiveListerner()
+	{
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().addPerspectiveListener(new PerspectiveListener());
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(new EditorListeners());
+	}
 	
 	
 	

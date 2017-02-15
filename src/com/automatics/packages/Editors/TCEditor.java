@@ -352,7 +352,7 @@ public class TCEditor extends EditorPart {
 			DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
 			setDropListener(dropTarget); //Set Drop Listener
 			setListeners();
-			addEditorListerner();
+			//addEditorListerner();
 		}
 		catch(Exception e)
 		{
@@ -363,6 +363,7 @@ public class TCEditor extends EditorPart {
 	
 	public void addEditorListerner()
 	{
+		
 		getEditorSite().getPage().addPartListener(new IPartListener2() {
 			
 			public void partVisible(IWorkbenchPartReference partRef) {
@@ -572,9 +573,9 @@ public class TCEditor extends EditorPart {
 				
 				window.addPerspectiveListener(new PerspectiveListener());
 				IPerspectiveRegistry perspectiveRegistry = window.getWorkbench().getPerspectiveRegistry();
-				IPerspectiveDescriptor openAutomaticsPerspective = perspectiveRegistry.findPerspectiveWithId("org.eclipse.jdt.ui.JavaPerspective");
+				IPerspectiveDescriptor openJavaPerspective = perspectiveRegistry.findPerspectiveWithId("org.eclipse.jdt.ui.JavaPerspective");
 				
-				page.setPerspective(openAutomaticsPerspective);
+				page.setPerspective(openJavaPerspective);
 				
 			}
 		});
@@ -787,13 +788,14 @@ public class TCEditor extends EditorPart {
 			{
 				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
 			}
-			if(!isFocus)
-			{
+			//if(!isFocus)
+			//{
 				TestCaseParamView.currentTask = tcTask;
 				TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 				isFocus = true;
-			}
+			//}
 			
+			/*
 			//Get which perspective
 			IWorkbench wb = PlatformUI.getWorkbench();
 			IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
@@ -810,6 +812,7 @@ public class TCEditor extends EditorPart {
 				        .findPerspectiveWithId(Perspective.perspectiveID);
 				page.setPerspective(openAutomaticsPerspective);
 			}
+			*/
 			
 		}
 		catch(Exception e){

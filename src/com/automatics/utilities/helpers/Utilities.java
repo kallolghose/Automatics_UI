@@ -59,7 +59,7 @@ public class Utilities
 	
 	public static DB getMongoDB()
 	{
-		db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
+		db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
 		return db;
 	}
 	
@@ -492,7 +492,7 @@ public class Utilities
 		    }
 	
 		    IWorkbenchPage page = workbench.getActiveWorkbenchWindow().getActivePage();
-		    page.openEditor(new FileEditorInput(file), editorID, true, IWorkbenchPage.MATCH_INPUT);
+		    page.openEditor(new FileEditorInput(file), editorID, false, IWorkbenchPage.MATCH_INPUT);
 		}
 		catch(Exception e)
 		{

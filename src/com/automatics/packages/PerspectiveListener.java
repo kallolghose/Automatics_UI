@@ -20,63 +20,27 @@ public class PerspectiveListener implements IPerspectiveListener
 
 	public void perspectiveActivated(IWorkbenchPage page,IPerspectiveDescriptor perspective) 
 	{
-		try
+		IEditorPart editor = page.getActiveEditor();
+		
+		if(perspective.getId().equalsIgnoreCase(Perspective.perspectiveID))
 		{
-			IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 			if(editor!=null)
 			{
-				
-				if(editor.getEditorInput() instanceof TestCaseEditorInput)
+				if(page.getActiveEditor().getTitle().contains(".java"))
 				{
-					System.out.println("Here ---- Test Case");
-					System.out.println("Heerere " + editor.getTitle());
-				}
-				else if(editor.getEditorInput() instanceof TestSuiteEditorInput)
-				{
-					System.out.println("Here --- Test Suite");
-				}
-				else if(editor.getEditorInput() instanceof ObjectMapEditorInput)
-				{
-					System.out.println("Here ----- Object Map");
-				}
-				else if(editor.getEditorInput() instanceof FileEditorInput)
-				{
-					String title = editor.getTitle();
-					if(title.contains(".xml")) //If the suite file then open test suite editor
-					{
-						String filename [] = title.split("\\.");
-						TestSuiteEditorInput input = new TestSuiteEditorInput(filename[0]);
-						page.openEditor(input, TestSuiteEditor.ID);
-					}
-					else if(title.contains(".java")) //If testcase or test suite
-					{	
-						IFile file = ((FileEditorInput) editor.getEditorInput()).getFile();
-						String filename [] = title.split("\\.");
-						if(file!=null)
-						{
-							String filePath = file.getFullPath().toString();
-							
-							if(filePath.contains("objectMap"))
-							{
-								System.out.println("My ObjectMap");
-								ObjectMapEditorInput input = new ObjectMapEditorInput(filename[0]);
-								page.openEditor(input, ObjectMapEditor.ID);
-							}
-							else if(filePath.contains("testScripts"))
-							{
-								System.out.println("My TestScripts");
-								TestCaseEditorInput input = new TestCaseEditorInput(filename[0]);
-								page.openEditor(input, TCEditor.ID);
-							}
-						}
-					}
+					System.out.println("Autom CHange");
 				}
 			}
 		}
-		catch(Exception e)
+		else if(perspective.getId().equalsIgnoreCase("org.eclipse.jdt.ui.JavaPerspective"))
 		{
-			System.out.println("[" + getClass().getName() + " : addPerspective()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			if(editor!=null)
+			{
+				if(!page.getActiveEditor().getTitle().contains(".java"))
+				{
+					System.out.println("Java CHngae");
+				}
+			}
 		}
 	}
 
