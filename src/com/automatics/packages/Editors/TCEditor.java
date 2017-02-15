@@ -1,7 +1,7 @@
 package com.automatics.packages.Editors;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.json.JsonObject;
@@ -15,24 +15,12 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorSite;
-import org.eclipse.ui.IPartListener2;
-import org.eclipse.ui.IPerspectiveDescriptor;
-import org.eclipse.ui.IPerspectiveRegistry;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchPartReference;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
-import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
-import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
-import com.automatics.packages.Perspective;
-import com.automatics.packages.PerspectiveListener;
-import com.automatics.packages.Model.TaskService;
 import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.packages.Views.ObjectMap;
@@ -42,23 +30,14 @@ import com.automatics.utilities.alltablestyles.TCObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCOperationColumnEditable;
 import com.automatics.utilities.alltablestyles.TCPageNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCVariableColumnEditable;
-import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
-import com.automatics.utilities.gsons.testcase.TCParams;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
-import com.automatics.utilities.helpers.TableColumnsEditable;
 import com.automatics.utilities.helpers.Utilities;
-import com.automatics.utilities.save.model.ObjectMapSaveService;
-import com.automatics.utilities.save.model.ObjectMapSaveTask;
 
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.RowData;
 import org.eclipse.wb.swt.ResourceManager;
-import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -70,15 +49,9 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
-import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.internal.dialogs.ViewContentProvider;
-import org.eclipse.wb.swt.TableViewerColumnSorter;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
@@ -102,7 +75,7 @@ public class TCEditor extends EditorPart {
 	
 	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor;
 	private boolean isFocus = false;
-	private boolean isjavaeditorOpen = false;
+	//private boolean isjavaeditorOpen = false;
 	
 	private List<TCStepsGSON> listOfTestCaseSteps;
 	private TCStepsGSON gson;
@@ -352,7 +325,6 @@ public class TCEditor extends EditorPart {
 			DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
 			setDropListener(dropTarget); //Set Drop Listener
 			setListeners();
-			//addEditorListerner();
 		}
 		catch(Exception e)
 		{
@@ -361,60 +333,7 @@ public class TCEditor extends EditorPart {
 		}
 	}
 	
-	public void addEditorListerner()
-	{
-		
-		getEditorSite().getPage().addPartListener(new IPartListener2() {
-			
-			public void partVisible(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			public void partOpened(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			public void partInputChanged(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			public void partHidden(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			public void partDeactivated(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				//Code for saving the test parameters when focus is lost
-				isFocus = false;
-				//TCGson tcUpdateGson = tcTask.getTcGson();
-				//List<TCParams> tcsomeParams = TestCaseParamView.getAllTestCaseParameters();
-				//if(tcsomeParams!=null)
-				//{
-				//	tcUpdateGson.tcParams = TestCaseParamView.getAllTestCaseParameters();
-				//	tcTask.setTcGson(tcUpdateGson);
-				//}
-			}
-			
-			public void partClosed(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			public void partBroughtToTop(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				System.out.println("Brought Up : " + tcTask.getTcName());
-			}
-			
-			public void partActivated(IWorkbenchPartReference partRef) {
-				// TODO Auto-generated method stub
-				
-			}
-		});
-	}
+
 	
 	public void setListeners()
 	{
@@ -559,24 +478,28 @@ public class TCEditor extends EditorPart {
 			
 			public void handleEvent(Event event) 
 			{
-				/*
-				IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
-				IPath location = Path.fromOSString("Automation_Suite/ObjectMap/App_Name/" + tcTask.getTcName() + ".java"); 
-				IFile projectFile = workspace.getRoot().getFile(location);
-				Utilities.openEditor(projectFile, null);
-				*/
-				Utilities.createJavaFiles(tcTask.getTcGson());
-				
-				IWorkbench workBench = PlatformUI.getWorkbench();
-				IWorkbenchWindow window = workBench.getActiveWorkbenchWindow();
-				IWorkbenchPage page = window.getActivePage();
-				
-				window.addPerspectiveListener(new PerspectiveListener());
-				IPerspectiveRegistry perspectiveRegistry = window.getWorkbench().getPerspectiveRegistry();
-				IPerspectiveDescriptor openJavaPerspective = perspectiveRegistry.findPerspectiveWithId("org.eclipse.jdt.ui.JavaPerspective");
-				
-				page.setPerspective(openJavaPerspective);
-				
+				try
+				{
+					String fileName = Utilities.createJavaFiles(tcTask.getTcGson());	
+					
+					//Open the editor
+					//Get file path relative the the workspace
+					String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+					File file = new File(fileName);
+					String filePath = file.getAbsolutePath().substring(workspacePath.length()+1);
+					
+					//Open the file
+					IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
+					IPath location = Path.fromOSString(filePath); 
+					IFile projectFile = workspace.getRoot().getFile(location);
+					Utilities.openEditor(projectFile, null);
+					
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " : openEditor.addListener()] - Exception :" + e.getMessage());
+					e.printStackTrace();
+				}
 			}
 		});
 		
@@ -788,31 +711,10 @@ public class TCEditor extends EditorPart {
 			{
 				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
 			}
-			//if(!isFocus)
-			//{
-				TestCaseParamView.currentTask = tcTask;
-				TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
-				isFocus = true;
-			//}
 			
-			/*
-			//Get which perspective
-			IWorkbench wb = PlatformUI.getWorkbench();
-			IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
-			IWorkbenchPage page = window.getActivePage();
-			IPerspectiveDescriptor perspectiveNow = page.getPerspective();
-			String labelID = perspectiveNow.getId();
-			
-			//Change the perspective if not Automatics Perspective
-			if(!labelID.equalsIgnoreCase(Perspective.perspectiveID)) 
-			{
-				IPerspectiveRegistry perspectiveRegistry = window.getWorkbench()
-															.getPerspectiveRegistry();
-				IPerspectiveDescriptor openAutomaticsPerspective = perspectiveRegistry
-				        .findPerspectiveWithId(Perspective.perspectiveID);
-				page.setPerspective(openAutomaticsPerspective);
-			}
-			*/
+			TestCaseParamView.currentTask = tcTask;
+			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
+			isFocus = true;
 			
 		}
 		catch(Exception e){

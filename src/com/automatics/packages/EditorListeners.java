@@ -26,7 +26,7 @@ public class EditorListeners implements IPartListener2
 	public void partBroughtToTop(IWorkbenchPartReference partRef) {
 		try
 		{
-			System.out.println("Some Val : " + partRef.getId() + "   " + partRef.getTitle());
+			//System.out.println("Some Val : " + partRef.getId() + "   " + partRef.getTitle());
 			if(partRef instanceof IEditorReference)
 			{
 				IWorkbench workBench = PlatformUI.getWorkbench();

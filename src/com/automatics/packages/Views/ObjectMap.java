@@ -52,6 +52,7 @@ public class ObjectMap extends ViewPart {
 		
 		objectTree = new Tree(object_composite, SWT.BORDER);
 		
+		
 		/*
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
 		trtmObjectmap.setText("ObjectMap1");
@@ -62,6 +63,7 @@ public class ObjectMap extends ViewPart {
 		
 		TabItem PageName = new TabItem(tabFolder, SWT.NONE);
 		PageName.setText("Page Name");
+		
 		
 		Composite page_composite = new Composite(tabFolder, SWT.NONE);
 		PageName.setControl(page_composite);

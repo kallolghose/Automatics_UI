@@ -3,6 +3,8 @@ package com.automatics.utilities.helpers;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -59,7 +61,8 @@ public class Utilities
 	
 	public static DB getMongoDB()
 	{
-		db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+		db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
+		//db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
 		return db;
 	}
 	
@@ -218,7 +221,7 @@ public class Utilities
 		return null;
 	}
 	
-	public static void createJavaFiles(TCGson tcGson)
+	public static String createJavaFiles(TCGson tcGson)
 	{
 		try
 		{
@@ -274,15 +277,17 @@ public class Utilities
 			}
 			String javaFilePath = folderPath + "\\" + tcGson.tcName + ".java";
 			writeContentstoFile(javaFilePath, javaStmt);
+			return javaFilePath;
 		}
 		catch(Exception e)
 		{
 			System.out.println("[utilities : createJavaFiles ] - Exception :" + e.getMessage());
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
-	public static void createObjectMap(OMGson omGson)
+	public static String createObjectMap(OMGson omGson)
 	{
 		try
 		{
@@ -317,12 +322,14 @@ public class Utilities
 			}
 			String javaFilePath = folderPath + "\\" + omGson.omName + ".java";
 			writeContentstoFile(javaFilePath, javaStmt);
+			return javaFilePath;
 		}
 		catch(Exception e)
 		{
 			System.out.println("[utilities : createObjectMap()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
+		return null;
 	}
 	
 	public static String createTestng(TSGson tsGson, TestSuiteRunnerAPI runner)
@@ -463,15 +470,7 @@ public class Utilities
 				projects[0].refreshLocal(IResource.DEPTH_INFINITE, null);
 			}
 			
-			//Get file path relative the the workspace
-			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			String filePath = file.getAbsolutePath().substring(workspacePath.length()+1);
 			
-			//Open the file
-			IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
-			IPath location = Path.fromOSString(filePath); 
-			IFile projectFile = workspace.getRoot().getFile(location);
-			openEditor(projectFile, null);
 		}
 		catch(Exception e)
 		{
@@ -501,6 +500,29 @@ public class Utilities
 		}
 	} 
 	
+	
+	public static TCGson convertToTestCaseGsonFromContent(InputStream stream)
+	{
+		try
+		{
+			BufferedReader br = new BufferedReader(new InputStreamReader(stream));
+			String temp = "", parseContent = "";
+			boolean startParsing = false;
+			while((temp=br.readLine())!=null)
+			{
+				if(temp.trim().equals("@Test"))
+				{
+					startParsing = true; 
+				}
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[Utilities : convertToTestCaseGsonFromContent()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+		return null;
+	}
 	
 	/**
 	 * validateEntityValues.

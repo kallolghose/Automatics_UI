@@ -34,6 +34,7 @@ import com.automatics.utilities.save.model.ObjectMapSaveService;
 import com.automatics.utilities.save.model.ObjectMapSaveTask;
 import com.google.gson.Gson;
 
+import java.io.File;
 import java.util.*;
 
 import javax.json.JsonObject;
@@ -388,7 +389,26 @@ public class ObjectMapEditor extends EditorPart {
 				
 				public void handleEvent(Event event) 
 				{
-					Utilities.createObjectMap(omTask.getOmGson());
+					try
+					{
+						String fileName = Utilities.createObjectMap(omTask.getOmGson());
+						
+						String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+						File file = new File(fileName);
+						String filePath = file.getAbsolutePath().substring(workspacePath.length()+1);
+						
+						//Open the file
+						IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
+						IPath location = Path.fromOSString(filePath); 
+						IFile projectFile = workspace.getRoot().getFile(location);
+						Utilities.openEditor(projectFile, null);
+						
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + " : openEditor.addListener()] - Exception : " + e.getMessage());
+						e.printStackTrace();
+					}
 				}
 			});
 			
