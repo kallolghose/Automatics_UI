@@ -525,7 +525,12 @@ public class ObjectMapEditor extends EditorPart {
 	@Override
 	public void setFocus() {
 		// TODO Auto-generated method stub
-
+		List<OMDetails> list = (ArrayList<OMDetails>)objectMapTableViewer.getInput();
+		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(omTask.getOmName());
+		list = omTask.getOmGson().omDetails;
+		System.out.println("Here List : " + list);
+		objectMapTableViewer.setInput(list);
+		objectMapTableViewer.refresh();
 	}
 	
 	

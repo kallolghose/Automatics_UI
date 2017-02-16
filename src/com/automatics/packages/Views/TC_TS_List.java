@@ -218,8 +218,9 @@ public class TC_TS_List extends ViewPart {
 		IViewPart objectListView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectList.ID);
 		
 		loadTestSuiteTestCaseTreeView();
-		setListeners();
+
 		addPerspectiveListerner();
+		setListeners();
 		
 		}
 		catch(Exception e)
@@ -416,12 +417,12 @@ public class TC_TS_List extends ViewPart {
 						if(selected[0].getData("eltType").toString().equalsIgnoreCase("TESTCASE"))
 						{
 					        TestCaseEditorInput input = new TestCaseEditorInput(selected[0].getText());
-					        page.openEditor(input, TCEditor.ID);
+					        page.openEditor(input, TCEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
 						}
 						if(selected[0].getData("eltType").toString().equalsIgnoreCase("TESTSUITE"))
 						{
 							TestSuiteEditorInput input = new TestSuiteEditorInput(selected[0].getText());
-							page.openEditor(input, TestSuiteEditor.ID);
+							page.openEditor(input, TestSuiteEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
 						}
 					}
 					catch(Exception e){e.printStackTrace();System.out.println("[TC_TS_List-setlisteners()] : Exception" + e.getMessage());}

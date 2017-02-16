@@ -17,7 +17,6 @@ import com.automatics.packages.Editors.TestSuiteEditorInput;
 
 public class EditorListeners implements IPartListener2
 {
-
 	public void partActivated(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
 		
@@ -36,10 +35,8 @@ public class EditorListeners implements IPartListener2
 				
 				if(editor.getEditorInput() instanceof TestCaseEditorInput)
 				{
-					
 					IPerspectiveRegistry perspectiveRegistry = window.getWorkbench().getPerspectiveRegistry();
 					IPerspectiveDescriptor openAutomaticsPerspective = perspectiveRegistry.findPerspectiveWithId(Perspective.perspectiveID);
-					
 					page.setPerspective(openAutomaticsPerspective);
 				}
 				else if(editor.getEditorInput() instanceof TestSuiteEditorInput)

@@ -61,7 +61,7 @@ public class Utilities
 	
 	public static DB getMongoDB()
 	{
-		db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
+		db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
 		//db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
 		return db;
 	}

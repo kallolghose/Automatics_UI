@@ -48,4 +48,16 @@ public class ObjectMapEditorInput implements IEditorInput {
 		return "Object Map";
 	}
 
+	public boolean equals(Object obj) {
+        if (this == obj)
+                return true;
+        if (obj == null)
+                return false;
+        if (getClass() != obj.getClass())
+                return false;
+        ObjectMapEditorInput other = (ObjectMapEditorInput) obj;
+        if (!id.equals(other.id))
+                return false;
+        return true;
+	}
 }

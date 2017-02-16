@@ -83,7 +83,7 @@ public class ObjectList extends ViewPart {
 					if(selected[0].getData("eltType").toString().equalsIgnoreCase("OBJECTMAP"))
 					{
 						ObjectMapEditorInput input = new ObjectMapEditorInput(selected[0].getText());
-				        page.openEditor(input, ObjectMapEditor.ID);
+				        page.openEditor(input, ObjectMapEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
 					}	
 				}
 				catch(Exception e)
@@ -274,7 +274,7 @@ public class ObjectList extends ViewPart {
 			IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
 			IWorkbenchPage page = window.getActivePage();
 			ObjectMapEditorInput input = new ObjectMapEditorInput(gson.omName);
-			page.openEditor(input, ObjectMapEditor.ID);
+			page.openEditor(input, ObjectMapEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
 			
 			//Save the object map in DB
 			JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, gson));

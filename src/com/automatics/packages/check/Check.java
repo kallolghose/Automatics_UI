@@ -27,12 +27,21 @@ public class Check
 //		runner.setTestSuites(some);
 //		runner.run();
 		
-		File file = new File("D:\\KG00360770\\ATT\\runtime-Automatics.application\\Automation_Suite\\com.automatics.data\\com\\automatics\\data"
+		File fileTC = new File("D:\\KG00360770\\ATT\\runtime-Automatics.application\\Automation_Suite\\com.automatics.data\\com\\automatics\\data"
 				+ "\\testScripts\\FirstTC.java");
-		InputStream stream = new FileInputStream(file);
+		
+		File fileOM = new File("D:\\KG00360770\\ATT\\runtime-Automatics.application\\Automation_Suite\\com.automatics.data\\com\\automatics\\data"
+				+ "\\objectMap\\Google_Demo.java");
+		
+		InputStream stream = new FileInputStream(fileTC);
 		AutomaticsParser parser = new AutomaticsParser();
-		parser.setTcStream(stream);
-		parser.parseContentofTestCase();
-		parser.displayAllDetails();
+		//parser.setTcStream(stream);
+		//parser.parseContentofTestCase();
+		//parser.displayAllTestCaseSteps();
+		InputStream omStream = new FileInputStream(fileOM);
+		parser.setOmStream(omStream);
+		parser.parseContentsOfObjectMap();
+		parser.displayAllObjectMapDetails();
+		
 	}
 }
