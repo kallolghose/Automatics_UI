@@ -716,6 +716,12 @@ public class TCEditor extends EditorPart {
 			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 			isFocus = true;
 			
+			List<TCStepsGSON> list = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+			tcTask = TestCaseTaskService.getInstance().getTaskByTcName(getTitle());
+			list = tcTask.getTcGson().tcSteps;
+			testscriptsViewer.setInput(list);
+			testscriptsViewer.refresh();
+			
 		}
 		catch(Exception e){
 			System.out.println("["+getClass().getName() + " - SetFocus] : Exception "+e.getMessage());
