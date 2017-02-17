@@ -1,4 +1,4 @@
-package com.automatics.packages.Editors;
+ package com.automatics.packages.Editors;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -717,7 +717,7 @@ public class TCEditor extends EditorPart {
 			isFocus = true;
 			
 			List<TCStepsGSON> list = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
-			tcTask = TestCaseTaskService.getInstance().getTaskByTcName(getTitle());
+			tcTask = TestCaseTaskService.getInstance().getTaskByTcName(tcTask.getTcName());
 			list = tcTask.getTcGson().tcSteps;
 			testscriptsViewer.setInput(list);
 			testscriptsViewer.refresh();

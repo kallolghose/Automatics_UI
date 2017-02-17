@@ -69,6 +69,7 @@ public class PerspectiveListener implements IPerspectiveListener
 									AutomaticsParser parse = new AutomaticsParser();
 									parse.setTcStream(file.getContents());
 									List<TCStepsGSON> parseList = parse.parseContentofTestCase();
+									
 									TestCaseTask tcTask = TestCaseTaskService.getInstance().getTaskByTcName(filename[0]);
 									TCGson tcGson = tcTask.getTcGson();
 									tcGson.tcSteps = parseList;

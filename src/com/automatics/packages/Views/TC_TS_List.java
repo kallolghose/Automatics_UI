@@ -102,6 +102,7 @@ public class TC_TS_List extends ViewPart {
 	
 	public TC_TS_List() {
 		// TODO Auto-generated constructor stub
+		
 	}
 
 	public void createPartControl(Composite parent) {
@@ -605,6 +606,30 @@ public class TC_TS_List extends ViewPart {
 					{
 						System.out.println("[" + getClass().getName() + " : pasteItemForTC.addListener()] : Exception : " + e.getMessage());
 						e.printStackTrace();
+					}
+				}
+			});
+			
+			testCaseList.addListener(SWT.MouseDoubleClick, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					try
+					{
+						IWorkbench workbench = PlatformUI.getWorkbench();
+						IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+						IWorkbenchPage page = window.getActivePage();
+						
+						TreeItem selected[] = testCaseList.getSelection();
+						if(selected[0].getData("eltType").toString().equalsIgnoreCase("TESTCASE"))
+						{
+					        TestCaseEditorInput input = new TestCaseEditorInput(selected[0].getText());
+					        page.openEditor(input, TCEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
+						}
+					}
+					catch(Exception e)
+					{
+						e.printStackTrace();
+						System.out.println("[TC_TS_List-setlisteners()] : Exception" + e.getMessage());
 					}
 				}
 			});

@@ -122,8 +122,16 @@ public class AutomaticsParser
 								String pgObj[] = strVals[1].split("\\.")[1].split("__");
 								tcStepGson.stepPageName = pgObj[0];
 								tcStepGson.stepObjName = pgObj[1];
-								tcStepGson.stepArgument = strVals[3];
-								tcStepGson.stepVarName = "";
+								if(strVals.length>3)
+								{
+									tcStepGson.stepArgument = strVals[3];
+									tcStepGson.stepVarName = "";
+								}
+								else
+								{
+									tcStepGson.stepArgument = "";
+									tcStepGson.stepVarName = "";
+								}
 							}
 						}
 						stepNo++;

@@ -31,6 +31,7 @@ public class ObjectMap extends ViewPart {
 	public static String ID = "Automatics.ObjectMap";
 	private static Tree objectNameTree, pageNameTree;
 	private static Tree objectTree;
+	private static TabFolder tabFolder;
 	
 	public ObjectMap() {
 		// TODO Auto-generated constructor stub
@@ -41,7 +42,7 @@ public class ObjectMap extends ViewPart {
 		Composite mainComposite = new Composite(parent, SWT.NONE);
 		mainComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
-		TabFolder tabFolder = new TabFolder(mainComposite, SWT.NONE);
+		tabFolder = new TabFolder(mainComposite, SWT.NONE);
 		
 		TabItem objectItem = new TabItem(tabFolder, SWT.NONE);
 		objectItem.setText("Objects");
@@ -114,6 +115,7 @@ public class ObjectMap extends ViewPart {
 		
 		DragSource dragSource = new DragSource(objectNameTree, DND.DROP_MOVE | DND.DROP_COPY);
 		setDragListeners(dragSource);
+		setListeners();
 	}
 	
 	public void setDragListeners(DragSource source)
@@ -149,40 +151,66 @@ public class ObjectMap extends ViewPart {
 			}
 		});
 		
-		//Set listeners
-		objectTree.addListener(SWT.MouseDown, new Listener() {
-			public void handleEvent(Event event) {
-				// TODO Auto-generated method stub
-				TreeItem [] selected = objectTree.getSelection();
-				String omName = selected[0].getText();
-				if(omName!=null)
-				{
-					loadAllPageName(ObjectMapSaveService.getInstance().getSaveTask(omName));
-				}
-			}
-		});
-		
-		pageNameTree.addListener(SWT.MouseDown, new Listener() {
-			
-			public void handleEvent(Event event) {
-				// TODO Auto-generated method stub
-				try
-				{
-					TreeItem[] selected = pageNameTree.getSelection();
-					String pageName = selected[0].getText();
-					String omName = selected[0].getData("ObjectMapName").toString();
-					if(pageName!=null)
+	}
+	
+	public void setListeners()
+	{
+		try
+		{
+			//Set listeners
+			objectTree.addListener(SWT.MouseDown, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					TreeItem [] selected = objectTree.getSelection();
+					String omName = selected[0].getText();
+					if(omName!=null)
 					{
-						loadAllObjectName(ObjectMapSaveService.getInstance().getSaveTask(omName), pageName);
+						loadAllPageName(ObjectMapSaveService.getInstance().getSaveTask(omName));
 					}
 				}
-				catch(Exception e)
-				{
-					System.out.println("[" + getClass().getName() + "-pageNameTree.addListener - Exception] : " + e.getMessage());
-					e.printStackTrace();
+			});
+			
+			objectTree.addListener(SWT.MouseDoubleClick, new Listener() {
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					tabFolder.setSelection(1);
 				}
-			}
-		});
+			});
+			
+			pageNameTree.addListener(SWT.MouseDown, new Listener() {
+				
+				public void handleEvent(Event event) {
+					// TODO Auto-generated method stub
+					try
+					{
+						TreeItem[] selected = pageNameTree.getSelection();
+						String pageName = selected[0].getText();
+						String omName = selected[0].getData("ObjectMapName").toString();
+						if(pageName!=null)
+						{
+							loadAllObjectName(ObjectMapSaveService.getInstance().getSaveTask(omName), pageName);
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + "-pageNameTree.addListener - Exception] : " + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
+			
+			pageNameTree.addListener(SWT.MouseDoubleClick, new Listener() {
+				public void handleEvent(Event event) 
+				{
+					tabFolder.setSelection(2);	
+				}
+			});
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : setListeners()] - Exception  : " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 	
 	public ArrayList<OMDetails> loadAllPageName(ObjectMapSaveTask omtask)
