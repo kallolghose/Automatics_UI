@@ -8,7 +8,8 @@
    </configIni>
 
    <launcherArgs>
-      <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts</vmArgsMac>
+      <vmArgsMac>-XstartOnFirstThread -Dorg.eclipse.swt.internal.carbon.smallFonts
+      </vmArgsMac>
    </launcherArgs>
 
    <windowImages/>
@@ -38,6 +39,7 @@
       <plugin id="org.apache.batik.css"/>
       <plugin id="org.apache.batik.util"/>
       <plugin id="org.apache.batik.util.gui"/>
+      <plugin id="org.apache.commons.jxpath"/>
       <plugin id="org.eclipse.ant.core"/>
       <plugin id="org.eclipse.compare"/>
       <plugin id="org.eclipse.compare.core"/>
@@ -61,8 +63,10 @@
       <plugin id="org.eclipse.e4.core.commands"/>
       <plugin id="org.eclipse.e4.core.contexts"/>
       <plugin id="org.eclipse.e4.core.di"/>
+      <plugin id="org.eclipse.e4.core.di.annotations"/>
       <plugin id="org.eclipse.e4.core.di.extensions"/>
       <plugin id="org.eclipse.e4.core.services"/>
+      <plugin id="org.eclipse.e4.emf.xpath"/>
       <plugin id="org.eclipse.e4.ui.bindings"/>
       <plugin id="org.eclipse.e4.ui.css.core"/>
       <plugin id="org.eclipse.e4.ui.css.swt"/>
@@ -110,6 +114,7 @@
       <plugin id="org.eclipse.ltk.core.refactoring"/>
       <plugin id="org.eclipse.ltk.ui.refactoring"/>
       <plugin id="org.eclipse.osgi"/>
+      <plugin id="org.eclipse.osgi.compatibility.state" fragment="true"/>
       <plugin id="org.eclipse.osgi.services"/>
       <plugin id="org.eclipse.search"/>
       <plugin id="org.eclipse.swt"/>
@@ -129,7 +134,9 @@
       <plugin id="org.eclipse.ui.win32" fragment="true"/>
       <plugin id="org.eclipse.ui.workbench"/>
       <plugin id="org.eclipse.ui.workbench.texteditor"/>
+      <plugin id="org.tukaani.xz"/>
       <plugin id="org.w3c.css.sac"/>
+      <plugin id="org.w3c.dom.events"/>
       <plugin id="org.w3c.dom.smil"/>
       <plugin id="org.w3c.dom.svg"/>
    </plugins>
@@ -144,5 +151,12 @@
       <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="2" />
    </configurations>
+
+   <preferencesInfo>
+      <targetfile overwrite="false"/>
+   </preferencesInfo>
+
+   <cssInfo>
+   </cssInfo>
 
 </product>

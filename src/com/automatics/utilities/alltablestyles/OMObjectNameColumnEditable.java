@@ -5,6 +5,7 @@ import org.eclipse.jface.viewers.ColumnViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.swt.SWT;
 
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 

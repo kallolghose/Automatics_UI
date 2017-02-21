@@ -78,7 +78,7 @@ public class TCEditor extends EditorPart {
 	//private boolean isjavaeditorOpen = false;
 	
 	private List<TCStepsGSON> listOfTestCaseSteps;
-	private TCStepsGSON gson;
+	private TCStepsGSON copiedGson;
 	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
@@ -202,7 +202,7 @@ public class TCEditor extends EditorPart {
 			
 			TableColumn snoCol = snoViewer.getColumn();
 			snoCol.setResizable(false);
-			snoCol.setWidth(57);
+			snoCol.setWidth(40);
 			snoCol.setText("S.No");
 			
 			TableViewerColumn oprViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
@@ -444,11 +444,14 @@ public class TCEditor extends EditorPart {
 		copyItem.addListener(SWT.Selection, new Listener() {
 			
 			public void handleEvent(Event event) {
-				try{
-				listOfTestCaseSteps=(List<TCStepsGSON>) testscriptsViewer.getInput();
-				 gson=listOfTestCaseSteps.get(testscriptTable.getSelectionIndex());
-				 isDirty = true;
+				try
+				{
+					listOfTestCaseSteps = (List<TCStepsGSON>)testscriptsViewer.getInput();
+					System.out.println(testscriptTable.getSelectionIndex());
+					copiedGson = listOfTestCaseSteps.get(testscriptTable.getSelectionIndex());
+					isDirty = true;
 					firePropertyChange(PROP_DIRTY);
+					
 				}
 				catch(Exception e)
 				{
@@ -457,15 +460,36 @@ public class TCEditor extends EditorPart {
 				}
 			}
 		});
-		pasteItem.addListener(SWT.Selection, new Listener() {
-			
+		
+		pasteItem.addListener(SWT.Selection, new Listener() {	
 			public void handleEvent(Event event) {
-				try{
-				listOfTestCaseSteps.add(testscriptTable.getSelectionIndex(),gson);
-				testscriptsViewer.refresh();
-				isDirty = true;
-				firePropertyChange(PROP_DIRTY);
-			}
+				try
+				{
+					listOfTestCaseSteps = (List<TCStepsGSON>)testscriptsViewer.getInput();
+					TCStepsGSON newStep = new TCStepsGSON();
+					newStep.stepNo = testscriptTable.getSelectionIndex()+1;
+					newStep.stepOperation = copiedGson.stepOperation;
+					newStep.stepPageName = copiedGson.stepPageName;
+					newStep.stepObjName = copiedGson.stepObjName;
+					newStep.stepArgument = copiedGson.stepArgument;
+					newStep.stepVarName = copiedGson.stepVarName;
+					
+					listOfTestCaseSteps.add(testscriptTable.getSelectionIndex(),newStep);
+					
+					//Update the count of the steps
+					List<TCStepsGSON> updatedList = new ArrayList<TCStepsGSON>();
+					int cntr = 1;
+					for(TCStepsGSON step : listOfTestCaseSteps)
+					{
+						step.stepNo = cntr;
+						updatedList.add(step);
+						cntr++;
+					}
+					testscriptsViewer.setInput(updatedList);
+					testscriptsViewer.refresh();
+					isDirty = true;
+					firePropertyChange(PROP_DIRTY);
+				}
 				catch(Exception e)
 				{
 					System.out.println("[" + getClass().getName() + "Paste : addListeners()] - Exception : " + e.getMessage());
@@ -676,6 +700,7 @@ public class TCEditor extends EditorPart {
 						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
+						Utilities.createJavaFiles(tcTask.getTcGson());
 					}
 					else 
 					{

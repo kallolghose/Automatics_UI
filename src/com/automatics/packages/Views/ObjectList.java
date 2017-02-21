@@ -97,6 +97,7 @@ public class ObjectList extends ViewPart {
 		addToTestCase.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
+				System.out.println("YO YO");
 				if(TCEditor.currentTestCase!=null) 
 				{
 					TestCaseTask currentTask = TestCaseTaskService.getInstance().getTaskByTcName(TCEditor.currentTestCase);
@@ -106,7 +107,8 @@ public class ObjectList extends ViewPart {
 					if(selected[0].getData("eltType").toString().equalsIgnoreCase("OBJECTMAP"))
 					{
 						omArr.add(selected[0].getText());
-						ObjectMap.loadObjectMap(selected[0].getText());
+						//ObjectMap.loadObjectMap(selected[0].getText());
+						ObjectMap.addObjectMap(selected[0].getText());
 					}
 					tcGson.tcObjectMapLink = omArr;
 					currentTask.setTcGson(tcGson);

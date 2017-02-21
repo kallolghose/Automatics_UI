@@ -22,9 +22,6 @@ public class TestSuiteExecutor
 	{
 		try
 		{
-//			TestNG runner=new TestNG();
-//			runner.setTestSuites(listofTestSuites);
-//			runner.run();
 			
 			for(String testNgPath : listofTestSuites)
 			{

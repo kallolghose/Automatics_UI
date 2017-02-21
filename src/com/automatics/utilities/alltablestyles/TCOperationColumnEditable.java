@@ -77,8 +77,24 @@ public class TCOperationColumnEditable extends EditingSupport
 		if(value==null)
 			updateVal = "";
 		else
+		{
 			updateVal = value.toString();
+			//Check if the operation contains OBJLOC, if does not contains then add NA
+			OperationGSON opnGson = Utilities.getGSONFromJSON(
+					AutomaticsDBOperationQueries.getOPN(Utilities.getMongoDB(), updateVal).toString(), OperationGSON.class);
+			if(!opnGson.opnStatement.contains("OBJLOC")) 
+			{
+				((TCStepsGSON) element).stepPageName = "NA";
+				((TCStepsGSON) element).stepObjName = "NA";
+			}
+			if(!opnGson.opnStatement.contains("ARG1") && !opnGson.opnStatement.contains("ARG2"))
+			{
+				((TCStepsGSON) element).stepArgument = "NA";
+			}
+			
+		}
 		((TCStepsGSON) element).stepOperation = updateVal; 
+		
 		viewer.update(element, null);
 	}
 

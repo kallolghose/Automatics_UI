@@ -26,7 +26,6 @@ import com.automatics.utilities.helpers.Utilities;
 
 public class TestSuiteDetails extends Shell {
 	private Text testsuiteName;
-	private Text testCaseFilter;
 	private Button btnCancel, btnOk;
 	private Text testsuiteDesc;
 	private Label errLabel;
@@ -86,41 +85,23 @@ public class TestSuiteDetails extends Shell {
 		testsuiteName = new Text(composite, SWT.BORDER);
 		testsuiteName.setBounds(139, 81, 295, 21);
 		
-		Label lblTestCases = new Label(composite, SWT.NONE);
-		lblTestCases.setFont(SWTResourceManager.getFont("Segoe UI", 8, SWT.NORMAL));
-		lblTestCases.setBounds(10, 189, 57, 15);
-		lblTestCases.setText("Test Cases :");
-		
-		testCaseFilter = new Text(composite, SWT.BORDER);
-		testCaseFilter.setBounds(10, 210, 424, 21);
-		
-		Composite composite_2 = new Composite(composite, SWT.BORDER);
-		composite_2.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
-		composite_2.setBounds(10, 237, 424, 91);
-		
 		Label label = new Label(composite, SWT.SEPARATOR | SWT.HORIZONTAL);
-		label.setBounds(0, 334, 444, 15);
-		
-		Label lblAddExistingTest = new Label(composite, SWT.NONE);
-		lblAddExistingTest.setForeground(SWTResourceManager.getColor(SWT.COLOR_WIDGET_BORDER));
-		lblAddExistingTest.setFont(SWTResourceManager.getFont("Segoe UI", 6, SWT.BOLD));
-		lblAddExistingTest.setBounds(73, 191, 191, 13);
-		lblAddExistingTest.setText("(Add Existing Test Case to Test Suite)");
+		label.setBounds(0, 268, 444, 15);
 		
 		btnCancel = new Button(composite, SWT.NONE);
-		btnCancel.setBounds(359, 355, 75, 25);
+		btnCancel.setBounds(359, 289, 75, 25);
 		btnCancel.setText("Cancel");
 		
 		btnOk = new Button(composite, SWT.NONE);
-		btnOk.setBounds(278, 355, 75, 25);
+		btnOk.setBounds(278, 289, 75, 25);
 		btnOk.setText("Create");
 		
 		Label lblTestSuiteDescriptions = new Label(composite, SWT.NONE);
-		lblTestSuiteDescriptions.setBounds(10, 114, 132, 15);
-		lblTestSuiteDescriptions.setText("Test Suite Descriptions :");
+		lblTestSuiteDescriptions.setBounds(10, 114, 124, 15);
+		lblTestSuiteDescriptions.setText("Test Suite Description :");
 		
 		testsuiteDesc = new Text(composite, SWT.BORDER | SWT.MULTI);
-		testsuiteDesc.setBounds(139, 111, 295, 74);
+		testsuiteDesc.setBounds(139, 111, 295, 139);
 		
 		errLabel = new Label(composite, SWT.NONE);
 		errLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
@@ -188,7 +169,7 @@ public class TestSuiteDetails extends Shell {
 	 */
 	protected void createContents() {
 		setText("New Test Suite");
-		setSize(450, 427);
+		setSize(450, 356);
 
 	}
 

@@ -56,13 +56,14 @@ import com.sun.org.apache.xpath.internal.operations.Gte;
 
 public class Utilities 
 {
-	private static DB db = null;
-	public static String PROJECT_NAME = "Automation_Suite";
+	private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+	//public static String PROJECT_NAME = "Automation_Suite";  com.automaticsV1.3
+	public static String PROJECT_NAME = "com.automaticsV1.3";
 	
 	public static DB getMongoDB()
 	{
-		db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
 		//db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+		//db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 		return db;
 	}
 	
@@ -234,7 +235,7 @@ public class Utilities
 			//Create import statements
 			for(String omName : tcGson.tcObjectMapLink)
 			{
-				importObjStmt = importObjStmt +  "\nimport com.automatics.data.objectMap." + omName + ";\n";
+				importObjStmt = importObjStmt +  "\nimport com.automatics.packages.objectMap." + omName + ";\n";
 				orInstantiate = orInstantiate + omName +" " + omName + " = new " + omName + "(driver);\n\t\t";
 				ordetails = ordetails + "PageFactory.initElements(driver," + omName + ");\n\t\t";
 			}
@@ -260,7 +261,7 @@ public class Utilities
 			javaStmt = javaStmt + readAfterContent();
 			
 			
-			javaStmt = javaStmt.replace("<PackageName>", "com.automatics.data.testScripts");
+			javaStmt = javaStmt.replace("<PackageName>", "com.automatics.packages.testScripts");
 			javaStmt = javaStmt.replace("<ORImport>", importObjStmt);
 			javaStmt = javaStmt.replace("<ClassName>", tcGson.tcName);
 			javaStmt = javaStmt.replace("<ORINSTANTIATE>", orInstantiate);
@@ -269,7 +270,7 @@ public class Utilities
 			
 			//Write java to the file
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.data\\com\\automatics\\data\\testScripts"; //com.automatics.data.testScripts
+			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.packages\\com\\automatics\\packages\\testScripts"; //com.automatics.data.testScripts
 			File folderCheck = new File(folderPath);
 			if(!folderCheck.exists())
 			{
@@ -292,12 +293,12 @@ public class Utilities
 		try
 		{
 			String javaStmt = "";
-			String appName = "com.automatics.data.objectMap";
+			String appName = "com.automatics.packages.objectMap";
 			
 			javaStmt = javaStmt + "package " + appName + ";\n\n";
 			javaStmt = javaStmt + "import org.openqa.selenium.*;\n";
 			javaStmt = javaStmt + "import org.openqa.selenium.support.FindBy;\n";
-			javaStmt = javaStmt + "import com.automatics.data.library.common.Utils;\n\n";
+			javaStmt = javaStmt + "import com.automatics.packages.library.common.Utils;\n\n";
 			
 			javaStmt = javaStmt + "public class " + omGson.omName + " {\n\n";
 			for(OMDetails details : omGson.omDetails)
@@ -313,7 +314,7 @@ public class Utilities
 			javaStmt = javaStmt + "\t}\n}";
 			
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.data\\com\\automatics\\data\\objectMap";
+			String folderPath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.packages\\com\\automatics\\packages\\objectMap";
 			//Create folder if does not exists
 			File folderCheck = new File(folderPath);
 			if(!folderCheck.exists())
@@ -389,7 +390,7 @@ public class Utilities
 				}
 				
 				parameter = parameter + "\n\t<classes>\n";
-				parameter = parameter + "\t\t<class name=\"com.automatics.data.testScripts." + tcName + "\"/>\n";
+				parameter = parameter + "\t\t<class name=\"com.automatics.packages.testScripts." + tcName + "\"/>\n";
 				parameter = parameter + "\t</classes>\n";
 				parameter = parameter + "</test>\n";
 				itrCntr ++;
@@ -407,7 +408,7 @@ public class Utilities
 	}
 	
 	
-	private static String beforeafterContentPath = "D:\\KG00360770\\ATT\\Automatic_DC\\Automatics\\RequiredFiles";
+	private static String beforeafterContentPath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "\\RequiredFiles";
 	
 	private static String readBeforeContent()
 	{
@@ -467,7 +468,7 @@ public class Utilities
 			for(int i=0;i<projects.length;i++)
 			{
 				//ResourcesPlugin.getWorkspace().getRoot().getProjects()[0].refreshLocal(IResource.DEPTH_INFINITE, null);
-				projects[0].refreshLocal(IResource.DEPTH_INFINITE, null);
+				projects[i].refreshLocal(IResource.DEPTH_INFINITE, null);
 			}
 			
 			
@@ -534,11 +535,11 @@ public class Utilities
 		final List<String> collvalidityMessage=new ArrayList<String>();
 		Pattern blankCheck = Pattern.compile("^\\s*$");
 		Pattern blankCheck1 = Pattern.compile("^\\d");
-		Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-])");
+		Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-[[:blank:]]	])");
 		
-		final   Matcher  blankCheckForTsName = blankCheck.matcher(str); 
-	    final	Matcher  blankCheckForTsNameForNumberCheck = blankCheck1.matcher(str);
-	    final	Matcher  blankCheckForTsNameForSpecialCherecterCheck = blankCheck2.matcher(str);
+		final Matcher  blankCheckForTsName = blankCheck.matcher(str); 
+	    final Matcher  blankCheckForTsNameForNumberCheck = blankCheck1.matcher(str);
+	    final Matcher  blankCheckForTsNameForSpecialCherecterCheck = blankCheck2.matcher(str);
 
 		if(blankCheckForTsName.find())
 		{ 
@@ -550,7 +551,7 @@ public class Utilities
 		}
 		if(blankCheckForTsNameForSpecialCherecterCheck.find())
 		{ 
-			collvalidityMessage.add("Special Cherecter not allowed in name");
+			collvalidityMessage.add("Special Characters/Space not allowed in name");
 		}
 		return collvalidityMessage;
     }

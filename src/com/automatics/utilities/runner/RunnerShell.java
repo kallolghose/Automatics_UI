@@ -32,7 +32,13 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * RunnerShell.
+ * @author KG00360770
+ *
+ */
 public class RunnerShell extends Shell {
+	
 	private Table testsuiteRunnerTable;
 	private TableViewer testsuiteTableViewer;
 	private List<String> testSuites;
@@ -42,7 +48,7 @@ public class RunnerShell extends Shell {
 	private Text consoleOutputTB;
 	/**
 	 * Launch the application.
-	 * @param args
+	 * @param args {@link String}
 	 */
 	public static void main(String args[]) {
 		try {
@@ -62,7 +68,7 @@ public class RunnerShell extends Shell {
 
 	/**
 	 * Create the shell.
-	 * @param display
+	 * @param parent {@link Display}
 	 */
 	public RunnerShell(Display parent) {  //(Shell parent)
 		super(parent, SWT.DIALOG_TRIM | SWT.MIN);
@@ -201,6 +207,9 @@ public class RunnerShell extends Shell {
 	
 	//My Methods
 	
+	/**
+	 * setListeners.
+	 */
 	public void setListeners()
 	{
 		try
@@ -249,6 +258,9 @@ public class RunnerShell extends Shell {
 		}
 	}
 	
+	/**
+	 * getAllTestSuites.
+	 */
 	public void getAllTestSuites()
 	{
 		try

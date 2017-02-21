@@ -223,6 +223,7 @@ public class ObjectMap extends ViewPart {
 			ArrayList<OMDetails> pageNames = new ArrayList<OMDetails>();
 			TreeItem pageRoot = new TreeItem(pageNameTree, SWT.NONE);
 			pageRoot.setText(omtask.getOmName());
+			
 
 			OMGson omGson = omtask.getOmGson();
 			Iterator<OMDetails> itr = omGson.omDetails.iterator();
@@ -245,6 +246,7 @@ public class ObjectMap extends ViewPart {
 				pageItems.setText(pageName);
 				pageItems.setData("ObjectMapName", omName);
 			}
+			pageRoot.setExpanded(true);
 			return pageNames;
 		}
 		catch(Exception e)
@@ -279,6 +281,7 @@ public class ObjectMap extends ViewPart {
 					objectItems.setData("eltData", details);
 				}
 			}
+			objectRoot.setExpanded(true);
 			return objectNames;
 		}
 		catch(Exception e)
@@ -299,6 +302,14 @@ public class ObjectMap extends ViewPart {
 		ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
 		trtmObjectmap.setText(omT.getOmName());
+		trtmObjectmap.setData("eltType","OBJECTMAP");
+	}
+	
+	public static void addObjectMap(String omName)
+	{
+		System.out.println("Here");
+		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
+		trtmObjectmap.setText(omName);
 		trtmObjectmap.setData("eltType","OBJECTMAP");
 	}
 	

@@ -28,6 +28,9 @@ public class TCArgumentsColumnEditable extends EditingSupport
 	@Override
 	protected boolean canEdit(Object element) {
 		// TODO Auto-generated method stub
+		TCStepsGSON gson = (TCStepsGSON)element;
+		if(gson.stepArgument.equals("NA"))
+			return false;
 		return true;
 	}
 

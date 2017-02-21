@@ -108,6 +108,7 @@ public class ObjectMapEditor extends EditorPart {
 						//Utilities.createObjectMap(saveGSON);
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
+						Utilities.createObjectMap(omTask.getOmGson());
 					}
 					else 
 					{
@@ -484,6 +485,7 @@ public class ObjectMapEditor extends EditorPart {
 						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
+						Utilities.createObjectMap(omTask.getOmGson());
 					}
 					else 
 					{

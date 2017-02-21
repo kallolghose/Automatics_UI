@@ -270,14 +270,18 @@ public class TC_TS_List extends ViewPart {
 					tsService.addTasks(tsTask);
 				}
 				
-				Iterator<TSTCGson> itr = tsGson.tsTCLink.iterator();
-				while(itr.hasNext())
+				List<TSTCGson> allTestCasesInTestSuite = tsGson.tsTCLink; 
+				if(allTestCasesInTestSuite !=null)
 				{
-					TSTCGson tstcGson = itr.next();
-					TreeItem testsuite_testcaseItem = new TreeItem(testSuiteItem, SWT.NONE);
-					testsuite_testcaseItem.setText(tstcGson.tcName);
-					testsuite_testcaseItem.setData("eltType","TESTCASE");
-					testsuite_testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
+					Iterator<TSTCGson> itr = allTestCasesInTestSuite.iterator();
+					while(itr.hasNext())
+					{
+						TSTCGson tstcGson = itr.next();
+						TreeItem testsuite_testcaseItem = new TreeItem(testSuiteItem, SWT.NONE);
+						testsuite_testcaseItem.setText(tstcGson.tcName);
+						testsuite_testcaseItem.setData("eltType","TESTCASE");
+						testsuite_testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
+					}
 				}
 			}
 			
@@ -919,6 +923,7 @@ public class TC_TS_List extends ViewPart {
 			TreeItem parent = testCaseList.getItem(0);
 			TreeItem testcaseItem = new TreeItem(parent,SWT.NONE);
 			testcaseItem.setData("eltType","TESTCASE"); //Set the type of object (Here TESTCASE)
+			testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 			testcaseItem.setText(gson.tcName);
 			
 			//Add the new task to the DB

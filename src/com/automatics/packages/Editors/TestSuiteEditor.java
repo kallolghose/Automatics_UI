@@ -217,7 +217,7 @@ public class TestSuiteEditor extends EditorPart {
 		});
 		TableColumn tblclmnColumn = tableViewerColumn.getColumn();
 		tblclmnColumn.setWidth(110);
-		tblclmnColumn.setText("Column1");
+		tblclmnColumn.setText("Exe_Platform");
 		tableViewerColumn.setEditingSupport(new TSFirstColumnEditable(testsuiteviewer));
 		
 		TableViewerColumn tableViewerColumn_1 = new TableViewerColumn(testsuiteviewer, SWT.NONE);
@@ -236,7 +236,7 @@ public class TestSuiteEditor extends EditorPart {
 		});
 		TableColumn tblclmnColumn_1 = tableViewerColumn_1.getColumn();
 		tblclmnColumn_1.setWidth(110);
-		tblclmnColumn_1.setText("Column 2");
+		tblclmnColumn_1.setText("Exe_Type");
 		tableViewerColumn_1.setEditingSupport(new TSSecondColumnEditable(testsuiteviewer));
 		
 		TableViewerColumn tableViewerColumn_2 = new TableViewerColumn(testsuiteviewer, SWT.NONE);
@@ -255,7 +255,7 @@ public class TestSuiteEditor extends EditorPart {
 		});
 		TableColumn tblclmnColumn_2 = tableViewerColumn_2.getColumn();
 		tblclmnColumn_2.setWidth(100);
-		tblclmnColumn_2.setText("Column3");
+		tblclmnColumn_2.setText("Run_On");
 		tableViewerColumn_2.setEditingSupport(new TSThirdColumnEditable(testsuiteviewer));
 		
 		TableViewerColumn tableViewerColumn_3 = new TableViewerColumn(testsuiteviewer, SWT.NONE);
@@ -602,6 +602,7 @@ public class TestSuiteEditor extends EditorPart {
 					AutomaticsDBTestSuiteQueries.updateTS(Utilities.getMongoDB(), tsTask.getTsName(), jsonObj);
 					isDirty = false;
 					firePropertyChange(PROP_DIRTY);
+					
 				}
 				else 
 				{

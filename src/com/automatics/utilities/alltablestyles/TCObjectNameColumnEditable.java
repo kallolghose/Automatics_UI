@@ -28,6 +28,7 @@ public class TCObjectNameColumnEditable extends EditingSupport{
 	@Override
 	protected boolean canEdit(Object element) {
 		// TODO Auto-generated method stub
+		
 		TCStepsGSON step = (TCStepsGSON)element;
 		if(step.stepObjName.equals("NA"))
 			return false;
