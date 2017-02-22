@@ -17,7 +17,9 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Button;
 
+import com.automatics.packages.Views.ObjectMap;
 import com.automatics.packages.Views.TC_TS_List;
+import com.automatics.packages.Views.TestCaseParamView;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
@@ -132,8 +134,14 @@ public class TestCaseDetails extends Shell {
 		
 		btnOk.addListener(SWT.MouseDown, new Listener() {
 			public void handleEvent(Event event) {
-				// TODO Auto-generated method stub
 				//Perform validations
+				errLabel.setVisible(false);
+				if(testcaseName.getText().equalsIgnoreCase(""))
+				{
+					errLabel.setText("Please enter test case name");
+					errLabel.setVisible(true);
+					return;
+				}
 				
 				final List<String> collValidityMessage=Utilities.validateEntityValues(testcaseName.getText());
 				for (String validityMessage : collValidityMessage) {
@@ -142,7 +150,13 @@ public class TestCaseDetails extends Shell {
 					return;
 				}
 				
-				errLabel.setVisible(false);
+				if(testcaseDesc.getText().equalsIgnoreCase(""))
+				{
+					errLabel.setText("Please enter test case description");
+					errLabel.setVisible(true);
+					return;
+				}
+				
 				String tsDrescriptor=testcaseDesc.getText();
 				final List<String> colldescriptionMessage=Utilities.validateDescriptionValue(tsDrescriptor);
 				for (String message : colldescriptionMessage) {
@@ -150,20 +164,7 @@ public class TestCaseDetails extends Shell {
 					errLabel.setVisible(true);
 					return;
 				}
-
 				
-				if(testcaseName.getText().equalsIgnoreCase(""))
-				{
-					errLabel.setText("Please enter test case name");
-					errLabel.setVisible(true);
-					return;
-				}
-				if(testcaseDesc.getText().equalsIgnoreCase(""))
-				{
-					errLabel.setText("Please enter test case description");
-					errLabel.setVisible(true);
-					return;
-				}
 				if(applicationType.getText().equalsIgnoreCase(""))
 				{
 					errLabel.setText("Please select application type");
@@ -196,7 +197,17 @@ public class TestCaseDetails extends Shell {
 				tcData.tcObjectMapLink = null;
 				tcData.tcSteps = step;
 				tcData.tcParams = null;
+				/*
+				 * Remove contents from
+				 * 1. TestCaseParamViewer (Bottom View)
+				 * 2. ObjectMap Viewer (Left Panel View)
+				 */
+				
+				TestCaseParamView.disposeTableColumns(); //#1
+				ObjectMap.disposeObjMaps(); //#2
+				
 				TC_TS_List.addTestCase(tcData);
+				
 				dispose();
 			}
 		});

@@ -737,6 +737,7 @@ public class TCEditor extends EditorPart {
 				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
 			}
 			
+			
 			TestCaseParamView.currentTask = tcTask;
 			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 			isFocus = true;

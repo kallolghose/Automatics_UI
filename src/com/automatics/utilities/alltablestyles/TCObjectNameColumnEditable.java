@@ -1,34 +1,43 @@
 package com.automatics.utilities.alltablestyles;
 
-import org.eclipse.debug.internal.ui.sourcelookup.UpAction;
+import java.util.ArrayList;
+import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.EditingSupport;
-import org.eclipse.jface.viewers.TextCellEditor;
-
+import org.eclipse.swt.SWT;
+import com.automatics.packages.Views.ObjectMap;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 
 public class TCObjectNameColumnEditable extends EditingSupport{
 
 	private TableViewer viewer;
-	private CellEditor editor;
+	private ComboBoxViewerCellEditor editor = null;
+	private static ArrayList<String> allObjectMaps = null;
+	
 	public TCObjectNameColumnEditable(TableViewer viewer) {
 		super(viewer);
 		this.viewer = viewer;
-		editor = new TextCellEditor(this.viewer.getTable());
-		// TODO Auto-generated constructor stub
+		editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
 	}
 
 	@Override
 	protected CellEditor getCellEditor(Object element) {
-		// TODO Auto-generated method stub
-		return editor;
+		if(allObjectMaps!=null)
+		{
+			if(allObjectMaps.size()>0)
+			{
+				this.editor.setContenProvider(new ArrayContentProvider());
+				this.editor.setInput(allObjectMaps);
+				return editor;
+			}
+		}
+		return null;
 	}
 
 	@Override
 	protected boolean canEdit(Object element) {
-		// TODO Auto-generated method stub
-		
 		TCStepsGSON step = (TCStepsGSON)element;
 		if(step.stepObjName.equals("NA"))
 			return false;
@@ -37,18 +46,21 @@ public class TCObjectNameColumnEditable extends EditingSupport{
 
 	@Override
 	protected Object getValue(Object element) {
-		// TODO Auto-generated method stub
 		return ((TCStepsGSON)element).stepObjName;
 	}
 
 	@Override
 	protected void setValue(Object element, Object value) {
-		// TODO Auto-generated method stub
 		String updateVal = "";
 		if(value!=null)
 			updateVal = value.toString();
 		((TCStepsGSON) element).stepObjName = updateVal; 
 		viewer.update(element, null);
 	}
-
+	
+	public static void setObjectsArrayList(String pageName)
+	{
+		//Get from ObjectMap.java file
+		allObjectMaps = ObjectMap.getPageNameObjectMapping().get(pageName);
+	}
 }

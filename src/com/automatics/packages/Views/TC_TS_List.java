@@ -8,23 +8,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.json.JsonArray;
 import javax.json.JsonObject;
-import javax.json.JsonValue;
 
-import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.jface.window.Window;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IPerspectiveDescriptor;
-import org.eclipse.ui.IPerspectiveListener;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.handlers.HandlerUtil;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.wb.swt.ResourceManager;
@@ -41,25 +33,19 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.IPackageFragment;
 import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.dialogs.MessageDialog;
 
-import com.automatics.mongo.packages.AutomaticsDBConnection;
-import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
 import com.automatics.packages.EditorListeners;
 import com.automatics.packages.PerspectiveListener;
-import com.automatics.packages.Editors.ObjectMapEditorInput;
 import com.automatics.packages.Editors.TCEditor;
 import com.automatics.packages.Editors.TestCaseEditorInput;
 import com.automatics.packages.Editors.TestSuiteEditor;
@@ -69,9 +55,7 @@ import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.packages.Model.TestSuiteTask;
 import com.automatics.packages.Model.TestSuiteTaskService;
 import com.automatics.utilities.elements.Project;
-import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
-import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
@@ -109,6 +93,10 @@ public class TC_TS_List extends ViewPart {
 		try
 		{
 		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
+		
+		//Show object list view
+		PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectList.ID);
+				
 		
 		Composite mainComposite = new Composite(parent, SWT.NONE);
 		mainComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
@@ -213,13 +201,7 @@ public class TC_TS_List extends ViewPart {
 		
 		testCaseList = new Tree(testcaseListComposite, SWT.BORDER);
 		
-		
-		// TODO Auto-generated method stub
-		//Show object list view
-		IViewPart objectListView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(ObjectList.ID);
-		
 		loadTestSuiteTestCaseTreeView();
-
 		addPerspectiveListerner();
 		setListeners();
 		
@@ -872,7 +854,7 @@ public class TC_TS_List extends ViewPart {
 					testcaseItem.setText(gson.tcName);
 					
 					//Add the test case to test suite as well
-					String tsName = selectedNode[0].getText();
+					String tsName = parent.getText();
 					TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
 					TestSuiteTask tsTask = tsService.getTaskByTSName(tsName);
 					TSGson  tsGson = tsTask.getTsGson();

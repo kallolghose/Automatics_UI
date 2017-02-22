@@ -62,7 +62,7 @@ public class ObjectList extends ViewPart {
 		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		omListTree = new Tree(composite, SWT.BORDER);
-		// TODO Auto-generated method stub
+		
 		loadOMList();
 		setListerners();
 	}
@@ -97,7 +97,6 @@ public class ObjectList extends ViewPart {
 		addToTestCase.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				// TODO Auto-generated method stub
-				System.out.println("YO YO");
 				if(TCEditor.currentTestCase!=null) 
 				{
 					TestCaseTask currentTask = TestCaseTaskService.getInstance().getTaskByTcName(TCEditor.currentTestCase);
@@ -190,7 +189,7 @@ public class ObjectList extends ViewPart {
 	public void loadOMList()
 	{
 		try
-		{
+		{	
 			TreeItem root = new TreeItem(omListTree, SWT.NONE);
 			root.setText("App_Name");
 			root.setData("eltType","APPNAME");

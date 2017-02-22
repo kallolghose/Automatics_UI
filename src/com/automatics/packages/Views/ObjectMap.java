@@ -1,7 +1,9 @@
 package com.automatics.packages.Views;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.ViewPart;
@@ -33,10 +35,18 @@ public class ObjectMap extends ViewPart {
 	private static Tree objectTree;
 	private static TabFolder tabFolder;
 	
+	/*
+	 * Risk involved in case user uses more than 2 object maps and each contains a same page name then only one object map 
+	 * will be reflected (which ever would be last one)
+	 */
+	private static HashMap<String,String> pageName_ObjectMapName = new HashMap<String,String>();
+	private static HashMap<String,ArrayList<String>> pageName_objectName = new HashMap<String,ArrayList<String>>();
+	
 	public ObjectMap() {
 		// TODO Auto-generated constructor stub
 	}
-
+	
+	
 	public void createPartControl(Composite parent) {
 		
 		Composite mainComposite = new Composite(parent, SWT.NONE);
@@ -52,15 +62,6 @@ public class ObjectMap extends ViewPart {
 		object_composite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		objectTree = new Tree(object_composite, SWT.BORDER);
-		
-		
-		/*
-		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
-		trtmObjectmap.setText("ObjectMap1");
-		
-		TreeItem trtmObjectmap_1 = new TreeItem(objectTree, SWT.NONE);
-		trtmObjectmap_1.setText("ObjectMap2");
-		*/
 		
 		TabItem PageName = new TabItem(tabFolder, SWT.NONE);
 		PageName.setText("Page Name");
@@ -233,11 +234,6 @@ public class ObjectMap extends ViewPart {
 				OMDetails details = itr.next();
 				pageNames.add(details);
 				pageNameList.add(details.pageName);
-				/*
-				TreeItem pageItems = new TreeItem(pageRoot, SWT.NONE);
-				pageItems.setText(details.pageName);
-				pageItems.setData("ObjectMapName", omName);
-				*/
 			}
 			pageNameList = Utilities.removeDuplicatesFromArrayList(pageNameList);
 			for(String pageName : pageNameList)
@@ -299,10 +295,34 @@ public class ObjectMap extends ViewPart {
 		{
 			objectTree.getItem(0).dispose();
 		}
+		
 		ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
-		trtmObjectmap.setText(omT.getOmName());
+		trtmObjectmap.setText(omName);
 		trtmObjectmap.setData("eltType","OBJECTMAP");
+		
+		//Create the hashmap for new loaded object map
+		pageName_ObjectMapName = new HashMap<String,String>();
+		pageName_objectName = new HashMap<String,ArrayList<String>>();
+		OMGson omGson = omT.getOmGson();
+		List<OMDetails> omDetails = omGson.omDetails;
+		for(OMDetails details : omDetails)
+		{
+			pageName_ObjectMapName.put(details.pageName, omName);
+			ArrayList<String> objects;
+			if(pageName_objectName.get(details.pageName)==null)
+			{
+				objects = new ArrayList<String>();
+				objects.add(details.objName);
+			}
+			else
+			{
+				objects = pageName_objectName.get(details.pageName);
+				objects.add(details.objName);
+			}
+			pageName_objectName.put(details.pageName, objects);
+		}
+		
 	}
 	
 	public static void addObjectMap(String omName)
@@ -311,7 +331,57 @@ public class ObjectMap extends ViewPart {
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
 		trtmObjectmap.setText(omName);
 		trtmObjectmap.setData("eltType","OBJECTMAP");
+		
+		//Add the task to the data
+		ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
+		OMGson omGson = omT.getOmGson();
+		List<OMDetails> omDetails = omGson.omDetails;
+		for(OMDetails details : omDetails)
+		{
+			pageName_ObjectMapName.put(details.pageName, omName);
+			ArrayList<String> objects;
+			if(pageName_objectName.get(details.pageName)==null)
+			{
+				objects = new ArrayList<String>();
+				objects.add(details.objName);
+			}
+			else
+			{
+				objects = pageName_objectName.get(details.pageName);
+				objects.add(details.objName);
+			}
+			pageName_objectName.put(details.pageName, objects);
+		}
 	}
+	
+	public static HashMap<String,String> getPageNameObjectMapMapping()
+	{
+		return pageName_ObjectMapName;
+	}
+	
+	public static HashMap<String,ArrayList<String>> getPageNameObjectMapping()
+	{
+		return pageName_objectName;
+	}
+	
+	public static ArrayList<String> getPageNamesAddedToObjectMap()
+	{
+		try
+		{
+			ArrayList<String> pgList = new ArrayList<String>();
+			Iterator<String> itr = pageName_ObjectMapName.keySet().iterator();
+			while(itr.hasNext())
+			{
+				pgList.add(itr.next());
+			}
+			return pgList;
+		}
+		catch(Exception e)
+		{
+			return null;
+		}
+	}
+	
 	
 	public static void disposeObjMaps()
 	{
@@ -378,7 +448,6 @@ public class ObjectMap extends ViewPart {
 	}
 
 	public void setFocus() {
-		// TODO Auto-generated method stub
 
 	}
 }

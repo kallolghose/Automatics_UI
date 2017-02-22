@@ -14,6 +14,9 @@ import org.eclipse.ui.part.FileEditorInput;
 import com.automatics.packages.Editors.ObjectMapEditorInput;
 import com.automatics.packages.Editors.TestCaseEditorInput;
 import com.automatics.packages.Editors.TestSuiteEditorInput;
+import com.automatics.packages.Model.TestCaseTask;
+import com.automatics.packages.Model.TestCaseTaskService;
+import com.automatics.packages.Views.ObjectMap;
 
 public class EditorListeners implements IPartListener2
 {
@@ -25,7 +28,6 @@ public class EditorListeners implements IPartListener2
 	public void partBroughtToTop(IWorkbenchPartReference partRef) {
 		try
 		{
-			//System.out.println("Some Val : " + partRef.getId() + "   " + partRef.getTitle());
 			if(partRef instanceof IEditorReference)
 			{
 				IWorkbench workBench = PlatformUI.getWorkbench();
@@ -38,6 +40,17 @@ public class EditorListeners implements IPartListener2
 					IPerspectiveRegistry perspectiveRegistry = window.getWorkbench().getPerspectiveRegistry();
 					IPerspectiveDescriptor openAutomaticsPerspective = perspectiveRegistry.findPerspectiveWithId(Perspective.perspectiveID);
 					page.setPerspective(openAutomaticsPerspective);
+					
+					//Also need to change the view of objectmap
+					TestCaseEditorInput input = (TestCaseEditorInput) editor.getEditorInput();
+					TestCaseTask tcTask = TestCaseTaskService.getInstance().getTaskByTcName(input.getId());
+					if(tcTask.getTcGson().tcObjectMapLink!=null)
+					{
+						for(String omName : tcTask.getTcGson().tcObjectMapLink)
+						{
+							ObjectMap.loadObjectMap(omName);
+						}
+					}
 				}
 				else if(editor.getEditorInput() instanceof TestSuiteEditorInput)
 				{

@@ -339,7 +339,16 @@ public class TestSuiteEditor extends EditorPart {
 								paramList.add(newParam);
 							}
 							newtsDetails.tcParams = paramList;
-							list.add(newtsDetails);
+							if(list == null)
+							{
+								list = new ArrayList<TSTCGson>();
+								list.add(newtsDetails);
+								testsuiteviewer.setInput(list);
+							}
+							else
+							{
+								list.add(newtsDetails);
+							}
 							testsuiteviewer.refresh();
 							isDirty = true;
 							firePropertyChange(PROP_DIRTY);

@@ -14,18 +14,18 @@ import org.testng.TestListenerAdapter;
 import org.testng.TestNG;
 import org.testng.annotations.*;
 
-import com.automatics.data.library.common.ExportReport;
-import com.automatics.data.library.common.Reporter;
-import com.automatics.data.library.common.Utils;
-import com.automatics.data.library.common.Web;
-import com.automatics.data.objectMap.CopyOfGoogle_Demo_OM;
-import com.automatics.data.objectMap.Google_Demo_OM;
+import com.automatics.packages.library.common.ExportReport;
+import com.automatics.packages.library.common.Reporter;
+import com.automatics.packages.library.common.Utils;
+import com.automatics.packages.library.common.Web;
+import com.automatics.packages.objectMap.CopyOfGoogle_Demo_OM;
+import com.automatics.packages.objectMap.Google_Demo_OM;
 import com.google.gson.JsonObject;
 import com.itextpdf.text.DocumentException;
 
 <ORImport>
 
-public class <ClassName>  extends com.automatics.data.beforeSuite.Suite {
+public class <ClassName>  extends com.automatics.packages.beforeSuite.Suite {
 	
 	@BeforeTest
 	public void beforetest(final ITestContext testContext) throws JSONException, org.json.simple.parser.ParseException, FileNotFoundException, DocumentException {

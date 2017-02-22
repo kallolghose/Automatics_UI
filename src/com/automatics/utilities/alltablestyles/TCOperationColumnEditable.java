@@ -19,8 +19,8 @@ import com.automatics.utilities.helpers.Utilities;
 public class TCOperationColumnEditable extends EditingSupport
 {
 	private TableViewer viewer = null;
-	//private CellEditor editor = null;
 	private ComboBoxViewerCellEditor editor = null;
+	
 	
 	public TCOperationColumnEditable(TableViewer viewer) {
 

@@ -185,9 +185,21 @@ public class TestCaseParamView extends ViewPart {
 					if(getNewTestParam.open() == Window.OK)
 					{
 						ArrayList<ArrayList<String>> ipData = (ArrayList<ArrayList<String>>)testcaseParamViewer.getInput();
-						for(ArrayList<String> data : ipData)
+						if(ipData!=null) //If some value then append the new value
 						{
+							for(ArrayList<String> data : ipData)
+							{
+								data.add("");
+							}
+						}
+						else //If the value is not present then create the same
+						{
+							ArrayList<String> data = new ArrayList<String>();
 							data.add("");
+							ipData = new ArrayList<ArrayList<String>>();
+							ipData.add(data);
+							testcaseParamViewer.setInput(ipData);
+							testcaseParamViewer.refresh();
 						}
 						
 						int index = testcaseParamTable.getColumnCount();
@@ -279,18 +291,6 @@ public class TestCaseParamView extends ViewPart {
 		}
 	}
 	
-	/*
-	private void addEditorSupport(TableViewer tv) {
-		final CellNavigationStrategy cellNavigation = createCellNavigationStrategy(tv);
-		final TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(tv, new FocusCellOwnerDrawHighlighter(tv), cellNavigation);
-		final ColumnViewerEditorActivationStrategy activationStrategy = createEditorActivationStrategy(tv);
-		TableViewerEditor.create(tv, focusCellManager, activationStrategy, 
-				ColumnViewerEditor.TABBING_HORIZONTAL 
-				| ColumnViewerEditor.TABBING_MOVE_TO_ROW_NEIGHBOR
-				| ColumnViewerEditor.TABBING_VERTICAL 
-				| ColumnViewerEditor.KEYBOARD_ACTIVATION);
-		tv.getColumnViewerEditor().addEditorActivationListener(createEditorActivationListener(tv));
-	}*/
 	
 	private void addEditorToColumnHeader(TableViewer viewer)
 	{
@@ -337,12 +337,8 @@ public class TestCaseParamView extends ViewPart {
 			}
 			
 			public void dragSetData(DragSourceEvent event) {
-				// TODO Auto-generated method stub
 				try
 				{
-					//DragSource ds = (DragSource) event.widget;
-			        //Table table = (Table) ds.getControl();
-			        //TableItem [] selection = table.getSelection();
 			        event.data = "PARAMS__TEST{" + draggedColumnName +"}";
 				}
 				catch(Exception e)
@@ -455,6 +451,24 @@ public class TestCaseParamView extends ViewPart {
 		return null;
 	}
 
+	public static void disposeTableColumns()
+	{
+		try
+		{
+			testcaseParamViewer.setInput(null);
+			testcaseParamViewer.refresh();
+			while(testcaseParamTable.getColumnCount()>0)
+			{
+				testcaseParamTable.getColumns()[0].dispose();
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[TestCaseParamView : removeTableColumns()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void setFocus() {
 		// TODO Auto-generated method stub

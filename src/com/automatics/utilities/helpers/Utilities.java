@@ -56,7 +56,8 @@ import com.sun.org.apache.xpath.internal.operations.Gte;
 
 public class Utilities 
 {
-	private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+	//private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+	private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 	//public static String PROJECT_NAME = "Automation_Suite";  com.automaticsV1.3
 	public static String PROJECT_NAME = "com.automaticsV1.3";
 	
@@ -535,7 +536,8 @@ public class Utilities
 		final List<String> collvalidityMessage=new ArrayList<String>();
 		Pattern blankCheck = Pattern.compile("^\\s*$");
 		Pattern blankCheck1 = Pattern.compile("^\\d");
-		Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-[[:blank:]]	])");
+		//Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-[[:blank:]]])");
+		Pattern blankCheck2 = Pattern.compile("[^A-Za-z0-9]+");
 		
 		final Matcher  blankCheckForTsName = blankCheck.matcher(str); 
 	    final Matcher  blankCheckForTsNameForNumberCheck = blankCheck1.matcher(str);
