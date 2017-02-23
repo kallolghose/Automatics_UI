@@ -9,10 +9,12 @@ public class GitPerformOperations
 		//gitUtil.init();
 		//gitUtil.createLocalRepositary();
 		//gitUtil.cloneRepository();
-		//gitUtil.performPull();
+
 		gitUtil.initExistingRepository();
-		gitUtil.addToRepository(".");
-		gitUtil.performCommit();
-		gitUtil.performPush();
+		//gitUtil.performPull();
+//		gitUtil.addToRepository(".");
+//		gitUtil.performCommit();
+//		gitUtil.performPush();
+		gitUtil.getSync();
 	}
 }

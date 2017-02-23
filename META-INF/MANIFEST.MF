@@ -27,5 +27,9 @@ Bundle-ClassPath: .,
  jar/gson-2.3.1.jar,
  jar/testng-6.8.5.jar,
  jar/jcommander.jar,
+ jar/log4j-1.2.15.jar,
+ jar/jsch-0.1.42.jar,
+ jar/slf4j-api-1.7.23.jar,
+ jar/slf4j-log4j12-1.7.23.jar,
  swing2swt.jar
 Import-Package: org.eclipse.core.resources
