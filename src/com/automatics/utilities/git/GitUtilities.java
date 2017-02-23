@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.internal.storage.file.FileRepository;
 import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig.Host;
@@ -49,15 +50,28 @@ public class GitUtilities
 		{
 			String local_path = this.gitProperties.getProperty("LOCAL_PATH");
 			File dir = new File(local_path);
-			//Initialize repository
-//			this.localRepo = new FileRepository(local_path + "/.git");
-//			this.git = new Git(this.localRepo);
 			this.git = Git.init().setDirectory(dir).call();
 		}
 		catch(Exception e)
 		{
 			System.out.println("[GitUtilities : init()] - Exception  : " + e.getMessage());
 			e.printStackTrace();
+		}
+	}
+	
+	public void initExistingRepository()
+	{
+		try
+		{
+			String localRepoPath = this.gitProperties.getProperty("LOCAL_PATH");
+			File file = new File(localRepoPath);
+			//FileRepositoryBuilder builder = new FileRepositoryBuilder();
+			//Repository repository = builder.setGitDir(file).readEnvironment().findGitDir().build();
+			this.git = Git.open(file);
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : initExistingRepository()] - Exception : " + e.getMessage());
 		}
 	}
 	
@@ -91,7 +105,6 @@ public class GitUtilities
 			String remotePath = this.gitProperties.getProperty("REMOTE_PATH");
 			String localPath = this.gitProperties.getProperty("LOCAL_PATH");
 			Git.cloneRepository().setURI(remotePath)
-								 .setProgressMonitor(monitor)
 								 .setDirectory(new File(localPath)).call();
 			System.out.println("[" + new Date() + "] GIT : Repository cloned at " + localPath);
 		}
@@ -120,7 +133,8 @@ public class GitUtilities
 	{
 		try
 		{
-			this.git.commit().setMessage("Committed on " + new Date());
+			this.git.commit().setMessage("Committed on " + new Date()).call();
+			//this.git.commit().setAll(true).setMessage("Commit changes to all files").call();
 			System.out.println("[" + new Date() + "] GIT : Commit Performed ");
 		}
 		catch(Exception e)
@@ -134,6 +148,13 @@ public class GitUtilities
 	{
 		try
 		{
+			SshSessionFactory.setInstance(new JschConfigSessionFactory() {
+				@Override
+				protected void configure(Host host, Session session) {
+					session.setConfig("StrictHostKeyChecking","no");
+					session.setPassword("admin");
+				}
+			});
 			this.git.push().call();
 			System.out.println("[" + new Date() + "] GIT : Push Performed ");
 		}
@@ -148,6 +169,13 @@ public class GitUtilities
 	{
 		try
 		{
+			SshSessionFactory.setInstance(new JschConfigSessionFactory() {
+				@Override
+				protected void configure(Host host, Session session) {
+					session.setConfig("StrictHostKeyChecking","no");
+					session.setPassword("admin");
+				}
+			});
 			this.git.pull().call();
 			System.out.println("[" + new Date() + "] GIT : Pull Performed ");
 		}

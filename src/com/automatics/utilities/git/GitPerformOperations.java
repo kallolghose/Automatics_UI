@@ -4,11 +4,15 @@ public class GitPerformOperations
 {
 	public static void main(String[] args) 
 	{
-		GitUtilities git = new GitUtilities();
-		git.loadAndSetProperties("git_config.properties");
-		//git.init();
-		//git.createLocalRepositary();
-		git.cloneRepository();
-		//git.performPull();
+		GitUtilities gitUtil = new GitUtilities();
+		gitUtil.loadAndSetProperties("git_config.properties");
+		//gitUtil.init();
+		//gitUtil.createLocalRepositary();
+		//gitUtil.cloneRepository();
+		//gitUtil.performPull();
+		gitUtil.initExistingRepository();
+		gitUtil.addToRepository(".");
+		gitUtil.performCommit();
+		gitUtil.performPush();
 	}
 }
