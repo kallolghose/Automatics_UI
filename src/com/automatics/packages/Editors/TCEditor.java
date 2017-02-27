@@ -30,6 +30,7 @@ import com.automatics.utilities.alltablestyles.TCObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCOperationColumnEditable;
 import com.automatics.utilities.alltablestyles.TCPageNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCVariableColumnEditable;
+import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
@@ -46,6 +47,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
@@ -72,8 +74,9 @@ public class TCEditor extends EditorPart {
 	private Table testscriptTable;
 	private TableViewer testscriptsViewer; 
 	private boolean isDirty = false;
+	private GitUtilities gitUtil;
 	
-	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor;
+	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor, commitItem, pullItem;
 	private boolean isFocus = false;
 	//private boolean isjavaeditorOpen = false;
 	
@@ -109,6 +112,30 @@ public class TCEditor extends EditorPart {
 	    setInput(input);
 	    tcTask = TestCaseTaskService.getInstance().getTaskByTcName(this.input.getId());
 	    setPartName("TestCase:" + tcTask.getTcName());
+	    
+	    //Check for sync status from remote GIT
+	    this.gitUtil = new GitUtilities();
+	    this.gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+	    this.gitUtil.initExistingRepository();
+	    String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
+	    boolean syncStatus = this.gitUtil.getSync(currentFileName);
+	    if(syncStatus)
+	    {
+	    	//Display please get sync message
+	    	MessageDialog dialog = new MessageDialog(site.getShell(), "Warning", null, "File not in sync. Please get sync",
+	    			MessageDialog.WARNING, 
+					new String[]{"OK","Cancel"}, 0);
+	    	int selected = dialog.open();
+	    	switch(selected)
+	    	{
+	    	case 0:
+	    		this.gitUtil.performSpecificPull(currentFileName);
+	    		MessageDialog promptMsg = new MessageDialog(site.getShell(), "Information", null,"Synch Completed !!", 
+	    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+	    		promptMsg.open();
+	    		break;
+	    	}
+	    }
 	}
 
 	@Override
@@ -177,6 +204,17 @@ public class TCEditor extends EditorPart {
 			openEditor.setToolTipText("View In Editor");
 			openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 			openEditor.setSelection(true);
+			
+			commitItem = new ToolItem(iconsToolBar, SWT.NONE);
+			commitItem.setToolTipText("Commit");
+			commitItem.setWidth(26);
+			commitItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/git_commit.png"));
+			commitItem.setSelection(true);
+			
+			pullItem = new ToolItem(iconsToolBar, SWT.NONE);
+			pullItem.setToolTipText("Pull");
+			pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
+			pullItem.setSelection(true);
 			
 			//Implementation of table using TableViewer
 			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
@@ -524,6 +562,53 @@ public class TCEditor extends EditorPart {
 					System.out.println("[" + getClass().getName() + " : openEditor.addListener()] - Exception :" + e.getMessage());
 					e.printStackTrace();
 				}
+			}
+		});
+		
+		commitItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
+				gitUtil.performSpecificCommit(currentFileName);
+				MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit Performed !!", 
+	    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+	    		commitMsg.open();
+			}
+		});
+		
+		pullItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
+				if(gitUtil.getDiff(currentFileName)) //If changes are made to the file then ask to commit or contents shall be replaced
+				{
+					MessageDialog dialog = new MessageDialog(getSite().getShell(), "Warning", null,
+							"Changes made in file are not commited.Please commit them them or changes will be overwritten.",
+			    			MessageDialog.WARNING, 
+							new String[]{"Commit","Overwrite/Pull"}, 0);
+			    	int selected = dialog.open();
+			    	switch(selected)
+			    	{
+			    	case 0:
+			    		gitUtil.performSpecificCommit(currentFileName);
+			    		MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit Completed !!", 
+			    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+			    		commitMsg.open();
+			    		break;
+			    	case 1:
+			    		gitUtil.performSpecificPull(currentFileName);
+			    		MessageDialog pullMsg = new MessageDialog(getSite().getShell(), "Information", null,"Pull Performed !!", 
+			    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+			    		pullMsg.open();
+			    		break;
+			    	}
+				}
+				else
+				{
+					gitUtil.performSpecificPull(currentFileName);
+		    		MessageDialog pullMsg = new MessageDialog(getSite().getShell(), "Information", null,"Pull Performed !!", 
+		    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+		    		pullMsg.open();
+				}
+				
 			}
 		});
 		

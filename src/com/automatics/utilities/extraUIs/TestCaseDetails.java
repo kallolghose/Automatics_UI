@@ -197,6 +197,9 @@ public class TestCaseDetails extends Shell {
 				tcData.tcObjectMapLink = null;
 				tcData.tcSteps = step;
 				tcData.tcParams = null;
+				tcData.tcFlag = "PRIVATE"; //Set Private flag if first created
+				tcData.username = System.getProperty("user.name");
+				
 				/*
 				 * Remove contents from
 				 * 1. TestCaseParamViewer (Bottom View)

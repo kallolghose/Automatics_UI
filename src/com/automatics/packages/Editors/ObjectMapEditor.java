@@ -27,6 +27,7 @@ import com.automatics.utilities.alltablestyles.OMLocatorInfoColumnEditable;
 import com.automatics.utilities.alltablestyles.OMLocatorTypeColumnEditable;
 import com.automatics.utilities.alltablestyles.OMObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.OMPageNameColumnEditable;
+import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.helpers.Utilities;
@@ -47,6 +48,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
@@ -71,6 +73,9 @@ public class ObjectMapEditor extends EditorPart {
 	private ToolItem btnAdd,btnDelete, pasteItem, copyItem, openEditor, saveItem;
 	private List<OMDetails> list;
 	private int index;
+	private ToolItem commitItem;
+	private ToolItem pullItem;
+	private GitUtilities gitUtil;
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -154,6 +159,30 @@ public class ObjectMapEditor extends EditorPart {
 		setInput(input);
 		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(this.input.getId());
 		setPartName("ObjectMap:" + omTask.getOmName());
+		
+		//Check for sync status from remote GIT
+		gitUtil = new GitUtilities();
+		gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+		gitUtil.initExistingRepository();
+	    String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
+	    boolean syncstaus = gitUtil.getSync(currentFileName);
+	    if(syncstaus)
+	    {
+	    	MessageDialog dialog = new MessageDialog(site.getShell(), "Warning", null, "File not in sync. Please get sync",
+	    			MessageDialog.WARNING, 
+					new String[]{"OK","Cancel"}, 0);
+	    	int selected = dialog.open();
+	    	switch(selected)
+	    	{
+	    	case 0:
+	    		
+	    		gitUtil.performSpecificPull(currentFileName);
+	    		MessageDialog promptMsg = new MessageDialog(site.getShell(), "Information", null,"Synch Completed !!", 
+	    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+	    		promptMsg.open();
+	    		break;
+	    	}
+	    }
 	}
 
 	@Override
@@ -183,7 +212,7 @@ public class ObjectMapEditor extends EditorPart {
 		composite.setLayoutData(gd_composite);
 		
 		ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
-		iconsToolBar.setBounds(0, 0, 258, 22);
+		iconsToolBar.setBounds(0, 0, 287, 22);
 		
 		btnAdd = new ToolItem(iconsToolBar, SWT.NONE);
 		btnAdd.setToolTipText("Add new object details");
@@ -214,6 +243,16 @@ public class ObjectMapEditor extends EditorPart {
 		openEditor.setToolTipText("View Editor");
 		openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 		openEditor.setSelection(true);
+		
+		commitItem = new ToolItem(iconsToolBar, SWT.NONE);
+		commitItem.setWidth(30);
+		commitItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/git_commit.png"));
+		commitItem.setToolTipText("Commit");
+		
+		pullItem = new ToolItem(iconsToolBar, SWT.NONE);
+		pullItem.setToolTipText("Pull");
+		pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
+		pullItem.setSelection(true);
 		
 		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());
@@ -413,6 +452,44 @@ public class ObjectMapEditor extends EditorPart {
 				}
 			});
 			
+			commitItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
+					gitUtil.performSpecificCommit(currentFileName);
+					MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit Performed !!", 
+		    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+					commitMsg.open();
+				}
+			});
+			
+			pullItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
+					if(gitUtil.getDiff(currentFileName)) //If changes are made to the file then ask to commit or contents shall be replaced
+					{
+						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Warning", null,
+								"Changes made in file are not commited.Please commit them them or changes will be overwritten.",
+				    			MessageDialog.WARNING, 
+								new String[]{"Commit","Overwrite/Pull"}, 0);
+				    	int selected = dialog.open();
+				    	switch(selected)
+				    	{
+				    	case 0:
+				    		gitUtil.performSpecificCommit(currentFileName);
+				    		MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit Completed !!", 
+				    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+				    		commitMsg.open();
+				    		break;
+				    	case 1:
+				    		gitUtil.performSpecificPull(currentFileName);
+				    		MessageDialog pullMsg = new MessageDialog(getSite().getShell(), "Information", null,"Pull Performed !!", 
+				    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+				    		pullMsg.open();
+				    		break;
+				    	}
+					}
+				}
+			});
 			
 		}
 		catch(Exception e)

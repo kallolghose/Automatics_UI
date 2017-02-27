@@ -21,20 +21,15 @@ import javax.json.JsonReader;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 
-import sun.security.util.ResourcesMgr;
 
 import com.automatics.mongo.packages.AutomaticsDBConnection;
 import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
@@ -52,19 +47,19 @@ import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
 import com.automatics.utilities.runner.TestSuiteRunnerAPI;
 import com.google.gson.Gson;
 import com.mongodb.DB;
-import com.sun.org.apache.xpath.internal.operations.Gte;
 
 public class Utilities 
 {
-	//private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
-	private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
-	//public static String PROJECT_NAME = "Automation_Suite";  com.automaticsV1.3
+	private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+	//private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 	public static String PROJECT_NAME = "com.automaticsV1.3";
+
+	public final static String TESTCASE_FILE_LOCATION = "com.automaticsV1.3/com.automatics.packages/com/automatics/packages/testScripts/";
+	public final static String OBJECTMAP_FILE_LOCATION = "com.automaticsV1.3/com.automatics.packages/com/automatics/packages/objectMap";
+	public final static String TESTNG_FILE_LOCATION = "com.automaticsV1.3/";
 	
 	public static DB getMongoDB()
 	{
-		//db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
-		//db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 		return db;
 	}
 	
@@ -80,6 +75,7 @@ public class Utilities
 			e.printStackTrace();
 		}
 	}
+	
 	
 	
 	public static String getJSONStrFromURL(String URL)

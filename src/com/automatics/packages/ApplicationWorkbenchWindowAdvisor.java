@@ -10,6 +10,7 @@ import org.eclipse.ui.application.IWorkbenchWindowConfigurer;
 import org.eclipse.ui.application.WorkbenchWindowAdvisor;
 
 import com.automatics.utilities.git.GitUtilities;
+import com.automatics.utilities.helpers.Utilities;
 
 public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 
@@ -25,10 +26,13 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 	public void preWindowOpen() 
 	{
 		GitUtilities gitUtil = new GitUtilities();
-		Properties prop = gitUtil.loadAndSetProperties("git_config.properties");
+		GitUtilities.GIT_PROPERTY_PATH = "D:/KG00360770/ATT/Automatic_DC/Automatics/git_config.properties";
+		Properties prop = gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+		//Set this to something more concrete System.getProperty("user.dir") for now keep fixed
 		prop.setProperty("LOCAL_PATH", ResourcesPlugin.getWorkspace().getRoot().getLocation().toString());
 		gitUtil.setGitProperties(prop);
-		if(gitUtil.cloneRepository())
+		//if(gitUtil.cloneRepository()
+		if(true)
 		{
 			System.out.println("Cloning Performed.");
 		}

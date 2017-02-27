@@ -168,6 +168,28 @@
                   style="push">
             </command>
          </menu>
+         <menu
+               label="GIT">
+            <command
+                  commandId="com.automatics.utilities.git.pullAll"
+                  label="Pull..."
+                  style="push">
+            </command>
+            <separator
+                  name="gitMenuSeperator"
+                  visible="true">
+            </separator>
+            <command
+                  commandId="com.automatics.utilities.git.CommitAll"
+                  label="Commit..."
+                  style="push">
+            </command>
+            <command
+                  commandId="com.automatics.utilities.git.pushAll"
+                  label="Push..."
+                  style="push">
+            </command>
+         </menu>
       </menuContribution>
    </extension>
    <extension
@@ -253,6 +275,21 @@
             defaultHandler="com.automatics.packages.Handler.OpenRunnerUI"
             id="com.automatics.packages.run.openRunUI"
             name="OpenRunUI">
+      </command>
+      <command
+            defaultHandler="com.automatics.utilities.git.PullAllCommand"
+            id="com.automatics.utilities.git.pullAll"
+            name="PullAll">
+      </command>
+      <command
+            defaultHandler="com.automatics.utilities.git.CommitAllCommand"
+            id="com.automatics.utilities.git.CommitAll"
+            name="CommitAll">
+      </command>
+      <command
+            defaultHandler="com.automatics.utilities.git.PushAllCommand"
+            id="com.automatics.utilities.git.pushAll"
+            name="PushAll">
       </command>
    </extension>
    <extension

@@ -11,6 +11,8 @@ public class TCGson {
 	public String tcCreatedBy;
 	public String tcCreatedOn;
 	public String tcPrivilege;
+	public String tcFlag;
+	public String username;
 	public List<String> tcObjectMapLink;
 	public List<TCStepsGSON> tcSteps;
 	public List<TCParams> tcParams;

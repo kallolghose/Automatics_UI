@@ -157,6 +157,8 @@ public class NewObjectMapWindow extends Shell {
 				omGson.omName = omName;
 				omGson.omDesc = omDesc;
 				omGson.omIdentifier = omName;
+				omGson.omFlag = "PRIVATE";
+				omGson.username = System.getProperty("user.name");
 				omGson.omDetails = omDetailsList;
 				
 				ObjectList.createOjectMap(omGson);

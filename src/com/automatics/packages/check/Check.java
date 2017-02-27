@@ -43,7 +43,7 @@ public class Check
 //		parser.parseContentsOfObjectMap();
 //		parser.displayAllObjectMapDetails();
 		
-		System.out.println(System.getProperty("user.dir"));
+		System.out.println(System.getProperty("user.name"));
 		
 	}
 }

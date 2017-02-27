@@ -39,8 +39,9 @@ import com.jcraft.jsch.Session;
 
 public class GitUtilities 
 {
+	public static String GIT_PROPERTY_PATH = "git_config.properties";
 	private Repository localRepo;
-	private Git git;
+	private static Git git = null;
 	private Properties gitProperties;
 	
 	private static String errMsgForAnyOperation = "";
@@ -80,7 +81,8 @@ public class GitUtilities
 		{
 			String local_path = this.gitProperties.getProperty("LOCAL_PATH");
 			File dir = new File(local_path);
-			this.git = Git.init().setDirectory(dir).call();
+			if(this.git == null)
+				this.git = Git.init().setDirectory(dir).call();
 		}
 		catch(Exception e)
 		{
@@ -97,7 +99,8 @@ public class GitUtilities
 			File file = new File(localRepoPath);
 			//FileRepositoryBuilder builder = new FileRepositoryBuilder();
 			//Repository repository = builder.setGitDir(file).readEnvironment().findGitDir().build();
-			this.git = Git.open(file);
+			if(this.git == null)
+				this.git = Git.open(file);
 		}
 		catch(Exception e)
 		{
@@ -173,9 +176,24 @@ public class GitUtilities
 	{
 		try
 		{
-			this.git.commit().setMessage("Committed on " + new Date()).call();
-			//this.git.commit().setAll(true).setMessage("Commit changes to all files").call();
-			System.out.println("[" + new Date() + "] GIT : Commit Performed ");
+			this.git.add().addFilepattern(".").call();
+			this.git.commit().setMessage("Automatics Committed on : " + new Date()).call();
+			System.out.println("[" + new Date() + "] GIT : Commit Performed");
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : performCommit()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	public void performSpecificCommit(String filename)
+	{
+		try
+		{
+			this.git.add().addFilepattern(filename).call();
+			this.git.commit().setMessage("Automatics Committed Specifc on " + new Date()).call();
+			System.out.println("[" + new Date() + "] GIT : Specfic Commit Performed for (" + filename + ")");
 		}
 		catch(Exception e)
 		{
@@ -205,6 +223,29 @@ public class GitUtilities
 		}
 	}
 	
+	public boolean performSpecificPull(String fileName)
+	{
+		try
+		{
+			SshSessionFactory.setInstance(new JschConfigSessionFactory() {
+				@Override
+				protected void configure(Host host, Session session) {
+					session.setConfig("StrictHostKeyChecking","no");
+					session.setPassword("admin");
+				}
+			});
+			this.git.fetch().call();
+			this.git.checkout().setName("origin/master").setStartPoint("origin/master").addPath(fileName).call();
+			this.git.add().addFilepattern(fileName).call();
+			System.out.println("[" + new Date() + "] GIT : Fetching specific file (" + fileName + ")");
+			return true;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
+	
 	public void performPull()
 	{
 		try
@@ -226,7 +267,7 @@ public class GitUtilities
 		}
 	}
 	
-	public int getSync()
+	public boolean getSync(String fileLocation)
 	{
 		try
 		{
@@ -240,51 +281,35 @@ public class GitUtilities
 			FetchCommand fetchCommand = this.git.fetch();
 			fetchCommand.call();
 			
-			
 			List<Ref> call = this.git.branchList().setListMode(ListMode.ALL).call();
 			
             Ref localRef = call.get(0);
             Ref remoteRef = call.get(1);
             
-//            RevWalk walk = new RevWalk(this.git.getRepository());
-//            RevCommit localCommit = walk.parseCommit(localRef.getObjectId());
-//            RevCommit trackingCommit = walk.parseCommit(remoteRef.getObjectId());
-//            walk.setRevFilter(RevFilter.MERGE_BASE );
-//            walk.markStart(localCommit);
-//            walk.markStart(trackingCommit);
-//            RevCommit mergeBase = walk.next();
-//            walk.reset();
-//            walk.setRevFilter( RevFilter.ALL );
-//            
-//            int aheadCount = RevWalkUtils.count(walk, localCommit, mergeBase);
-//            int behindCount = RevWalkUtils.count(walk, trackingCommit, mergeBase);
-//            
-//            System.out.println("Ahead : " + aheadCount + " , Behind : " + behindCount);   
-//            
-//            if(aheadCount!=behindCount)
-//            {
-//            	if(aheadCount < behindCount)
-//            		return 1;
-//            	else if(aheadCount > behindCount)
-//            		return -1;
-//            }
             Repository repo = this.git.getRepository();
             AbstractTreeIterator oldTreeParser = prepareTreeParser(repo, localRef.getObjectId().name());
             AbstractTreeIterator newTreeParser = prepareTreeParser(repo, remoteRef.getObjectId().name());
-            List<DiffEntry> diffs = this.git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser).setPathFilter(PathFilter.create("testng.xml")).
+            List<DiffEntry> diffs = this.git.diff().setNewTree(newTreeParser).setPathFilter(PathFilter.create(fileLocation)).
             						call();
             for(DiffEntry entry : diffs)
             {
-            	System.out.println(entry.getOldPath() + "   " + entry.getNewPath());
+            	switch(entry.getChangeType())
+            	{
+            	case ADD:
+            	case MODIFY:
+            	case DELETE:
+            	case COPY:
+            	case RENAME:
+            		return true;
+            	}
             }
-            
-			return 0;
+			return false;
 		}
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + " : getDifference()] - Exception : " + e.getMessage());
 			e.printStackTrace();
-			return -999;
+			return false;
 		}
 	}
 	
@@ -297,7 +322,7 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " getStatsu()] - Exception : " + e.getMessage());
+			System.out.println("[" + getClass().getName() + " getStatus()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 			return null;
 		}
@@ -330,6 +355,31 @@ public class GitUtilities
         	return null;
         }
     }
+	
+	public boolean getDiff(String filename)
+	{
+		try
+		{
+			List<DiffEntry> diffs = git.diff().setPathFilter(PathFilter.create(filename)).call();
+			for(DiffEntry entry : diffs)
+			{
+				switch(entry.getChangeType())
+            	{
+            	case ADD:
+            	case MODIFY:
+            	case DELETE:
+            	case COPY:
+            	case RENAME:
+            		return true;
+            	}
+			}
+			return false;
+		}
+		catch(Exception e)
+		{
+			return false;
+		}
+	}
 
 	
 }
