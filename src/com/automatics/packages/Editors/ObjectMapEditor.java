@@ -160,29 +160,45 @@ public class ObjectMapEditor extends EditorPart {
 		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(this.input.getId());
 		setPartName("ObjectMap:" + omTask.getOmName());
 		
-		//Check for sync status from remote GIT
-		gitUtil = new GitUtilities();
-		gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
-		gitUtil.initExistingRepository();
-	    String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
-	    boolean syncstaus = gitUtil.getSync(currentFileName);
-	    if(syncstaus)
-	    {
-	    	MessageDialog dialog = new MessageDialog(site.getShell(), "Warning", null, "File not in sync. Please get sync",
-	    			MessageDialog.WARNING, 
-					new String[]{"OK","Cancel"}, 0);
-	    	int selected = dialog.open();
-	    	switch(selected)
-	    	{
-	    	case 0:
-	    		
-	    		gitUtil.performSpecificPull(currentFileName);
-	    		MessageDialog promptMsg = new MessageDialog(site.getShell(), "Information", null,"Synch Completed !!", 
-	    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-	    		promptMsg.open();
-	    		break;
-	    	}
-	    }
+		//Check if the object map is private or not
+		OMGson omGson = omTask.getOmGson();
+		if(omGson.omFlag.equalsIgnoreCase("PRIVATE"))
+		{
+			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.username))
+			{
+				MessageDialog privateChk = new MessageDialog(site.getShell(), "Error", null, "Cannot Open Private Object Map", 
+	    				MessageDialog.ERROR, 
+	    				new String[]{"OK"}, 0);
+	    		privateChk.open();
+	    		return;
+			}
+		}
+		else
+		{
+			//Check for sync status from remote GIT
+			gitUtil = new GitUtilities();
+			gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+			gitUtil.initExistingRepository();
+		    String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
+		    boolean syncstaus = gitUtil.getSync(currentFileName);
+		    if(syncstaus)
+		    {
+		    	MessageDialog dialog = new MessageDialog(site.getShell(), "Warning", null, "File not in sync. Please get sync",
+		    			MessageDialog.WARNING, 
+						new String[]{"OK","Cancel"}, 0);
+		    	int selected = dialog.open();
+		    	switch(selected)
+		    	{
+		    	case 0:
+		    		
+		    		gitUtil.performSpecificPull(currentFileName);
+		    		MessageDialog promptMsg = new MessageDialog(site.getShell(), "Information", null,"Synch Completed !!", 
+		    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+		    		promptMsg.open();
+		    		break;
+		    	}
+		    }
+		}
 	}
 
 	@Override

@@ -113,28 +113,44 @@ public class TCEditor extends EditorPart {
 	    tcTask = TestCaseTaskService.getInstance().getTaskByTcName(this.input.getId());
 	    setPartName("TestCase:" + tcTask.getTcName());
 	    
-	    //Check for sync status from remote GIT
-	    this.gitUtil = new GitUtilities();
-	    this.gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
-	    this.gitUtil.initExistingRepository();
-	    String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
-	    boolean syncStatus = this.gitUtil.getSync(currentFileName);
-	    if(syncStatus)
+	    //Check if the testcase is private or not
+	    TCGson tcGson = tcTask.getTcGson();
+	    if(tcGson.tcFlag.equalsIgnoreCase("PRIVATE"))
 	    {
-	    	//Display please get sync message
-	    	MessageDialog dialog = new MessageDialog(site.getShell(), "Warning", null, "File not in sync. Please get sync",
-	    			MessageDialog.WARNING, 
-					new String[]{"OK","Cancel"}, 0);
-	    	int selected = dialog.open();
-	    	switch(selected)
+	    	if(!Utilities.AUTOMATICS_USERNAME.equals(tcGson.username))
 	    	{
-	    	case 0:
-	    		this.gitUtil.performSpecificPull(currentFileName);
-	    		MessageDialog promptMsg = new MessageDialog(site.getShell(), "Information", null,"Synch Completed !!", 
-	    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-	    		promptMsg.open();
-	    		break;
+	    		MessageDialog privateChk = new MessageDialog(site.getShell(), "Error", null, "Cannot Open Private Test Case", 
+	    				MessageDialog.ERROR, 
+	    				new String[]{"OK"}, 0);
+	    		privateChk.open();
+	    		return;
 	    	}
+	    }
+	    else
+	    {
+		    //Check for sync status from remote GIT
+		    this.gitUtil = new GitUtilities();
+		    this.gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+		    this.gitUtil.initExistingRepository();
+		    String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
+		    boolean syncStatus = this.gitUtil.getSync(currentFileName);
+		    if(syncStatus)
+		    {
+		    	//Display please get sync message
+		    	MessageDialog dialog = new MessageDialog(site.getShell(), "Warning", null, "File not in sync. Please get sync",
+		    			MessageDialog.WARNING, 
+						new String[]{"OK","Cancel"}, 0);
+		    	int selected = dialog.open();
+		    	switch(selected)
+		    	{
+		    	case 0:
+		    		this.gitUtil.performSpecificPull(currentFileName);
+		    		MessageDialog promptMsg = new MessageDialog(site.getShell(), "Information", null,"Synch Completed !!", 
+		    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+		    		promptMsg.open();
+		    		break;
+		    	}
+		    }
 	    }
 	}
 
