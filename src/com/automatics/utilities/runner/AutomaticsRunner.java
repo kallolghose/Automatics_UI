@@ -3,12 +3,15 @@ package com.automatics.utilities.runner;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ExpandBar;
 import org.eclipse.swt.widgets.ExpandItem;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
@@ -46,7 +49,7 @@ public class AutomaticsRunner extends Shell {
 	public AutomaticsRunner(Display display) {
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 		
-		Tree tree = new Tree(this, SWT.BORDER);
+		final Tree tree = new Tree(this, SWT.BORDER | SWT.FULL_SELECTION);
 		tree.setLinesVisible(true);
 		tree.setHeaderVisible(true);
 		
@@ -61,11 +64,21 @@ public class AutomaticsRunner extends Shell {
 		TreeItem root = new TreeItem(tree, SWT.FULL_SELECTION);
 		root.setText(new String[]{"S1","S2"});
 		
+		
 		for(int i=0;i<5;i++)
 		{
 			TreeItem item = new TreeItem(root,SWT.FULL_SELECTION);
 			item.setText(new String[]{"S1" + i,"S2" + i});
 		}
+		
+		tree.addListener(SWT.Selection, new Listener() {
+			
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				System.out.println(tree.getSelection()[0].getText(1));
+			}
+		});
+		
 		createContents();
 	}
 

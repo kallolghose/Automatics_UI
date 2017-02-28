@@ -7,7 +7,8 @@ import java.io.*;
 
 public class Installables 
 {
-	private static String packageLocation = "D:\\Automatics\\";
+	//private static String packageLocation = System.getProperty("user.dir");
+	private static String packageLocation = "D:/KG00360770/ATT/runtime-Automatics.application";
 	public static PrintStream out = null;
 	
 	public static String getPackageLocation()
@@ -88,20 +89,23 @@ public class Installables
     	
         boolean retVal = false;
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date());
-        String fileName = packageLocation + "\\" + timeStamp + "_log" + ".log";
+        String dirName = packageLocation + "\\Logs\\";
         try
         {
-            File file = new File(packageLocation);
-            if(!file.exists())
+        	File dir = new File(dirName);
+        	if(!dir.exists())
             {
-                retVal = file.mkdirs();
+                retVal = dir.mkdirs();
             }
+        	String fileName = dirName + timeStamp + "_log" + ".log";
+            
             out = new PrintStream(new FileOutputStream(fileName));
             System.setOut(out);
         }
         catch(FileNotFoundException e)
         {
             System.out.println("File Cannot Be Created");
+            e.printStackTrace();
             System.exit(1);
         }
         return retVal;

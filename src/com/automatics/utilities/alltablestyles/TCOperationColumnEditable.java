@@ -91,7 +91,6 @@ public class TCOperationColumnEditable extends EditingSupport
 			{
 				((TCStepsGSON) element).stepArgument = "NA";
 			}
-			
 		}
 		((TCStepsGSON) element).stepOperation = updateVal; 
 		

@@ -70,12 +70,14 @@ public class ObjectMapEditor extends EditorPart {
 	private Table objectMapDataTable;
 	private boolean isDirty = false;
 	private TableViewer objectMapTableViewer;
-	private ToolItem btnAdd,btnDelete, pasteItem, copyItem, openEditor, saveItem;
+	private ToolItem btnAdd,btnDelete, pasteItem, copyItem, openEditor, saveItem,lockItem;
 	private List<OMDetails> list;
 	private int index;
 	private ToolItem commitItem;
 	private ToolItem pullItem;
 	private GitUtilities gitUtil;
+	private boolean viewAllElements = true;
+	private String lock_image = "images/icons/Open_lock.png";
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -173,6 +175,17 @@ public class ObjectMapEditor extends EditorPart {
 	    		return;
 			}
 		}
+		else if(omGson.omFlag.equalsIgnoreCase("EDIT"))
+		{
+			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.username))
+			{
+				viewAllElements = false; //Add this flag to disable all operations	
+			}
+			else
+	    	{
+	    		lock_image = "images/icons/lock.png";
+	    	}
+		}
 		else
 		{
 			//Check for sync status from remote GIT
@@ -234,41 +247,56 @@ public class ObjectMapEditor extends EditorPart {
 		btnAdd.setToolTipText("Add new object details");
 		btnAdd.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
 		btnAdd.setSelection(true);
+		btnAdd.setEnabled(viewAllElements);
 		
 		btnDelete = new ToolItem(iconsToolBar, SWT.NONE);
 		btnDelete.setToolTipText("Delete object details");
 		btnDelete.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
 		btnDelete.setSelection(true);
+		btnDelete.setEnabled(viewAllElements);
 		
 		saveItem = new ToolItem(iconsToolBar, SWT.NONE);
 		saveItem.setToolTipText("Save");
 		saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
 		saveItem.setSelection(true);
+		saveItem.setEnabled(viewAllElements);
 		
 		copyItem = new ToolItem(iconsToolBar, SWT.NONE);
 		copyItem.setToolTipText("Copy");
 		copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
 		copyItem.setSelection(true);
+		copyItem.setEnabled(viewAllElements);
 		
 		pasteItem = new ToolItem(iconsToolBar, SWT.NONE);
 		pasteItem.setToolTipText("Paste");
 		pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
 		pasteItem.setSelection(true);
+		pasteItem.setEnabled(viewAllElements);
 		
 		openEditor = new ToolItem(iconsToolBar, SWT.NONE);
 		openEditor.setToolTipText("View Editor");
 		openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 		openEditor.setSelection(true);
+		openEditor.setEnabled(viewAllElements);
 		
 		commitItem = new ToolItem(iconsToolBar, SWT.NONE);
 		commitItem.setWidth(30);
 		commitItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/git_commit.png"));
-		commitItem.setToolTipText("Commit");
+		commitItem.setToolTipText("Commit and Push");
+		commitItem.setEnabled(viewAllElements);
 		
 		pullItem = new ToolItem(iconsToolBar, SWT.NONE);
 		pullItem.setToolTipText("Pull");
 		pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
 		pullItem.setSelection(true);
+		pullItem.setEnabled(viewAllElements);
+		
+		lockItem = new ToolItem(iconsToolBar, SWT.NONE);
+		lockItem.setToolTipText("Lock for Editing");
+		lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+		lockItem.setSelection(true);
+		lockItem.setData("Locked", false);
+		lockItem.setEnabled(viewAllElements);
 		
 		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());
@@ -276,6 +304,7 @@ public class ObjectMapEditor extends EditorPart {
 		objectMapDataTable.setLinesVisible(true);
 		objectMapDataTable.setHeaderVisible(true);
 		objectMapDataTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		objectMapDataTable.setEnabled(viewAllElements);
 		
 		TableViewerColumn pagaNameColViewer = new TableViewerColumn(objectMapTableViewer, SWT.NONE);
 		pagaNameColViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -470,9 +499,20 @@ public class ObjectMapEditor extends EditorPart {
 			
 			commitItem.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
+					/*Save the object map with flag as PUBLIC*/
+					OMGson omGson = omTask.getOmGson();
+					omGson.omFlag = "PUBLIC";
+					omTask.setOmGson(omGson);
+					saveActionPerform();
+
+					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+					lockItem.setData("Locked",false);
+					
+					/*Commit the files to the GIT repository*/
 					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
 					gitUtil.performSpecificCommit(currentFileName);
-					MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit Performed !!", 
+					gitUtil.performPush();
+					MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit and Push Performed.", 
 		    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
 					commitMsg.open();
 				}
@@ -507,10 +547,35 @@ public class ObjectMapEditor extends EditorPart {
 				}
 			});
 			
+			lockItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					boolean locked = new Boolean(lockItem.getData("Locked").toString());
+					if(!locked)
+					{
+						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
+						OMGson omGson = omTask.getOmGson();
+						omGson.omFlag = "EDIT";
+						omGson.username = Utilities.AUTOMATICS_USERNAME;
+						omTask.setOmGson(omGson);
+						saveActionPerform();
+					}
+					else
+					{
+						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_Lock.png"));
+						OMGson omGson = omTask.getOmGson();
+						omGson.omFlag = "PUBLIC";
+						omGson.username = Utilities.AUTOMATICS_USERNAME;
+						omTask.setOmGson(omGson);
+						saveActionPerform();
+					}
+					lockItem.setData("Locked", !locked);
+				}
+			});
+			
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " - setListener] - Exceptioen : " + e.getMessage());
+			System.out.println("[" + getClass().getName() + " - setListener] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -627,6 +692,4 @@ public class ObjectMapEditor extends EditorPart {
 		objectMapTableViewer.setInput(list);
 		objectMapTableViewer.refresh();
 	}
-	
-	
 }
