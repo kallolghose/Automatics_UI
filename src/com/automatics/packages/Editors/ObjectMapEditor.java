@@ -162,6 +162,11 @@ public class ObjectMapEditor extends EditorPart {
 		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(this.input.getId());
 		setPartName("ObjectMap:" + omTask.getOmName());
 		
+		//Check for sync status from remote GIT
+		gitUtil = new GitUtilities();
+		gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+		gitUtil.initExistingRepository();
+		
 		//Check if the object map is private or not
 		OMGson omGson = omTask.getOmGson();
 		if(omGson.omFlag.equalsIgnoreCase("PRIVATE"))
@@ -188,10 +193,6 @@ public class ObjectMapEditor extends EditorPart {
 		}
 		else
 		{
-			//Check for sync status from remote GIT
-			gitUtil = new GitUtilities();
-			gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
-			gitUtil.initExistingRepository();
 		    String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
 		    boolean syncstaus = gitUtil.getSync(currentFileName);
 		    if(syncstaus)

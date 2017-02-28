@@ -15,7 +15,7 @@ public class CommitAllCommand extends AbstractHandler {
 		try
 		{
 			GitUtilities gitUtil = new GitUtilities();
-			gitUtil.addToRepository(GitUtilities.GIT_PROPERTY_PATH);
+			gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
 			gitUtil.initExistingRepository();
 			gitUtil.performCommit();
 			MessageDialog commitDialog = new MessageDialog(window.getShell(), "Information", null, 
