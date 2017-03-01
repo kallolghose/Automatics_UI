@@ -83,6 +83,7 @@ public class TCEditor extends EditorPart {
 	private TCStepsGSON copiedGson;
 	private String lock_image = "images/icons/Open_lock.png";
 	
+	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
 	}
@@ -100,25 +101,22 @@ public class TCEditor extends EditorPart {
 	}
 
 	@Override
-	public void init(IEditorSite site, IEditorInput input)
-			throws PartInitException {
-		// TODO Auto-generated method stub
-		if (!(input instanceof TestCaseEditorInput)) {
+	public void init(IEditorSite site, IEditorInput input) throws PartInitException 
+	{
+	    if (!(input instanceof TestCaseEditorInput)) 
+	    {
             throw new RuntimeException("Wrong input");
 	    }
 	
 	    this.input = (TestCaseEditorInput) input;
-	    setSite(site);
-	    setInput(input);
 	    tcTask = TestCaseTaskService.getInstance().getTaskByTcName(this.input.getId());
-	    setPartName("TestCase:" + tcTask.getTcName());
-	    
-	    //Initialize the Existing Repository
+		
+	    //Initialize the Existing GIT Repository
 	    this.gitUtil = new GitUtilities();
 	    this.gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
 	    this.gitUtil.initExistingRepository();
 	    
-	    //Check if the testcase is private or not
+	    //Check if the test case is private or not
 	    TCGson tcGson = tcTask.getTcGson();
 	    if(tcGson.tcFlag.equalsIgnoreCase("PRIVATE"))
 	    {
@@ -128,7 +126,8 @@ public class TCEditor extends EditorPart {
 	    				MessageDialog.ERROR, 
 	    				new String[]{"OK"}, 0);
 	    		privateChk.open();
-	    		return;
+	    		throw new RuntimeException("Cannot open private test case");
+	    		
 	    	}
 	    }
 	    else if(tcGson.tcFlag.equalsIgnoreCase("EDIT"))
@@ -148,7 +147,6 @@ public class TCEditor extends EditorPart {
 		    boolean syncStatus = this.gitUtil.getSync(currentFileName);
 		    if(syncStatus)
 		    {
-		    	//Display please get sync message
 		    	MessageDialog dialog = new MessageDialog(site.getShell(), "Warning", null, "File not in sync. Please get sync",
 		    			MessageDialog.WARNING, 
 						new String[]{"OK","Cancel"}, 0);
@@ -164,17 +162,20 @@ public class TCEditor extends EditorPart {
 		    	}
 		    }
 	    }
+	    
+	    //When all operation done call all methods for Editor Display
+	    setSite(site);
+	    setInput(input);
+	    setPartName("TestCase:" + tcTask.getTcName());   
 	}
 
 	@Override
 	public boolean isDirty() {
-		// TODO Auto-generated method stub
 		return isDirty;
 	}
 
 	@Override
 	public boolean isSaveAsAllowed() {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
@@ -182,8 +183,8 @@ public class TCEditor extends EditorPart {
 	public void createPartControl(Composite parent) {
 		try
 		{
-			parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 			
+			parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 			TabFolder tcEditorTabFolder = new TabFolder(parent, SWT.BOTTOM);
 			
 			TabItem tbtmScripts = new TabItem(tcEditorTabFolder, SWT.NONE);
@@ -397,9 +398,19 @@ public class TCEditor extends EditorPart {
 			//load object maps
 			if(tcTask.getTcGson().tcObjectMapLink!=null)
 			{
+				boolean first = true;
 				for(String omName : tcTask.getTcGson().tcObjectMapLink)
 				{
-					ObjectMap.loadObjectMap(omName);
+					if(first)
+					{
+						//First time initialize object maps
+						ObjectMap.loadObjectMap(omName);
+						first=false;
+					}
+					else
+					{
+						ObjectMap.addObjectMap(omName);
+					}
 				}
 			}
 			
@@ -607,6 +618,7 @@ public class TCEditor extends EditorPart {
 				lockItem.setData("Locked",false);
 				/*Commit the changes*/
 				String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
+				gitUtil.performPull();
 				gitUtil.performSpecificCommit(currentFileName);
 				gitUtil.performPush();
 				MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit And Push Performed.", 

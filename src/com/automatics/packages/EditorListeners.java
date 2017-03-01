@@ -44,11 +44,20 @@ public class EditorListeners implements IPartListener2
 					//Also need to change the view of objectmap
 					TestCaseEditorInput input = (TestCaseEditorInput) editor.getEditorInput();
 					TestCaseTask tcTask = TestCaseTaskService.getInstance().getTaskByTcName(input.getId());
+					ObjectMap.disposeObjMaps();
 					if(tcTask.getTcGson().tcObjectMapLink!=null)
 					{
+						boolean first = true;
 						for(String omName : tcTask.getTcGson().tcObjectMapLink)
 						{
-							ObjectMap.loadObjectMap(omName);
+							if(first) {
+								ObjectMap.loadObjectMap(omName);
+								first=false;
+							}
+							else
+							{
+								ObjectMap.addObjectMap(omName);
+							}
 						}
 					}
 				}

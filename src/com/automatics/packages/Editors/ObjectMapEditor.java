@@ -78,6 +78,7 @@ public class ObjectMapEditor extends EditorPart {
 	private GitUtilities gitUtil;
 	private boolean viewAllElements = true;
 	private String lock_image = "images/icons/Open_lock.png";
+	private boolean private_check = false;
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -157,10 +158,7 @@ public class ObjectMapEditor extends EditorPart {
 		}
 		
 		this.input = (ObjectMapEditorInput) input;
-		setSite(site);
-		setInput(input);
 		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(this.input.getId());
-		setPartName("ObjectMap:" + omTask.getOmName());
 		
 		//Check for sync status from remote GIT
 		gitUtil = new GitUtilities();
@@ -177,7 +175,7 @@ public class ObjectMapEditor extends EditorPart {
 	    				MessageDialog.ERROR, 
 	    				new String[]{"OK"}, 0);
 	    		privateChk.open();
-	    		return;
+	    		throw new RuntimeException("Cannot open private object map");
 			}
 		}
 		else if(omGson.omFlag.equalsIgnoreCase("EDIT"))
@@ -213,6 +211,10 @@ public class ObjectMapEditor extends EditorPart {
 		    	}
 		    }
 		}
+		
+		setSite(site);
+		setInput(input);
+		setPartName("ObjectMap:" + omTask.getOmName());
 	}
 
 	@Override
@@ -228,9 +230,12 @@ public class ObjectMapEditor extends EditorPart {
 	}
 
 	@Override
-	public void createPartControl(Composite parent) {
-		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
+	public void createPartControl(Composite parent) 
+	{
+		if(private_check) //If private object map
+			return;
 		
+		parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 		Composite parentComposite = new Composite(parent, SWT.NONE);
 		parentComposite.setLayout(new GridLayout(1, false));
 		
@@ -511,6 +516,7 @@ public class ObjectMapEditor extends EditorPart {
 					
 					/*Commit the files to the GIT repository*/
 					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
+					gitUtil.performPull();
 					gitUtil.performSpecificCommit(currentFileName);
 					gitUtil.performPush();
 					MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit and Push Performed.", 
@@ -562,7 +568,7 @@ public class ObjectMapEditor extends EditorPart {
 					}
 					else
 					{
-						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_Lock.png"));
+						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
 						OMGson omGson = omTask.getOmGson();
 						omGson.omFlag = "PUBLIC";
 						omGson.username = Utilities.AUTOMATICS_USERNAME;

@@ -87,9 +87,18 @@ public class TCOperationColumnEditable extends EditingSupport
 				((TCStepsGSON) element).stepPageName = "NA";
 				((TCStepsGSON) element).stepObjName = "NA";
 			}
+			else
+			{
+				((TCStepsGSON) element).stepPageName = "";
+				((TCStepsGSON) element).stepObjName = "";
+			}
 			if(!opnGson.opnStatement.contains("ARG1") && !opnGson.opnStatement.contains("ARG2"))
 			{
 				((TCStepsGSON) element).stepArgument = "NA";
+			}
+			else
+			{
+				((TCStepsGSON) element).stepArgument = "";
 			}
 		}
 		((TCStepsGSON) element).stepOperation = updateVal; 

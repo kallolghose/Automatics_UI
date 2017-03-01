@@ -50,11 +50,11 @@ import com.mongodb.DB;
 
 public class Utilities 
 {
-	private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
-	//private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
+	//private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+	private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 	public static String PROJECT_NAME = "automatics1.3";
 	public final static String TESTCASE_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/testScripts/";
-	public final static String OBJECTMAP_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/objectMap";
+	public final static String OBJECTMAP_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/objectMap/";
 	public final static String TESTNG_FILE_LOCATION = "";
 	
 	public final static String AUTOMATICS_USERNAME = System.getProperty("user.name");

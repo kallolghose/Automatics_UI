@@ -77,7 +77,7 @@ public class TC_TS_List extends ViewPart {
 	private static Tree testCaseList;
 	private TestCaseTaskService tcService = TestCaseTaskService.getInstance();
 	private TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-	private MenuItem copyItem,pasteItemForTS,deleteItem;	
+	private MenuItem copyItem,pasteItemForTS,deleteItem,refreshItem;	
 	
 	private MenuItem copyItemforTC, pasteItemforTC;
 	private TestSuiteTask copyTask;
@@ -112,10 +112,7 @@ public class TC_TS_List extends ViewPart {
 		
 		testSuiteList = new Tree(testsuiteListComposite, SWT.BORDER);
 		
-		/*TreeItem application_name_item = new TreeItem(testSuiteList, SWT.NONE);
-		application_name_item.setText("App_Name");
-		application_name_item.setExpanded(true);
-		*/
+		
 		org.eclipse.swt.widgets.Menu testsuitePopUp = new org.eclipse.swt.widgets.Menu(testSuiteList);
 		testSuiteList.setMenu(testsuitePopUp);
 		
@@ -191,6 +188,11 @@ public class TC_TS_List extends ViewPart {
 		
 		deleteItem = new MenuItem(testsuitePopUp, SWT.NONE);
 		deleteItem.setText("Delete");
+		
+		new MenuItem(testsuitePopUp, SWT.SEPARATOR);
+		
+		refreshItem = new MenuItem(testsuitePopUp, SWT.NONE);
+		refreshItem.setText("Refresh");
 	
 		TabItem testCaseTab = new TabItem(tabFolder, SWT.NONE);
 		testCaseTab.setText("Test Case");
@@ -226,11 +228,16 @@ public class TC_TS_List extends ViewPart {
 		try
 		{
 			DB db = Utilities.getMongoDB(); //Get Mongo DB
+		
+			if(testSuiteList.getItemCount()>0)
+				testSuiteList.getItem(0).dispose(); //Remove the root if any
+			
 			TreeItem application_name_item = new TreeItem(testSuiteList, SWT.NONE);
 			application_name_item.setText("App_Name"); //Set This Later
 			application_name_item.setData("eltType", "APPLICATION");
 			application_name_item.setExpanded(true);
 			application_name_item.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
+			
 			ArrayList<String> allTSList = AutomaticsDBTestSuiteQueries.getAllTS(db); //Get all test suites
 			
 			for(String tsName : allTSList)
@@ -266,8 +273,12 @@ public class TC_TS_List extends ViewPart {
 					}
 				}
 			}
+			application_name_item.setExpanded(true);
 			
 			//Load all test cases to the test case list
+			if(testCaseList.getItemCount()>0)
+				testCaseList.getItem(0).dispose();
+			
 			TreeItem appName = new TreeItem(testCaseList, SWT.NONE);
 			appName.setText("App_Name");
 			appName.setData("eltType","APPNAME");
@@ -300,6 +311,7 @@ public class TC_TS_List extends ViewPart {
 					tcService.addTasks(tcTask);
 				}
 			}
+			appName.setExpanded(true);
 		}
 		catch(Exception e)
 		{
@@ -620,6 +632,13 @@ public class TC_TS_List extends ViewPart {
 				}
 			});
 			
+			refreshItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) 
+				{
+					loadTestSuiteTestCaseTreeView();
+				}
+			});
+			
 		}
 		catch(Exception exp)
 		{
@@ -798,6 +817,8 @@ public class TC_TS_List extends ViewPart {
 		{
 			//Add the treeitem to test suite list
 			TreeItem [] selectedNode = testSuiteList.getSelection();
+			if(selectedNode.length==0)
+				selectedNode = testSuiteList.getItems();
 			if(selectedNode[0] != null)
 			{
 				if(selectedNode[0].getData("eltType").toString().equalsIgnoreCase("TESTSUITE"))

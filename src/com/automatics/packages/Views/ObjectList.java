@@ -48,6 +48,7 @@ public class ObjectList extends ViewPart {
 	private ObjectMapTaskService service = ObjectMapTaskService.getInstance();
 	private MenuItem addToTestCase,newObjMap,opnObjMap,copyObjMap,pasteObjMap,delObjMap;
 	private ObjectMapTask copyTask;
+	private MenuItem refreshMap;
 	
 	
 	public ObjectList() {
@@ -62,6 +63,7 @@ public class ObjectList extends ViewPart {
 		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		omListTree = new Tree(composite, SWT.BORDER);
+		
 		
 		loadOMList();
 		setListerners();
@@ -184,12 +186,23 @@ public class ObjectList extends ViewPart {
 				}
 			}
 		});
+		
+		refreshMap.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) 
+			{
+				loadOMList();
+			}
+		});
+		
 	}
 	
 	public void loadOMList()
 	{
 		try
 		{	
+			if(omListTree.getItemCount()>0)
+				omListTree.getItem(0).dispose();
+			
 			TreeItem root = new TreeItem(omListTree, SWT.NONE);
 			root.setText("App_Name");
 			root.setData("eltType","APPNAME");
@@ -221,6 +234,11 @@ public class ObjectList extends ViewPart {
 			delObjMap = new MenuItem(menu, SWT.NONE);
 			delObjMap.setText("Delete");
 			
+			new MenuItem(menu, SWT.SEPARATOR);
+			
+			refreshMap = new MenuItem(menu, SWT.NONE);
+			refreshMap.setText("Refresh");
+			
 			
 			DB db = Utilities.getMongoDB();
 			ArrayList<String> omList = AutomaticsDBObjectMapQueries.getAllOM(db);
@@ -244,6 +262,7 @@ public class ObjectList extends ViewPart {
 					service.addTasks(omEditorTask);
 				}
 			}
+			root.setExpanded(true);
 		}
 		catch(Exception e)
 		{
