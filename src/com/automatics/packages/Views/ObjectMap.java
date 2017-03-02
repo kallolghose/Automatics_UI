@@ -5,7 +5,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.TabFolder;
@@ -22,11 +24,20 @@ import org.eclipse.swt.dnd.DragSourceListener;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 
+import com.automatics.packages.Editors.TCEditor;
+import com.automatics.packages.Model.TestCaseTask;
+import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
+import com.automatics.utilities.gsons.testcase.TCGson;
+import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
 import com.automatics.utilities.save.model.ObjectMapSaveService;
 import com.automatics.utilities.save.model.ObjectMapSaveTask;
+
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.wb.swt.ResourceManager;
 
 public class ObjectMap extends ViewPart {
 
@@ -34,6 +45,7 @@ public class ObjectMap extends ViewPart {
 	private static Tree objectNameTree, pageNameTree;
 	private static Tree objectTree;
 	private static TabFolder tabFolder;
+	private MenuItem removefromTC;
 	
 	/*
 	 * Risk involved in case user uses more than 2 object maps and each contains a same page name then only one object map 
@@ -63,6 +75,13 @@ public class ObjectMap extends ViewPart {
 		
 		objectTree = new Tree(object_composite, SWT.BORDER);
 		
+		Menu menu = new Menu(objectTree);
+		objectTree.setMenu(menu);
+		
+		removefromTC = new MenuItem(menu, SWT.NONE);
+		removefromTC.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/recycle.png"));
+		removefromTC.setText("Remove From Test Case");
+		
 		TabItem PageName = new TabItem(tabFolder, SWT.NONE);
 		PageName.setText("Page Name");
 		
@@ -75,12 +94,6 @@ public class ObjectMap extends ViewPart {
 		
 		TreeItem pageNameRoot = new TreeItem(pageNameTree, SWT.NONE);
 		pageNameRoot.setText("ObjectMap1");
-		
-		TreeItem trtmPagename = new TreeItem(pageNameRoot, SWT.NONE);
-		trtmPagename.setText("PageName1");
-		
-		TreeItem trtmPagename_1 = new TreeItem(pageNameRoot, SWT.NONE);
-		trtmPagename_1.setText("PageName2");
 		pageNameRoot.setExpanded(true);
 		
 		TabItem ObjectName = new TabItem(tabFolder, SWT.NONE);
@@ -95,22 +108,6 @@ public class ObjectMap extends ViewPart {
 		TreeItem objectNameRoot = new TreeItem(objectNameTree, SWT.NONE);
 		objectNameRoot.setText("PageName1");
 		objectNameRoot.setData("eltData", "Page");
-		
-		TreeItem trtmObject_1 = new TreeItem(objectNameRoot, SWT.NONE);
-		trtmObject_1.setText("Object1");
-		trtmObject_1.setData("eltData","Object");
-		
-		TreeItem trtmObject = new TreeItem(objectNameRoot, SWT.NONE);
-		trtmObject.setText("Object2");
-		trtmObject.setData("eltData","Object");
-		
-		TreeItem trtmObject_2 = new TreeItem(objectNameRoot, SWT.NONE);
-		trtmObject_2.setText("Object3");
-		trtmObject_2.setData("eltData","Object");
-		
-		TreeItem trtmObject_3 = new TreeItem(objectNameRoot, SWT.NONE);
-		trtmObject_3.setText("Object4");
-		trtmObject_3.setData("eltData","Object");
 		
 		objectNameRoot.setExpanded(true);
 		
@@ -206,6 +203,56 @@ public class ObjectMap extends ViewPart {
 					tabFolder.setSelection(2);	
 				}
 			});
+			
+			removefromTC.addListener(SWT.Selection, new Listener() 
+			{
+				public void handleEvent(Event event) 
+				{
+					MessageDialog warnDialog = new MessageDialog(getSite().getShell(), "Warning", null ,
+							"Deassociating Object Map will affect Test Case Steps. Do you want to continue ?", 
+							MessageDialog.WARNING, new String[]{"Continue","Cancel"}, 0);
+					int val = warnDialog.open();
+					if(val == 1) //If clicked on cancel then return
+						return;
+					
+					if(TCEditor.currentTestCase!=null)
+					{
+						TestCaseTask currentTask = TestCaseTaskService.getInstance().getTaskByTcName(TCEditor.currentTestCase);
+						TCGson tcGson = currentTask.getTcGson();
+						TreeItem treeItem = objectTree.getSelection()[0];
+						String omName = treeItem.getText();
+						List<String> omList = tcGson.tcObjectMapLink;
+						for(int i=0;i<omList.size();i++)
+						{
+							if(omList.get(i).equalsIgnoreCase(omName))
+							{
+								omList.remove(i);
+								pageName_ObjectMapName.remove(omName);
+								break;
+							}
+						}
+						treeItem.dispose();
+						tcGson.tcObjectMapLink = omList;
+						//Remove all object with the page name and object name
+						List<TCStepsGSON> steps = tcGson.tcSteps;
+						for(int i=0;i<steps.size();i++)
+						{
+							TCStepsGSON step = steps.get(i);
+							if(step.omName.equals(omName))
+							{
+								step.stepPageName = "";
+								step.stepObjName = "";
+								step.omName = "";
+							}
+							steps.set(i, step);
+						}
+						tcGson.tcSteps = steps;
+						TCEditor tcEditor = (TCEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+						tcEditor.refreshTableContents();
+						currentTask.setTcGson(tcGson);
+					}
+				}
+			});
 		}
 		catch(Exception e)
 		{
@@ -288,6 +335,12 @@ public class ObjectMap extends ViewPart {
 		return null;
 	}
 	
+	public void visibilityOfRemovefromTC(boolean enabled)
+	{
+		removefromTC.setEnabled(enabled);
+	}
+	
+	
 	public static void loadObjectMap(String omName)
 	{
 		//Remove all children
@@ -327,7 +380,16 @@ public class ObjectMap extends ViewPart {
 	
 	public static void addObjectMap(String omName)
 	{
-		System.out.println("Here");
+		/*Check if omName already added*/
+		TreeItem [] items = objectTree.getItems();
+		for(TreeItem item : items)
+		{
+			if(item.getText().equalsIgnoreCase(omName))
+			{
+				return;
+			}
+		}
+		
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
 		trtmObjectmap.setText(omName);
 		trtmObjectmap.setData("eltType","OBJECTMAP");

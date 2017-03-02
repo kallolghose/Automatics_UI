@@ -929,4 +929,19 @@ public class TCEditor extends EditorPart {
 		}
 		return steps;
 	}
+	
+	public void refreshTableContents()
+	{
+		try
+		{
+			TCGson tcGson = tcTask.getTcGson();
+			testscriptsViewer.setInput(tcGson.tcSteps);
+			testscriptsViewer.refresh();
+		}
+		catch(Exception e)
+		{
+			System.out.println("[TCEditor - refreshTableContents()] - Exception  : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
 }

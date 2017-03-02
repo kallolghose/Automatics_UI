@@ -202,6 +202,9 @@ public class TC_TS_List extends ViewPart {
 		testcaseListComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		testCaseList = new Tree(testcaseListComposite, SWT.BORDER);
+
+		DragSource dragSource = new DragSource(testCaseList, DND.DROP_MOVE);
+		setDragListener(dragSource);
 		
 		loadTestSuiteTestCaseTreeView();
 		addPerspectiveListerner();
@@ -284,8 +287,6 @@ public class TC_TS_List extends ViewPart {
 			appName.setData("eltType","APPNAME");
 			appName.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
 			
-			DragSource dragSource = new DragSource(testCaseList, DND.DROP_MOVE);
-			setDragListener(dragSource);
 			
 			org.eclipse.swt.widgets.Menu testcasePopUp = new org.eclipse.swt.widgets.Menu(testCaseList);
 			testCaseList.setMenu(testcasePopUp);
@@ -834,6 +835,10 @@ public class TC_TS_List extends ViewPart {
 					TestSuiteTask tsTask = tsService.getTaskByTSName(tsName);
 					TSGson  tsGson = tsTask.getTsGson();
 					List<TSTCGson> list = tsGson.tsTCLink;
+					if(list==null)
+					{
+						list = new ArrayList<TSTCGson>();
+					}
 					
 					//Add the test suite details
 					TSTCGson details = new TSTCGson();
@@ -860,7 +865,7 @@ public class TC_TS_List extends ViewPart {
 					paramList.add(param4);
 					paramList.add(param5);
 					details.tcParams = paramList;
-					//Added 
+					//Added
 					list.add(details);
 					tsGson.tsTCLink = list;
 					tsTask.setTsGson(tsGson);

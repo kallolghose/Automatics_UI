@@ -1,6 +1,7 @@
 package com.automatics.packages.Views;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import javax.json.JsonObject;
 
@@ -104,13 +105,16 @@ public class ObjectList extends ViewPart {
 					TestCaseTask currentTask = TestCaseTaskService.getInstance().getTaskByTcName(TCEditor.currentTestCase);
 					TCGson tcGson = currentTask.getTcGson();
 					TreeItem [] selected = omListTree.getSelection();
-					ArrayList<String> omArr = new ArrayList<String>();
+					ArrayList<String> omArr = (ArrayList<String>)tcGson.tcObjectMapLink;
+					if(omArr==null)
+						omArr = new ArrayList<String>();
+					
 					if(selected[0].getData("eltType").toString().equalsIgnoreCase("OBJECTMAP"))
 					{
 						omArr.add(selected[0].getText());
-						//ObjectMap.loadObjectMap(selected[0].getText());
 						ObjectMap.addObjectMap(selected[0].getText());
 					}
+					omArr = Utilities.removeDuplicatesFromArrayList(omArr);
 					tcGson.tcObjectMapLink = omArr;
 					currentTask.setTcGson(tcGson);
 				}
@@ -308,6 +312,11 @@ public class ObjectList extends ViewPart {
 			System.out.println("[ObjectList - createObjectMap()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	public void visibilityOfAddToTestCaseItem(boolean enable)
+	{
+		addToTestCase.setEnabled(enable);
 	}
 	
 	@Override

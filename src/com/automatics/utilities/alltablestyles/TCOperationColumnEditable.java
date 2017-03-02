@@ -86,11 +86,16 @@ public class TCOperationColumnEditable extends EditingSupport
 			{
 				((TCStepsGSON) element).stepPageName = "NA";
 				((TCStepsGSON) element).stepObjName = "NA";
+				((TCStepsGSON) element).omName = "";
 			}
 			else
 			{
-				((TCStepsGSON) element).stepPageName = "";
-				((TCStepsGSON) element).stepObjName = "";
+				if(((TCStepsGSON) element).stepPageName.equals("NA"))
+				{
+					((TCStepsGSON) element).stepPageName = "";
+					((TCStepsGSON) element).stepObjName = "";
+					((TCStepsGSON) element).omName = "";
+				}
 			}
 			if(!opnGson.opnStatement.contains("ARG1") && !opnGson.opnStatement.contains("ARG2"))
 			{
@@ -98,7 +103,8 @@ public class TCOperationColumnEditable extends EditingSupport
 			}
 			else
 			{
-				((TCStepsGSON) element).stepArgument = "";
+				if(((TCStepsGSON) element).stepArgument.equals("NA"))
+					((TCStepsGSON) element).stepArgument = "";
 			}
 		}
 		((TCStepsGSON) element).stepOperation = updateVal; 
