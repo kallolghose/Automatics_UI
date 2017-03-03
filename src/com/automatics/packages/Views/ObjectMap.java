@@ -449,12 +449,21 @@ public class ObjectMap extends ViewPart {
 	{
 		try
 		{
-			if(objectTree.getItem(0)!=null)
-				objectTree.getItem(0).dispose();
-			if(pageNameTree.getItem(0)!=null)
-				pageNameTree.getItem(0).dispose();
-			if(objectNameTree.getItem(0)!=null)
-				objectNameTree.getItem(0).dispose();
+			while(objectTree.getItemCount()>0)
+			{
+				if(objectTree.getItem(0)!=null)
+					objectTree.getItem(0).dispose();
+			}
+			while(pageNameTree.getItemCount()>0)
+			{
+				if(pageNameTree.getItem(0)!=null)
+					pageNameTree.getItem(0).dispose();
+			}
+			while(objectNameTree.getItemCount()>0)
+			{
+				if(objectNameTree.getItem(0)!=null)
+					objectNameTree.getItem(0).dispose();
+			}
 		}
 		catch(Exception e)
 		{
@@ -466,10 +475,16 @@ public class ObjectMap extends ViewPart {
 	{
 		try
 		{
-			if(pageNameTree.getItem(0)!=null)
-				pageNameTree.getItem(0).dispose();
-			if(objectNameTree.getItem(0)!=null)
-				objectNameTree.getItem(0).dispose();
+			while(pageNameTree.getItemCount()>0)
+			{
+				if(pageNameTree.getItem(0)!=null)
+					pageNameTree.getItem(0).dispose();
+			}
+			while(objectNameTree.getItemCount()>0)
+			{
+				if(objectNameTree.getItem(0)!=null)
+					objectNameTree.getItem(0).dispose();
+			}
 		}
 		catch(Exception e)
 		{
@@ -481,8 +496,11 @@ public class ObjectMap extends ViewPart {
 	{
 		try
 		{
-			if(objectNameTree.getItem(0)!=null)
-				objectNameTree.getItem(0).dispose();
+			while(objectNameTree.getItemCount()>0)
+			{
+				if(objectNameTree.getItem(0)!=null)
+					objectNameTree.getItem(0).dispose();
+			}
 		}
 		catch(Exception e)
 		{
@@ -509,6 +527,11 @@ public class ObjectMap extends ViewPart {
 		return null;
 	}
 
+	public static int getObjectMapsCount()
+	{
+		return objectTree.getItemCount();
+	}
+	
 	public void setFocus() {
 
 	}

@@ -9,8 +9,10 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.swt.SWT;
 
+import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.packages.Editors.TestSuiteEditor;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
+import com.automatics.utilities.helpers.Utilities;
 
 public class TSTestCaseColumnEditable extends EditingSupport 
 {
@@ -23,12 +25,11 @@ public class TSTestCaseColumnEditable extends EditingSupport
 		this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
 		this.editor.setContenProvider(new ArrayContentProvider());
 		this.editor.setInput(dropdownVals);
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
-	protected CellEditor getCellEditor(Object element) {
-		// TODO Auto-generated method stub
+	protected CellEditor getCellEditor(Object element) 
+	{
 		this.editor.setInput(TestSuiteEditor.testCaseList);
 		return editor;
 	}
@@ -49,7 +50,10 @@ public class TSTestCaseColumnEditable extends EditingSupport
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TSTCGson) element).tcName = value.toString(); 
+		String updateValue = "";
+		if(value!=null)
+			updateValue = value.toString();
+		((TSTCGson) element).tcName = updateValue; 
 		this.viewer.update(element, null);
 	}
 

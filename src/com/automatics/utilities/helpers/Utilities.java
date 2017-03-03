@@ -534,7 +534,7 @@ public class Utilities
 		Pattern blankCheck = Pattern.compile("^\\s*$");
 		Pattern blankCheck1 = Pattern.compile("^\\d");
 		//Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-[[:blank:]]])");
-		Pattern blankCheck2 = Pattern.compile("[^A-Za-z0-9]+");
+		Pattern blankCheck2 = Pattern.compile("[^A-Za-z0-9_]+");
 		
 		final Matcher  blankCheckForTsName = blankCheck.matcher(str); 
 	    final Matcher  blankCheckForTsNameForNumberCheck = blankCheck1.matcher(str);

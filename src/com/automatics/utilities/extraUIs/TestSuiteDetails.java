@@ -104,10 +104,10 @@ public class TestSuiteDetails extends Shell {
 		testsuiteDesc.setBounds(139, 111, 295, 139);
 		
 		errLabel = new Label(composite, SWT.NONE);
-		errLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
 		errLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-		errLabel.setBounds(10, 360, 262, 15);
-		errLabel.setText("Display Error Message");
+		errLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		errLabel.setBounds(10, 294, 263, 15);
+		errLabel.setText("Error Label");
 		errLabel.setVisible(false);
 		setListeners();
 		createContents();
@@ -129,6 +129,8 @@ public class TestSuiteDetails extends Shell {
 				{
 					
 					String tsName = testsuiteName.getText();
+
+					errLabel.setVisible(false);
 					
 					final List<String> collValidityMessage=Utilities.validateEntityValues(tsName);
 					for (String validityMessage : collValidityMessage) {
@@ -137,7 +139,6 @@ public class TestSuiteDetails extends Shell {
 						return;
 					}
 					
-					errLabel.setVisible(false);
 
 					String tsDesc = testsuiteDesc.getText();
 					final List<String> colldescriptionMessage=Utilities.validateDescriptionValue(tsDesc);

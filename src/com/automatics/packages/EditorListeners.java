@@ -20,12 +20,12 @@ import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.packages.Views.ObjectList;
 import com.automatics.packages.Views.ObjectMap;
+import com.automatics.packages.Views.TestCaseParamView;
 
 public class EditorListeners implements IPartListener2
 {
 	public void partActivated(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
 	}
 
 	public void partBroughtToTop(IWorkbenchPartReference partRef) {
@@ -55,6 +55,7 @@ public class EditorListeners implements IPartListener2
 					
 					TestCaseEditorInput input = (TestCaseEditorInput) editor.getEditorInput();
 					TestCaseTask tcTask = TestCaseTaskService.getInstance().getTaskByTcName(input.getId());
+					
 					ObjectMap.disposeObjMaps();
 					if(tcTask.getTcGson().tcObjectMapLink!=null)
 					{
@@ -71,6 +72,7 @@ public class EditorListeners implements IPartListener2
 							}
 						}
 					}
+
 				}
 				else if(editor.getEditorInput() instanceof TestSuiteEditorInput)
 				{
@@ -114,7 +116,7 @@ public class EditorListeners implements IPartListener2
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + " : partBroughtToTop()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 		}
 	}
 
@@ -130,8 +132,6 @@ public class EditorListeners implements IPartListener2
 					viewPart.visibilityOfAddToTestCaseItem(false);
 					ObjectMap viewPartOM = (ObjectMap)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(ObjectMap.ID);
 					viewPartOM.visibilityOfRemovefromTC(false);
-					
-					TCEditor.currentTestCase = null;
 					ObjectMap.disposeObjMaps();
 				}
 			}
@@ -139,7 +139,7 @@ public class EditorListeners implements IPartListener2
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + " : partClosed()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 		}
 	}
 

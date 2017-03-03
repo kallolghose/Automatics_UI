@@ -651,49 +651,7 @@ public class TC_TS_List extends ViewPart {
 	}
 
 	public void setFocus() {
-		/*IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IProject project = root.getProject("TESTJDT");
-		try 
-		{
-			project.create(null);
-			project.open(null);
-			IProjectDescription description = null;
-			description = project.getDescription();
-			project.setDescription(description, null);
-			IJavaProject javaProject = JavaCore.create(project);
-			IClasspathEntry[] buildPath = {
-											JavaCore.newSourceEntry(project.getFullPath().append("src")),
-											JavaRuntime.getDefaultJREContainerEntry() 
-										  };
-			javaProject.setRawClasspath(buildPath, project.getFullPath().append("bin"), null);
-			IFolder folder = project.getFolder("src");		
-			folder.create(true, true, null);
-			IPackageFragmentRoot srcFolder = javaProject
-						.getPackageFragmentRoot(folder);
-		 
-			IPackageFragment fragment = null;
-			fragment = srcFolder.createPackageFragment("com.programcreek", true, null);
-			String str = "package com.programcreek;" + "\n"
-			+ "public class Test  {" + "\n" + " private String name;"
-			+ "\n" + "}";
-		 
-				ICompilationUnit cu = null;
-				try {
-					cu = fragment.createCompilationUnit("Test.java", str,
-							false, null);
-				} catch (JavaModelException e) {
-					e.printStackTrace();
-				}
-		 
-			IType type = cu.getType("Test");
-			type.createField("private String age;", null, true, null);
-			type.createField("private int value;", null, true, null);
-			
-		} 
-		catch(Exception e) {
-			e.printStackTrace();
-		}
-		*/
+		/*
 		try
 		{
 			
@@ -737,7 +695,7 @@ public class TC_TS_List extends ViewPart {
 			System.out.println("[" + getClass().getName() + "-setFocus()] Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
-		
+		*/
 	}
 	
 	public Menu menuForTC()
@@ -822,6 +780,9 @@ public class TC_TS_List extends ViewPart {
 				selectedNode = testSuiteList.getItems();
 			if(selectedNode[0] != null)
 			{
+				String tsName = "";
+				TestSuiteTask tsTask = null;
+				TSGson tsGson = null;
 				if(selectedNode[0].getData("eltType").toString().equalsIgnoreCase("TESTSUITE"))
 				{
 					TreeItem testcaseItem = new TreeItem(selectedNode[0],SWT.NONE);
@@ -830,10 +791,10 @@ public class TC_TS_List extends ViewPart {
 					testcaseItem.setText(gson.tcName);
 					
 					//Add the test case to test suite as well
-					String tsName = selectedNode[0].getText();
+					tsName = selectedNode[0].getText();
 					TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-					TestSuiteTask tsTask = tsService.getTaskByTSName(tsName);
-					TSGson  tsGson = tsTask.getTsGson();
+					tsTask = tsService.getTaskByTSName(tsName);
+					tsGson = tsTask.getTsGson();
 					List<TSTCGson> list = tsGson.tsTCLink;
 					if(list==null)
 					{
@@ -880,11 +841,15 @@ public class TC_TS_List extends ViewPart {
 					testcaseItem.setText(gson.tcName);
 					
 					//Add the test case to test suite as well
-					String tsName = parent.getText();
+					tsName = parent.getText();
 					TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-					TestSuiteTask tsTask = tsService.getTaskByTSName(tsName);
-					TSGson  tsGson = tsTask.getTsGson();
+					tsTask = tsService.getTaskByTSName(tsName);
+					tsGson = tsTask.getTsGson();
 					List<TSTCGson> list = tsGson.tsTCLink;
+					if(list==null)
+					{
+						list = new ArrayList<TSTCGson>();
+					}
 					
 					//Add the test suite details
 					TSTCGson details = new TSTCGson();
@@ -924,6 +889,55 @@ public class TC_TS_List extends ViewPart {
 					testcaseItem.setData("eltType","TESTCASE"); //Set the type of object (Here TESTCASE)
 					testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
 					testcaseItem.setText(gson.tcName);
+					
+					//Add the test case to test suite as well
+					tsName = parent.getText();
+					TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
+					tsTask = tsService.getTaskByTSName(tsName);
+					tsGson = tsTask.getTsGson();
+					List<TSTCGson> list = tsGson.tsTCLink;
+					if(list==null)
+					{
+						list = new ArrayList<TSTCGson>();
+					}
+					
+					//Add the test suite details
+					TSTCGson details = new TSTCGson();
+					details.tcName = gson.tcName;
+					List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
+					TSTCParamGson param1 = new TSTCParamGson();
+					param1.tcparamName = "Column1";
+					param1.tcparamValue = "";
+					TSTCParamGson param2 = new TSTCParamGson();
+					param2.tcparamName = "Column2";
+					param2.tcparamValue = "";
+					TSTCParamGson param3 = new TSTCParamGson();
+					param3.tcparamName = "Column3";
+					param3.tcparamValue = "";
+					TSTCParamGson param4 = new TSTCParamGson();
+					param4.tcparamName = "Column4";
+					param4.tcparamValue = "";
+					TSTCParamGson param5 = new TSTCParamGson();
+					param5.tcparamName = "Column5";
+					param5.tcparamValue = "";
+					paramList.add(param1);
+					paramList.add(param2);
+					paramList.add(param3);
+					paramList.add(param4);
+					paramList.add(param5);
+					details.tcParams = paramList;
+					//Added 
+					list.add(details);
+					tsGson.tsTCLink = list;
+					tsTask.setTsGson(tsGson);
+				}
+				
+				//Save the test suite as well
+				JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, tsGson));
+				System.out.println("Save When TC Added : \n" + jsonObj.toString());
+				if(jsonObj!=null)
+				{
+					AutomaticsDBTestSuiteQueries.updateTS(Utilities.getMongoDB(), tsTask.getTsName(), jsonObj);
 				}
 			}
 			
@@ -940,6 +954,9 @@ public class TC_TS_List extends ViewPart {
 			{
 				AutomaticsDBTestCaseQueries.postTC(Utilities.getMongoDB(), jsonObj);
 			}
+			
+			//Update the test case list used in test suite dropdown
+			TestSuiteEditor.testCaseList = AutomaticsDBTestCaseQueries.getAllTC(Utilities.getMongoDB()); 
 			
 			//Create the task for the newly created test suite
 			TestCaseTask newTask = new TestCaseTask(gson.tcName, gson.tcDesc, gson.tcType, gson.tcIdentifier, gson);
@@ -958,7 +975,7 @@ public class TC_TS_List extends ViewPart {
 		catch(Exception e)
 		{
 			System.out.println("TC_TS_List : addTestCase()-Exception : " + e.getMessage());
-			e.printStackTrace();
+			e.printStackTrace(System.out);
 		}
 	}
 	

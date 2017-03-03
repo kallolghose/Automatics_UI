@@ -558,12 +558,10 @@ public class TestSuiteEditor extends EditorPart {
 		viewEditor.addListener(SWT.Selection, new Listener() {
 			
 			public void handleEvent(Event event) {
-					
-					IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
-					IPath location = Path.fromOSString("Automation_Suite/" + tsTask.getTsName()+ ".xml"); 
-					IFile projectFile = workspace.getRoot().getFile(location);
-					Utilities.openEditor(projectFile, null);
-				
+				IWorkspace workspace = ResourcesPlugin.getWorkspace(); 
+				IPath location = Path.fromOSString("Automation_Suite/" + tsTask.getTsName()+ ".xml"); 
+				IFile projectFile = workspace.getRoot().getFile(location);
+				Utilities.openEditor(projectFile, null);	
 			}
 		});
 	}

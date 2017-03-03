@@ -7,12 +7,14 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Button;
@@ -57,6 +59,7 @@ public class TestCaseDetails extends Shell {
 	 */
 	public TestCaseDetails(Shell shell) {
 		super(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		Composite composite = new Composite(this, SWT.NONE);
@@ -222,7 +225,7 @@ public class TestCaseDetails extends Shell {
 	protected void createContents() {
 		setText("New Test Case");
 		setSize(450, 411);
-
+		
 	}
 
 	@Override

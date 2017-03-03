@@ -21,13 +21,13 @@ public class TestSuiteExecutor
 	public void executeTestSuite()
 	{
 		try
-		{
-			
+		{	
 			for(String testNgPath : listofTestSuites)
 			{
 				String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 				String location  = workspacePath + "\\" + PROJECT_NAME;
-				String libPath = location + "\\com.automatics.package\\com.automatics.package.jars";
+				//String libPath = location + "\\com.automatics.package\\com.automatics.package.jars";
+				String libPath = workspacePath + "\\ext\\jars";
 				String binPath = location + "\\bin";
 				String dir = location.charAt(0) + ":";
 				

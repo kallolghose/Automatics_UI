@@ -82,7 +82,7 @@ public class TCEditor extends EditorPart {
 	private List<TCStepsGSON> listOfTestCaseSteps;
 	private TCStepsGSON copiedGson;
 	private String lock_image = "images/icons/Open_lock.png";
-	
+	private boolean public_lock = false;
 	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
@@ -126,8 +126,7 @@ public class TCEditor extends EditorPart {
 	    				MessageDialog.ERROR, 
 	    				new String[]{"OK"}, 0);
 	    		privateChk.open();
-	    		throw new RuntimeException("Cannot open private test case");
-	    		
+	    		throw new RuntimeException("Cannot open private test case");	
 	    	}
 	    }
 	    else if(tcGson.tcFlag.equalsIgnoreCase("EDIT"))
@@ -143,6 +142,7 @@ public class TCEditor extends EditorPart {
 	    }
 	    else
 	    {
+	    	public_lock = false;
 		    String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
 		    boolean syncStatus = this.gitUtil.getSync(currentFileName);
 		    if(syncStatus)
@@ -208,50 +208,50 @@ public class TCEditor extends EditorPart {
 			addBtn.setToolTipText("Add Testcase Step");
 			addBtn.setSelection(true);
 			addBtn.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
-			addBtn.setEnabled(viewAllElements);
+			addBtn.setEnabled(viewAllElements && public_lock);
 			
 			delBtn = new ToolItem(iconsToolBar, SWT.NONE);
 			delBtn.setToolTipText("Delete Testcase step");
 			delBtn.setSelection(true);
 			delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
-			delBtn.setEnabled(viewAllElements);
+			delBtn.setEnabled(viewAllElements && public_lock);
 			
 			saveItem = new ToolItem(iconsToolBar, SWT.NONE);
 			saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
 			saveItem.setToolTipText("Save");
 			saveItem.setSelection(true);
-			saveItem.setEnabled(viewAllElements);
+			saveItem.setEnabled(viewAllElements && public_lock);
 			
 			copyItem = new ToolItem(iconsToolBar, SWT.NONE);
 			copyItem.setToolTipText("Copy");
 			copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
 			copyItem.setSelection(true);
-			copyItem.setEnabled(viewAllElements);
+			copyItem.setEnabled(viewAllElements && public_lock);
 			
 			pasteItem = new ToolItem(iconsToolBar, SWT.NONE);
 			pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
 			pasteItem.setToolTipText("Paste");
 			pasteItem.setSelection(true);
-			pasteItem.setEnabled(viewAllElements);
+			pasteItem.setEnabled(viewAllElements && public_lock);
 			
 			openEditor = new ToolItem(iconsToolBar, SWT.NONE);
 			openEditor.setToolTipText("View In Editor");
 			openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 			openEditor.setSelection(true);
-			openEditor.setEnabled(viewAllElements);
+			openEditor.setEnabled(viewAllElements && public_lock);
 			
 			commitItem = new ToolItem(iconsToolBar, SWT.NONE);
 			commitItem.setToolTipText("Commit And Push");
 			commitItem.setWidth(26);
 			commitItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/git_commit.png"));
 			commitItem.setSelection(true);
-			commitItem.setEnabled(viewAllElements);
+			commitItem.setEnabled(viewAllElements && public_lock);
 			
 			pullItem = new ToolItem(iconsToolBar, SWT.NONE);
 			pullItem.setToolTipText("Pull");
 			pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
 			pullItem.setSelection(true);
-			pullItem.setEnabled(viewAllElements);
+			pullItem.setEnabled(viewAllElements && public_lock);
 			
 			lockItem = new ToolItem(iconsToolBar, SWT.NONE);
 			lockItem.setSelection(true);
@@ -267,7 +267,7 @@ public class TCEditor extends EditorPart {
 			testscriptTable.setLinesVisible(true);
 			testscriptTable.setHeaderVisible(true);
 			testscriptTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-			testscriptTable.setEnabled(viewAllElements);
+			testscriptTable.setEnabled(viewAllElements && public_lock);
 			
 			TableViewerColumn snoViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
 			snoViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -414,11 +414,14 @@ public class TCEditor extends EditorPart {
 				}
 			}
 			
+			//Open test case parameter view
+			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
+			
 			DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
 			setDropListener(dropTarget); //Set Drop Listener
 			setListeners();
 		}
-		catch(Exception e)
+		catch(Exception e) 
 		{
 			System.out.println("[" + getClass().getName() + " : createcontent - Exception : " + e.getMessage());
 			e.printStackTrace();
@@ -676,6 +679,17 @@ public class TCEditor extends EditorPart {
 					tcGson.tcFlag = "EDIT";
 					tcGson.username = Utilities.AUTOMATICS_USERNAME;
 					tcTask.setTcGson(tcGson);
+					public_lock = true;
+					addBtn.setEnabled(viewAllElements && public_lock);
+					delBtn.setEnabled(viewAllElements && public_lock);
+					saveItem.setEnabled(viewAllElements && public_lock);
+					copyItem.setEnabled(viewAllElements && public_lock);
+					pasteItem.setEnabled(viewAllElements && public_lock);
+					openEditor.setEnabled(viewAllElements && public_lock);
+					commitItem.setEnabled(viewAllElements && public_lock);
+					pullItem.setEnabled(viewAllElements && public_lock);
+					testscriptTable.setEnabled(viewAllElements && public_lock);
+					
 					saveActionPerform();
 				}
 				else
@@ -686,10 +700,27 @@ public class TCEditor extends EditorPart {
 					tcGson.username = Utilities.AUTOMATICS_USERNAME;
 					tcTask.setTcGson(tcGson);
 					saveActionPerform();
+					
+					public_lock = false;
+					addBtn.setEnabled(viewAllElements && public_lock);
+					delBtn.setEnabled(viewAllElements && public_lock);
+					saveItem.setEnabled(viewAllElements && public_lock);
+					copyItem.setEnabled(viewAllElements && public_lock);
+					pasteItem.setEnabled(viewAllElements && public_lock);
+					openEditor.setEnabled(viewAllElements && public_lock);
+					commitItem.setEnabled(viewAllElements && public_lock);
+					pullItem.setEnabled(viewAllElements && public_lock);
+					testscriptTable.setEnabled(viewAllElements && public_lock);
+					
+					/*Commit the changes*/
+					/*
+					String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
+					gitUtil.performPull();
+					gitUtil.performSpecificCommit(currentFileName);
+					gitUtil.performPush();
+					*/
 				}
-				
 				lockItem.setData("Locked", !locked);
-				
 			}
 		});
 	}
@@ -902,7 +933,6 @@ public class TCEditor extends EditorPart {
 				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
 			}
 			
-			
 			TestCaseParamView.currentTask = tcTask;
 			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 			isFocus = true;
@@ -913,6 +943,25 @@ public class TCEditor extends EditorPart {
 			testscriptsViewer.setInput(list);
 			testscriptsViewer.refresh();
 			
+			
+			if(tcTask.getTcGson().tcObjectMapLink.size()>0) //Load the object map if the data is in the list
+			{
+				if(ObjectMap.getObjectMapsCount()==0)
+				{
+					boolean first = true;
+					for(String omName : tcTask.getTcGson().tcObjectMapLink)
+					{
+						if(first) {
+							ObjectMap.loadObjectMap(omName);
+							first=false;
+						}
+						else
+						{
+							ObjectMap.addObjectMap(omName);
+						}
+					}
+				}
+			}
 		}
 		catch(Exception e){
 			System.out.println("["+getClass().getName() + " - SetFocus] : Exception "+e.getMessage());
