@@ -64,7 +64,7 @@ public class NewRunnerUI {
 	private TreeItem trtmNewTreeitem;
 	private Tree remoteTable;
 	private Tree localHostTable;
-	private Text text_2;
+	private Text runnerConsole;
 	/**
 	 * Launch the application.
 	 * @param args
@@ -101,6 +101,7 @@ public class NewRunnerUI {
 
 	/**
 	 * Create contents of the window.
+	 * @wbp.parser.entryPoint
 	 */
 	protected void createContents() {
 		shlRunner = new Shell();
@@ -114,17 +115,17 @@ public class NewRunnerUI {
 		Composite suitedetailsComposite = new Composite(parentComposite, SWT.NONE);
 		
 		Composite composite = new Composite(suitedetailsComposite, SWT.NONE);
-		composite.setBounds(0, 0, 538, 23);
+		composite.setBounds(0, 0, 538, 29);
 		
 		ToolBar iConToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
-		iConToolBar.setBounds(10, 0, 528, 23);
+		iConToolBar.setBounds(0, 0, 538, 29);
 		
-		ToolItem tltmNewItem = new ToolItem(iConToolBar, SWT.NONE);
-		tltmNewItem.setToolTipText("Run Selected Test Case");
-		tltmNewItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/run.png"));
+		ToolItem run = new ToolItem(iConToolBar, SWT.NONE);
+		run.setToolTipText("Run Selected Test Case");
+		run.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/run_icon.png"));
 		
-		ToolItem tltmNewItem_1 = new ToolItem(iConToolBar, SWT.NONE);
-		tltmNewItem_1.addSelectionListener(new SelectionAdapter() {
+		ToolItem refresh = new ToolItem(iConToolBar, SWT.NONE);
+		refresh.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 //				AutomaticsDBTestSuiteQueries.deleteTS(Utilities.getMongoDB(), tsName)
@@ -132,10 +133,10 @@ public class NewRunnerUI {
 				createTestSuiteTable(localHostTable);
 			}
 		});
-		tltmNewItem_1.setText("Refresh");
+		refresh.setText("Refresh");
 		
 		final TabFolder tabFolder = new TabFolder(suitedetailsComposite, SWT.NONE);
-		tabFolder.setBounds(0, 21, 538, 375);
+		tabFolder.setBounds(0, 35, 538, 361);
 		
 //		ArrayList<String>collList=	AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
 		
@@ -157,15 +158,15 @@ public class NewRunnerUI {
 		
 		TreeColumn trclmnColumn = new TreeColumn(remoteTable, SWT.NONE);
 		trclmnColumn.setWidth(77);
-		trclmnColumn.setText("Column1");
+		trclmnColumn.setText("Exe_Platform");
 		
 		TreeColumn trclmnColumn_1 = new TreeColumn(remoteTable, SWT.NONE);
 		trclmnColumn_1.setWidth(78);
-		trclmnColumn_1.setText("Column2");
+		trclmnColumn_1.setText("Exe_Type");
 		
 		TreeColumn trclmnColumn_2 = new TreeColumn(remoteTable, SWT.NONE);
 		trclmnColumn_2.setWidth(80);
-		trclmnColumn_2.setText("Column3");
+		trclmnColumn_2.setText("Run_On");
 		
 		TreeColumn trclmnColumn_3 = new TreeColumn(remoteTable, SWT.NONE);
 		trclmnColumn_3.setWidth(81);
@@ -178,7 +179,7 @@ public class NewRunnerUI {
 		createTestSuiteTable(remoteTable);
 		
 		TabItem tbtmNewItem_1 = new TabItem(tabFolder, SWT.NONE);
-		tbtmNewItem_1.setText("LocalHost");
+		tbtmNewItem_1.setText("Localhost");
 		
 		Composite composite_2 = new Composite(tabFolder, SWT.NONE);
 		tbtmNewItem_1.setControl(composite_2);
@@ -193,15 +194,15 @@ public class NewRunnerUI {
 		
 		TreeColumn trclmnColumn_5 = new TreeColumn(localHostTable, SWT.NONE);
 		trclmnColumn_5.setWidth(73);
-		trclmnColumn_5.setText("Column1");
+		trclmnColumn_5.setText("Exe_Platform");
 		
 		TreeColumn trclmnColumn_6 = new TreeColumn(localHostTable, SWT.NONE);
 		trclmnColumn_6.setWidth(77);
-		trclmnColumn_6.setText("Column2");
+		trclmnColumn_6.setText("Exe_Type");
 		
 		TreeColumn trclmnColumn_7 = new TreeColumn(localHostTable, SWT.NONE);
 		trclmnColumn_7.setWidth(85);
-		trclmnColumn_7.setText("Column3");
+		trclmnColumn_7.setText("Run_On");
 		
 		TreeColumn trclmnColumn_8 = new TreeColumn(localHostTable, SWT.NONE);
 		trclmnColumn_8.setWidth(81);
@@ -244,7 +245,7 @@ public class NewRunnerUI {
 		
 		
 		TabItem tbtmNewItem_2 = new TabItem(tabFolder, SWT.NONE);
-		tbtmNewItem_2.setText("Setting");
+		tbtmNewItem_2.setText("Settings");
 		
 		final Composite composite_3 = new Composite(tabFolder, SWT.NONE);
 		tbtmNewItem_2.setControl(composite_3);
@@ -366,9 +367,9 @@ public class NewRunnerUI {
 		Composite composite_5 = new Composite(tabFolder_1, SWT.NONE);
 		tbtmConsole.setControl(composite_5);
 		
-		text_2 = new Text(composite_5, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL | SWT.MULTI);
-		text_2.setEditable(false);
-		text_2.setBounds(0, 0, 530, 107);
+		runnerConsole = new Text(composite_5, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL | SWT.MULTI);
+		runnerConsole.setEditable(false);
+		runnerConsole.setBounds(0, 0, 530, 107);
 		
 		btnNewButton.addSelectionListener(new SelectionAdapter()
 		  {
@@ -386,14 +387,10 @@ public class NewRunnerUI {
 		});
 
 		
-		tltmNewItem.addSelectionListener(new SelectionAdapter() {
+		run.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) 
 			{
-				PrintStream printStream = new PrintStream(new ConsoleOutputStream(text_2));
-				System.setOut(printStream);
-				System.setErr(printStream);
-				
 				int index = tabFolder.getSelectionIndex();
 				if(index==0)
 					genarateTestNGfile(remoteTable);
@@ -573,76 +570,72 @@ public class NewRunnerUI {
 			      }
 			  }
 			  	  
-			  	  private void genarateTestNGfile(Tree table)
-			  	  {  
-			  		Map<String,List<TSTCGson>>newMap=new HashMap<String,List<TSTCGson>>();
-			  		  TreeItem [] items = table.getItems();
-			  		  List<String> collList=new ArrayList<String>();
-			  		  for(int i=0;i<items.length;i++)
-			  		  {
-		  				  TSGson tsGson = new TSGson();
-		  				  tsGson.tsName = items[i].getText();
-	  					  List<TSTCGson> tstcList = new ArrayList<TSTCGson>();
-	  					  tsGson.tsTCLink = tstcList;
-	  					  newMap.put(items[i].getText(), tstcList);
+  private void genarateTestNGfile(Tree table)
+  {
+	  TreeItem [] items = table.getItems();
+	  List<String> testNGList=new ArrayList<String>();
+	  
+	  for(int i=0;i<items.length;i++)
+	  {
+		  if(!items[i].getChecked())
+			  continue;
+		  TSGson tsGson = new TSGson();
+		  tsGson.tsName = items[i].getText();
+		  List<TSTCGson> tstcList = new ArrayList<TSTCGson>();
+		  tsGson.tsTCLink = tstcList;
 
-			  			  TreeItem [] childs = items[i].getItems();
-			  			  for(int j=0;j<childs.length;j++)
-				  		  {
-			  				  Object eltTypeObj1 = childs[j].getData("EltType");
-			  				  if(eltTypeObj1!=null)
-			  				  {
-				  				  String eltType = eltTypeObj1.toString();
-				  				  if(eltType.equalsIgnoreCase("TESTCASE"))
-				  				  {
-				  					  if(childs[j].getChecked())
-				  					  {
-					  						TSTCGson tstcGson = new TSTCGson();
-					  						tstcGson.tcName = childs[j].getText(0);
-					  						
-					  						List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
-					  						TSTCParamGson param1 = new TSTCParamGson();
-					  						param1.tcparamName = table.getColumn(1).getText();
-					  						param1.tcparamValue = "";
-					  						TSTCParamGson param2 = new TSTCParamGson();
-					  						param2.tcparamName = table.getColumn(2).getText();
-					  						param2.tcparamValue = "";
-					  						TSTCParamGson param3 = new TSTCParamGson();
-					  						param3.tcparamName = table.getColumn(3).getText();
-					  						param3.tcparamValue = "";
-					  						TSTCParamGson param4 = new TSTCParamGson();
-					  						param4.tcparamName = table.getColumn(4).getText();
-					  						param4.tcparamValue = "";
-					  						TSTCParamGson param5 = new TSTCParamGson();
-					  						param5.tcparamName = table.getColumn(5).getText();
-					  						param5.tcparamValue = "";
-					  						paramList.add(param1);
-					  						paramList.add(param2);
-					  						paramList.add(param3);
-					  						paramList.add(param4);
-					  						paramList.add(param5);
-					  						tstcGson.tcParams = paramList;
-					  						//List<TSTCGson> tctsList = newMap.get(tsGson.tsName);
-					  						tstcList.add(tstcGson);
-					  						newMap.put(tsGson.tsName, tstcList);
-					  					
-				  					  }
-				  				  }
-			  				  }
-				  		  }
-				  		collList.add(tsGson.tsName);
-			  			TestSuiteExecutor execution = new TestSuiteExecutor(collList);
-						execution.executeTestSuite();
-			  			Utilities.createTestng(tsGson, null);
-			  			
-			  		  }
-					  for(Entry<String, List<TSTCGson>> map : newMap.entrySet()) 
-					  {
-					  		TSGson tsGson = new TSGson();
-					  		tsGson.tsName = map.getKey();
-					  		tsGson.tsTCLink = map.getValue();
-					  		//Utilities.createTestng(tsGson, null);
-					  }	
-			  		
-			  	  }
+		  TreeItem [] childs = items[i].getItems();
+		  for(int j=0;j<childs.length;j++)
+  		  {
+			  Object eltTypeObj1 = childs[j].getData("EltType");
+			  if(eltTypeObj1!=null)
+			  {
+  				  String eltType = eltTypeObj1.toString();
+  				  if(eltType.equalsIgnoreCase("TESTCASE"))
+  				  {
+  					  if(childs[j].getChecked())
+  					  {
+	  						TSTCGson tstcGson = new TSTCGson();
+	  						tstcGson.tcName = childs[j].getText(0);
+	  						
+	  						List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
+	  						TSTCParamGson param1 = new TSTCParamGson();
+	  						param1.tcparamName = table.getColumn(1).getText();
+	  						param1.tcparamValue = childs[j].getText(1);
+	  						TSTCParamGson param2 = new TSTCParamGson();
+	  						param2.tcparamName = table.getColumn(2).getText();
+	  						param2.tcparamValue = childs[j].getText(2);
+	  						TSTCParamGson param3 = new TSTCParamGson();
+	  						param3.tcparamName = table.getColumn(3).getText();
+	  						param3.tcparamValue = childs[j].getText(3);
+	  						TSTCParamGson param4 = new TSTCParamGson();
+	  						param4.tcparamName = table.getColumn(4).getText();
+	  						param4.tcparamValue = "";
+	  						TSTCParamGson param5 = new TSTCParamGson();
+	  						param5.tcparamName = table.getColumn(5).getText();
+	  						param5.tcparamValue = "";
+	  						paramList.add(param1);
+	  						paramList.add(param2);
+	  						paramList.add(param3);
+	  						paramList.add(param4);
+	  						paramList.add(param5);
+	  						tstcGson.tcParams = paramList;
+	  						//List<TSTCGson> tctsList = newMap.get(tsGson.tsName);
+	  						tstcList.add(tstcGson);	  					
+  					  }
+  				  }
+			  }
+  		  }
+  		
+		TestSuiteRunnerAPI runnerAPI = new TestSuiteRunnerAPI();
+		runnerAPI.selected = true;
+		runnerAPI.threadCount = "1";
+		runnerAPI.testsuiteName = tsGson.tsName;
+		runnerAPI.status = "Running";
+		testNGList.add(Utilities.createTestng(tsGson, runnerAPI));
+		
+	  }
+	  TestSuiteExecutor execution = new TestSuiteExecutor(testNGList, new ConsoleOutputStream(runnerConsole));
+	  execution.executeTestSuite();
+  }
 }

@@ -18,7 +18,6 @@ public class ConsoleOutputStream extends OutputStream
 	public void write(int b) throws IOException {
 		// TODO Auto-generated method stub
 		consoleText.append(String.valueOf((char)b));
-		
 	}
 	
 }

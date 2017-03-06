@@ -82,7 +82,8 @@ public class TCEditor extends EditorPart {
 	private List<TCStepsGSON> listOfTestCaseSteps;
 	private TCStepsGSON copiedGson;
 	private String lock_image = "images/icons/Open_lock.png";
-	private boolean public_lock = false;
+	private boolean public_view = false;
+	private String lock_message = "Lock for editing";
 	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
@@ -138,11 +139,13 @@ public class TCEditor extends EditorPart {
 	    	else
 	    	{
 	    		lock_image = "images/icons/lock.png";
+	    		lock_message = "Unlock the file";
+	    		public_view = true;
 	    	}
 	    }
 	    else
 	    {
-	    	public_lock = false;
+	    	public_view = false;
 		    String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
 		    boolean syncStatus = this.gitUtil.getSync(currentFileName);
 		    if(syncStatus)
@@ -208,54 +211,54 @@ public class TCEditor extends EditorPart {
 			addBtn.setToolTipText("Add Testcase Step");
 			addBtn.setSelection(true);
 			addBtn.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
-			addBtn.setEnabled(viewAllElements && public_lock);
+			addBtn.setEnabled(viewAllElements && public_view);
 			
 			delBtn = new ToolItem(iconsToolBar, SWT.NONE);
 			delBtn.setToolTipText("Delete Testcase step");
 			delBtn.setSelection(true);
 			delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
-			delBtn.setEnabled(viewAllElements && public_lock);
+			delBtn.setEnabled(viewAllElements && public_view);
 			
 			saveItem = new ToolItem(iconsToolBar, SWT.NONE);
 			saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
 			saveItem.setToolTipText("Save");
 			saveItem.setSelection(true);
-			saveItem.setEnabled(viewAllElements && public_lock);
+			saveItem.setEnabled(viewAllElements && public_view);
 			
 			copyItem = new ToolItem(iconsToolBar, SWT.NONE);
 			copyItem.setToolTipText("Copy");
 			copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
 			copyItem.setSelection(true);
-			copyItem.setEnabled(viewAllElements && public_lock);
+			copyItem.setEnabled(viewAllElements && public_view);
 			
 			pasteItem = new ToolItem(iconsToolBar, SWT.NONE);
 			pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
 			pasteItem.setToolTipText("Paste");
 			pasteItem.setSelection(true);
-			pasteItem.setEnabled(viewAllElements && public_lock);
+			pasteItem.setEnabled(viewAllElements && public_view);
 			
 			openEditor = new ToolItem(iconsToolBar, SWT.NONE);
 			openEditor.setToolTipText("View In Editor");
 			openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 			openEditor.setSelection(true);
-			openEditor.setEnabled(viewAllElements && public_lock);
+			openEditor.setEnabled(viewAllElements && public_view);
 			
 			commitItem = new ToolItem(iconsToolBar, SWT.NONE);
 			commitItem.setToolTipText("Commit And Push");
 			commitItem.setWidth(26);
 			commitItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/git_commit.png"));
 			commitItem.setSelection(true);
-			commitItem.setEnabled(viewAllElements && public_lock);
+			commitItem.setEnabled(viewAllElements && public_view);
 			
 			pullItem = new ToolItem(iconsToolBar, SWT.NONE);
 			pullItem.setToolTipText("Pull");
 			pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
 			pullItem.setSelection(true);
-			pullItem.setEnabled(viewAllElements && public_lock);
+			pullItem.setEnabled(viewAllElements && public_view);
 			
 			lockItem = new ToolItem(iconsToolBar, SWT.NONE);
 			lockItem.setSelection(true);
-			lockItem.setToolTipText("Lock For Editing");
+			lockItem.setToolTipText(lock_message);
 			lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
 			lockItem.setData("Locked", false);
 			lockItem.setEnabled(viewAllElements);
@@ -267,7 +270,7 @@ public class TCEditor extends EditorPart {
 			testscriptTable.setLinesVisible(true);
 			testscriptTable.setHeaderVisible(true);
 			testscriptTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-			testscriptTable.setEnabled(viewAllElements && public_lock);
+			testscriptTable.setEnabled(viewAllElements && public_view);
 			
 			TableViewerColumn snoViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
 			snoViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -675,42 +678,26 @@ public class TCEditor extends EditorPart {
 				if(!locked)
 				{
 					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
+					lockItem.setToolTipText("Unlock the file");
 					TCGson tcGson = tcTask.getTcGson();
 					tcGson.tcFlag = "EDIT";
 					tcGson.username = Utilities.AUTOMATICS_USERNAME;
 					tcTask.setTcGson(tcGson);
-					public_lock = true;
-					addBtn.setEnabled(viewAllElements && public_lock);
-					delBtn.setEnabled(viewAllElements && public_lock);
-					saveItem.setEnabled(viewAllElements && public_lock);
-					copyItem.setEnabled(viewAllElements && public_lock);
-					pasteItem.setEnabled(viewAllElements && public_lock);
-					openEditor.setEnabled(viewAllElements && public_lock);
-					commitItem.setEnabled(viewAllElements && public_lock);
-					pullItem.setEnabled(viewAllElements && public_lock);
-					testscriptTable.setEnabled(viewAllElements && public_lock);
+					public_view = true;
 					
 					saveActionPerform();
 				}
 				else
 				{
 					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+					lockItem.setToolTipText("Lock for editing");
 					TCGson tcGson = tcTask.getTcGson();
 					tcGson.tcFlag = "PUBLIC";
 					tcGson.username = Utilities.AUTOMATICS_USERNAME;
 					tcTask.setTcGson(tcGson);
 					saveActionPerform();
 					
-					public_lock = false;
-					addBtn.setEnabled(viewAllElements && public_lock);
-					delBtn.setEnabled(viewAllElements && public_lock);
-					saveItem.setEnabled(viewAllElements && public_lock);
-					copyItem.setEnabled(viewAllElements && public_lock);
-					pasteItem.setEnabled(viewAllElements && public_lock);
-					openEditor.setEnabled(viewAllElements && public_lock);
-					commitItem.setEnabled(viewAllElements && public_lock);
-					pullItem.setEnabled(viewAllElements && public_lock);
-					testscriptTable.setEnabled(viewAllElements && public_lock);
+					public_view = false;
 					
 					/*Commit the changes*/
 					/*
@@ -720,6 +707,15 @@ public class TCEditor extends EditorPart {
 					gitUtil.performPush();
 					*/
 				}
+				addBtn.setEnabled(viewAllElements && public_view);
+				delBtn.setEnabled(viewAllElements && public_view);
+				saveItem.setEnabled(viewAllElements && public_view);
+				copyItem.setEnabled(viewAllElements && public_view);
+				pasteItem.setEnabled(viewAllElements && public_view);
+				openEditor.setEnabled(viewAllElements && public_view);
+				commitItem.setEnabled(viewAllElements && public_view);
+				pullItem.setEnabled(viewAllElements && public_view);
+				testscriptTable.setEnabled(viewAllElements && public_view);
 				lockItem.setData("Locked", !locked);
 			}
 		});

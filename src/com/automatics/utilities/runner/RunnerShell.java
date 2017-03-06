@@ -233,14 +233,11 @@ public class RunnerShell extends Shell {
 						}
 						
 						
-						PrintStream printStream = new PrintStream(new ConsoleOutputStream(consoleOutputTB));
-						System.setOut(printStream);
-						System.setErr(printStream);
 						
 						//TSExecutor executor = new TSExecutor(listOfTestngXmls);
 						//executor.startThread();
 						
-						TestSuiteExecutor tsExe = new TestSuiteExecutor(listOfTestngXmls);
+						TestSuiteExecutor tsExe = new TestSuiteExecutor(listOfTestngXmls, new ConsoleOutputStream(consoleOutputTB));
 						tsExe.executeTestSuite();
 					}
 					catch(Exception e)
