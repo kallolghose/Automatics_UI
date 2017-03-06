@@ -169,10 +169,10 @@
             </command>
          </menu>
          <menu
-               label="GIT">
+               label="Team">
             <command
                   commandId="com.automatics.utilities.git.pullAll"
-                  label="Pull..."
+                  label="Pull All..."
                   style="push">
             </command>
             <separator
@@ -181,12 +181,12 @@
             </separator>
             <command
                   commandId="com.automatics.utilities.git.CommitAll"
-                  label="Commit..."
+                  label="Commit All..."
                   style="push">
             </command>
             <command
                   commandId="com.automatics.utilities.git.pushAll"
-                  label="Push..."
+                  label="Push"
                   style="push">
             </command>
          </menu>

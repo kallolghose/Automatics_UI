@@ -79,7 +79,7 @@ public class ObjectMapEditor extends EditorPart {
 	private boolean viewAllElements = true;
 	private String lock_image = "images/icons/Open_lock.png";
 	private boolean private_check = false;
-	private boolean public_view = false;
+	private boolean public_view = false, private_view = false;
 	private String lock_message = "Lock for editing";
 	
 	public ObjectMapEditor() {
@@ -171,6 +171,9 @@ public class ObjectMapEditor extends EditorPart {
 		OMGson omGson = omTask.getOmGson();
 		if(omGson.omFlag.equalsIgnoreCase("PRIVATE"))
 		{
+			private_view = true;
+			public_view = private_view; 
+			viewAllElements = true;
 			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.username))
 			{
 				MessageDialog privateChk = new MessageDialog(site.getShell(), "Error", null, "Cannot Open Private Object Map", 
@@ -300,14 +303,14 @@ public class ObjectMapEditor extends EditorPart {
 		pullItem.setToolTipText("Pull");
 		pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
 		pullItem.setSelection(true);
-		pullItem.setEnabled(viewAllElements);
+		pullItem.setEnabled(viewAllElements && public_view);
 		
 		lockItem = new ToolItem(iconsToolBar, SWT.NONE);
 		lockItem.setToolTipText(lock_message);
 		lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
 		lockItem.setSelection(true);
 		lockItem.setData("Locked", false);
-		lockItem.setEnabled(viewAllElements);
+		lockItem.setEnabled(viewAllElements && !private_view); //If Private View then do not show lock;
 		
 		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());
@@ -517,7 +520,21 @@ public class ObjectMapEditor extends EditorPart {
 					saveActionPerform();
 
 					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+					lockItem.setToolTipText("Lock for editing");
 					lockItem.setData("Locked",false);
+					lockItem.setEnabled(true);
+					
+					/*Add lock to make components un-editable*/
+					public_view = false;
+					btnAdd.setEnabled(viewAllElements && public_view);
+					btnDelete.setEnabled(viewAllElements && public_view);
+					saveItem.setEnabled(viewAllElements && public_view);
+					copyItem.setEnabled(viewAllElements && public_view);
+					pasteItem.setEnabled(viewAllElements && public_view);
+					openEditor.setEnabled(viewAllElements && public_view);
+					commitItem.setEnabled(viewAllElements && public_view);
+					pullItem.setEnabled(viewAllElements && public_view);
+					objectMapDataTable.setEnabled(viewAllElements && public_view);
 					
 					/*Commit the files to the GIT repository*/
 					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";

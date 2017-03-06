@@ -1,11 +1,15 @@
 package com.automatics.utilities.runner;
 
+import java.io.OutputStreamWriter;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+
 /*
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.Realm;
@@ -635,6 +639,9 @@ public class NewRunnerUI {
 		testNGList.add(Utilities.createTestng(tsGson, runnerAPI));
 		
 	  }
+	  PrintWriter writer = new PrintWriter(new OutputStreamWriter(new ConsoleOutputStream(runnerConsole)));
+	  writer.print("Hello");
+	  writer.close();
 	  TestSuiteExecutor execution = new TestSuiteExecutor(testNGList, new ConsoleOutputStream(runnerConsole));
 	  execution.executeTestSuite();
   }

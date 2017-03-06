@@ -6,10 +6,12 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IPartListener2;
@@ -26,6 +28,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerEditor;
@@ -62,6 +65,8 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.wb.swt.ResourceManager;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 public class TestCaseParamView extends ViewPart {
 	
@@ -75,6 +80,8 @@ public class TestCaseParamView extends ViewPart {
 	private MenuItem addItem1,addItem2;
 	private ToolBar IconsToolBar;
 	public static TestCaseTask currentTask;
+	private Menu headerMenu = null;
+	private static Listener tableHeaderListener = null;
 	
 	public TestCaseParamView() {
 		// TODO Auto-generated constructor stub
@@ -119,22 +126,93 @@ public class TestCaseParamView extends ViewPart {
 		testcaseParamTable.setHeaderVisible(true);
 		testcaseParamTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		//addEditorToColumnHeader(testcaseParamViewer);
-		
 		DragSource dragSource = new DragSource(testcaseParamTable, DND.DROP_COPY );
+		
 		setListeners();
 		setDragListener(dragSource);
-		// TODO Auto-generated method stub
-
+		
+		/*Parameters Pop Up Menu*/
+		headerMenu = new Menu(testcaseParamTable);
+		testcaseParamTable.setMenu(headerMenu);
+		
+		/*
+		 * Note : was not able to add the listener in setlistener() so adding the listener here;
+		 */
+		MenuItem editHeader = new MenuItem(headerMenu, SWT.NONE);
+		editHeader.setText("Edit Parameter");
+		editHeader.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				InputDialog editExitingParam = new InputDialog(getSite().getShell(), "Edit Test Case Param",
+						 "Enter New Test Case Parameter Name : ", selectedTableColName, new ParamNameValidator());
+				
+				if(editExitingParam.open() == Window.OK)
+				{
+					if(selectedColIndex!=-1)
+					{
+						TableColumn col = testcaseParamTable.getColumn(selectedColIndex);
+						col.setText(editExitingParam.getValue());
+					}
+				}
+			}
+		});
+		
+		MenuItem deleteHeader = new MenuItem(headerMenu, SWT.NONE);
+		deleteHeader.setText("Delete Parameter");
+		deleteHeader.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				MessageDialog confirmDialog = new MessageDialog(getSite().getShell(), "Paramter Deletion", null, 
+						"Are you sure you want to delete parameter : (" + selectedTableColName + ")", 
+						MessageDialog.CONFIRM, new String[]{"Delete","Cancel"}, 0);
+				switch(confirmDialog.open())
+				{
+				case 0:
+					/*Logic to delete the test case*/
+					if(selectedColIndex!=-1)
+					{
+						ArrayList<ArrayList<String>> tcParamTableIP = (ArrayList<ArrayList<String>>)testcaseParamViewer.getInput();
+						//for(ArrayList<String> paramData : tcParamTableIP)
+						for(int i=0;i<tcParamTableIP.size();i++)
+						{
+							ArrayList<String> paramData = tcParamTableIP.get(i);
+							paramData.remove(selectedColIndex);
+							tcParamTableIP.set(i, paramData);
+						}
+						TestCaseParamColumnLabelProvider.COLUMN_DELETED = true;
+						testcaseParamTable.getColumn(selectedColIndex).dispose();
+						testcaseParamViewer.setInput(tcParamTableIP);
+						testcaseParamViewer.refresh(); 
+					}
+					break;
+				}
+			}
+		});
+		
 	}
 	
+	private String selectedTableColName = "";
+	private int selectedColIndex = -1;
 	public void setListeners()
 	{
 		try
 		{
+			/*Add listener to table header*/
+			tableHeaderListener = new Listener() {
+				public void handleEvent(Event event) {
+					TableColumn col = (TableColumn) event.widget;
+					selectedTableColName = col.getText();
+					for(int i=0;i<testcaseParamTable.getColumnCount();i++)
+					{
+						if(testcaseParamTable.getColumn(i).getText().equals(selectedTableColName))
+						{
+							selectedColIndex = i;
+							break;
+						}
+					}
+				}
+			};
+			
 			//Add listener to get the column name
 			testcaseParamTable.addListener(SWT.MouseDown, new Listener() {
-				
 				public void handleEvent(Event event) {
 					// TODO Auto-generated method stub
 					try
@@ -151,6 +229,16 @@ public class TestCaseParamView extends ViewPart {
 						System.out.println("[" + getClass().getName() + " : SetListeners()] - Exception : " + e.getMessage());
 						e.printStackTrace();
 					}
+				}
+			});
+			
+			testcaseParamTable.addListener(SWT.MenuDetect, new Listener() {
+				public void handleEvent(Event event) 
+				{
+					Point pt = getSite().getShell().getDisplay().map(null, testcaseParamTable, new Point(event.x, event.y));
+					Rectangle clientArea = testcaseParamTable.getClientArea();
+					boolean header = clientArea.y <= pt.y && pt.y < (clientArea.y + testcaseParamTable.getHeaderHeight());
+					testcaseParamTable.setMenu(header ? headerMenu : null);
 				}
 			});
 			
@@ -208,7 +296,9 @@ public class TestCaseParamView extends ViewPart {
 						TableColumn tableColumn = columnViewer.getColumn();
 						tableColumn.setResizable(true);
 						tableColumn.setWidth(100);
+						tableColumn.addListener(SWT.Selection, tableHeaderListener);
 						tableColumn.setText(getNewTestParam.getValue());
+						tableColumn.pack();
 						columnViewer.setEditingSupport(new ParametersEditing(testcaseParamViewer, index));
 						testcaseParamViewer.refresh();
 					}
@@ -231,58 +321,7 @@ public class TestCaseParamView extends ViewPart {
 					testcaseParamViewer.refresh();
 					testcaseParamViewer.editElement(newData, 0);
 				}
-			});
-			
-			getSite().getPage().addPartListener(new IPartListener2() {
-				
-				public void partVisible(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void partOpened(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void partInputChanged(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void partHidden(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void partDeactivated(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					if(currentTask!=null)
-					{
-						testcaseParamTable.forceFocus();
-						TCGson tcGSON = currentTask.getTcGson();
-						tcGSON.tcParams = getAllTestCaseParameters();
-						currentTask.setTcGson(tcGSON);
-					}
-					
-				}
-				
-				public void partClosed(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void partBroughtToTop(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					
-				}
-				
-				public void partActivated(IWorkbenchPartReference partRef) {
-					// TODO Auto-generated method stub
-					
-				}
-			});
-			
+			});			
 		}
 		catch(Exception e)
 		{
@@ -408,8 +447,9 @@ public class TestCaseParamView extends ViewPart {
 			columnViewer.setLabelProvider(new TestCaseParamColumnLabelProvider(index));
 			TableColumn tableColumn = columnViewer.getColumn();
 			tableColumn.setResizable(true);
-			tableColumn.setWidth(100);
+			tableColumn.setWidth(120);
 			tableColumn.setText(param.iparamName);
+			tableColumn.addListener(SWT.Selection, tableHeaderListener);
 			columnViewer.setEditingSupport(new ParametersEditing(testcaseParamViewer, index));
 			index++; //Store index of each column
 		}

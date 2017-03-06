@@ -434,19 +434,19 @@ public class TestSuiteEditor extends EditorPart {
 					//Create a new test details GSON
 					List<TSTCParamGson> newList =  new ArrayList<TSTCParamGson>();
 					TSTCParamGson param1 = new TSTCParamGson();
-					param1.tcparamName = "Column1";
+					param1.tcparamName = testsuitetable.getColumn(1).getText();
 					param1.tcparamValue = "";
 					TSTCParamGson param2 = new TSTCParamGson();
-					param2.tcparamName = "Column2";
+					param2.tcparamName = testsuitetable.getColumn(2).getText();
 					param2.tcparamValue = "";
 					TSTCParamGson param3 = new TSTCParamGson();
-					param3.tcparamName = "Column3";
+					param3.tcparamName = testsuitetable.getColumn(3).getText();
 					param3.tcparamValue = "";
 					TSTCParamGson param4 = new TSTCParamGson();
-					param4.tcparamName = "Column4";
+					param4.tcparamName = testsuitetable.getColumn(4).getText();
 					param4.tcparamValue = "";
 					TSTCParamGson param5 = new TSTCParamGson();
-					param5.tcparamName = "Column5";
+					param5.tcparamName = testsuitetable.getColumn(5).getText();
 					param5.tcparamValue = "";
 					newList.add(param1);newList.add(param2);newList.add(param3);newList.add(param4);newList.add(param5);
 					

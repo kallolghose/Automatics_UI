@@ -72,7 +72,11 @@ public class EditorListeners implements IPartListener2
 							}
 						}
 					}
-
+					
+					/*Set the test case parameter if any*/
+					/*Try to use the object to access the value*/
+					TestCaseParamView.currentTask = tcTask;
+					TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 				}
 				else if(editor.getEditorInput() instanceof TestSuiteEditorInput)
 				{

@@ -82,7 +82,7 @@ public class TCEditor extends EditorPart {
 	private List<TCStepsGSON> listOfTestCaseSteps;
 	private TCStepsGSON copiedGson;
 	private String lock_image = "images/icons/Open_lock.png";
-	private boolean public_view = false;
+	private boolean public_view = false, private_view = false;
 	private String lock_message = "Lock for editing";
 	
 	public TCEditor() {
@@ -121,6 +121,9 @@ public class TCEditor extends EditorPart {
 	    TCGson tcGson = tcTask.getTcGson();
 	    if(tcGson.tcFlag.equalsIgnoreCase("PRIVATE"))
 	    {
+	    	private_view = true;
+	    	public_view = private_view;
+	    	viewAllElements = true;
 	    	if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(tcGson.username))
 	    	{
 	    		MessageDialog privateChk = new MessageDialog(site.getShell(), "Error", null, "Cannot Open Private Test Case", 
@@ -261,7 +264,8 @@ public class TCEditor extends EditorPart {
 			lockItem.setToolTipText(lock_message);
 			lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
 			lockItem.setData("Locked", false);
-			lockItem.setEnabled(viewAllElements);
+			lockItem.setEnabled(viewAllElements && !private_view); //If private view then do not show lock
+			
 			
 			//Implementation of table using TableViewer
 			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
@@ -621,7 +625,22 @@ public class TCEditor extends EditorPart {
 				tcTask.setTcGson(tcGson);
 				saveActionPerform();
 				lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+				lockItem.setToolTipText("Lock for editing");
 				lockItem.setData("Locked",false);
+				lockItem.setEnabled(true);
+				
+				/*Add lock to make components un-editable*/
+				public_view = false;
+				addBtn.setEnabled(viewAllElements && public_view);
+				delBtn.setEnabled(viewAllElements && public_view);
+				saveItem.setEnabled(viewAllElements && public_view);
+				copyItem.setEnabled(viewAllElements && public_view);
+				pasteItem.setEnabled(viewAllElements && public_view);
+				openEditor.setEnabled(viewAllElements && public_view);
+				commitItem.setEnabled(viewAllElements && public_view);
+				pullItem.setEnabled(viewAllElements && public_view);
+				testscriptTable.setEnabled(viewAllElements && public_view);
+				
 				/*Commit the changes*/
 				String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
 				gitUtil.performPull();
@@ -927,11 +946,14 @@ public class TCEditor extends EditorPart {
 			if(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(TestCaseParamView.ID)==null)
 			{
 				IViewPart testcaseParamView = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().showView(TestCaseParamView.ID);
+				
 			}
 			
+			/*
 			TestCaseParamView.currentTask = tcTask;
 			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 			isFocus = true;
+			*/
 			
 			List<TCStepsGSON> list = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
 			tcTask = TestCaseTaskService.getInstance().getTaskByTcName(tcTask.getTcName());
@@ -939,21 +961,23 @@ public class TCEditor extends EditorPart {
 			testscriptsViewer.setInput(list);
 			testscriptsViewer.refresh();
 			
-			
-			if(tcTask.getTcGson().tcObjectMapLink.size()>0) //Load the object map if the data is in the list
+			if(tcTask.getTcGson().tcObjectMapLink!=null)
 			{
-				if(ObjectMap.getObjectMapsCount()==0)
+				if(tcTask.getTcGson().tcObjectMapLink.size()>0) //Load the object map if the data is in the list
 				{
-					boolean first = true;
-					for(String omName : tcTask.getTcGson().tcObjectMapLink)
+					if(ObjectMap.getObjectMapsCount()==0)
 					{
-						if(first) {
-							ObjectMap.loadObjectMap(omName);
-							first=false;
-						}
-						else
+						boolean first = true;
+						for(String omName : tcTask.getTcGson().tcObjectMapLink)
 						{
-							ObjectMap.addObjectMap(omName);
+							if(first) {
+								ObjectMap.loadObjectMap(omName);
+								first=false;
+							}
+							else
+							{
+								ObjectMap.addObjectMap(omName);
+							}
 						}
 					}
 				}

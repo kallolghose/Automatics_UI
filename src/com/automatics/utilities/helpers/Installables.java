@@ -8,8 +8,8 @@ import java.io.*;
 public class Installables 
 {
 	//private static String packageLocation = System.getProperty("user.dir"); /*For Exe Use this*/
-	//private static String packageLocation = "D:/KG00360770/ATT/runtime-Automatics.application"; /*For Desktop use this*/
-	private static String packageLocation = "F:/Programming/runtime-Automatics.application"; 
+	private static String packageLocation = "D:/KG00360770/ATT/runtime-Automatics.application"; /*For Desktop use this*/
+	//private static String packageLocation = "F:/Programming/runtime-Automatics.application"; 
 	public static PrintStream out = null;
 	
 	public static String getPackageLocation()

@@ -50,8 +50,8 @@ import com.mongodb.DB;
 
 public class Utilities 
 {
-	private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
-	//private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
+	//private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
+	private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
 	public static String PROJECT_NAME = "automatics1.3";
 	public final static String TESTCASE_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/testScripts/";
 	public final static String OBJECTMAP_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/objectMap/";
@@ -250,6 +250,7 @@ public class Utilities
 				String tmpObjStr = steps.omName + "." + steps.stepPageName + "__" + steps.stepObjName;
 				//Replace ARG1 if any
 				step = step.replace("ARG1", "\"" + steps.stepArgument + "\"");
+				step = step.replace("ARG2", "\"" + steps.stepVarName + "\"");
 				//Replace  OBJLOC & OBJSTR
 				step = step.replace("OBJLOC", tmpObjStr);
 				step = step.replace("OBJSTR", "\"" + tmpObjStr + "\"");
@@ -264,7 +265,7 @@ public class Utilities
 			javaStmt = javaStmt.replace("<ClassName>", tcGson.tcName);
 			javaStmt = javaStmt.replace("<ORINSTANTIATE>", orInstantiate);
 			javaStmt = javaStmt.replace("<ORDETAILS>", ordetails);
-			javaStmt = javaStmt.replace("ARG2", "\"\"");
+			//javaStmt = javaStmt.replace("ARG2", "\"\"");
 			
 			//Write java to the file
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
