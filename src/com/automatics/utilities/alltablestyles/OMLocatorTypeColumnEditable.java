@@ -48,7 +48,12 @@ public class OMLocatorTypeColumnEditable extends EditingSupport
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((OMDetails) element).locatorType = value.toString();
+		String updated = "";
+		if(value==null)
+			updated = "";
+		else
+			updated = value.toString();
+		((OMDetails) element).locatorType = updated;
 		viewer.update(element, null);
 	}
 }

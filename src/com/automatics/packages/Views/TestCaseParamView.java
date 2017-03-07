@@ -17,6 +17,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
@@ -104,6 +105,7 @@ public class TestCaseParamView extends ViewPart {
 		IconsToolBar.setBounds(0, 0, 205, 25);
 		
 		addBtn = new ToolItem(IconsToolBar, SWT.DROP_DOWN);
+		addBtn.setToolTipText("Add Entity");
 		addBtn.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
 		addBtn.setSelection(true);
 		
@@ -115,6 +117,7 @@ public class TestCaseParamView extends ViewPart {
 		addItem2.setText("Add Test Values");
 		
 		delBtn = new ToolItem(IconsToolBar, SWT.NONE);
+		delBtn.setToolTipText("Delete Selected Row");
 		delBtn.setSelection(true);
 		delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
 		
@@ -259,8 +262,13 @@ public class TestCaseParamView extends ViewPart {
 			
 			delBtn.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
-					// TODO Auto-generated method stub
-					
+					ArrayList<ArrayList<String>> dataIP = (ArrayList<ArrayList<String>>)testcaseParamViewer.getInput();
+					int selectedIndex = testcaseParamTable.getSelectionIndex();
+					if(selectedIndex!=-1)
+					{
+						dataIP.remove(selectedIndex);
+						testcaseParamViewer.refresh();
+					}
 				}
 			});
 			
@@ -395,23 +403,24 @@ public class TestCaseParamView extends ViewPart {
 		});
 	}
 	
-	private static void removeAllColumns()
+	public static void removeAllColumns()
 	{
 		while(testcaseParamViewer.getTable().getColumnCount() > 0)
 		{
 			testcaseParamViewer.getTable().getColumn(0).dispose();
 		}
+		testcaseParamViewer.setInput(new ArrayList<ArrayList<String>>());
+		testcaseParamViewer.refresh();
 	}
 	
 	public static void loadTestCaseParameters(TCGson tcGSON)
 	{
 		try
 		{
+			removeAllColumns();
 			if(tcGSON.tcParams!=null)
 			{
-				removeAllColumns();
-				addColumns(tcGSON.tcParams.get(0));
-				
+				addColumns(tcGSON.tcParams.get(0));		
 				//Create ArrayList 
 				ArrayList<ArrayList<String>> arrayList = new ArrayList<ArrayList<String>>();
 				Iterator<TCParams> itr = tcGSON.tcParams.iterator();

@@ -27,6 +27,10 @@ import com.automatics.utilities.alltablestyles.OMLocatorInfoColumnEditable;
 import com.automatics.utilities.alltablestyles.OMLocatorTypeColumnEditable;
 import com.automatics.utilities.alltablestyles.OMObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.OMPageNameColumnEditable;
+import com.automatics.utilities.chrome.extension.AddInProgressBar;
+import com.automatics.utilities.chrome.extension.AddOnUtility;
+import com.automatics.utilities.chrome.extension.VerifyElementsClass;
+import com.automatics.utilities.chrome.extension.WebSocketHandlerForAddIn;
 import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
@@ -52,13 +56,16 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.swt.custom.CCombo;
 
@@ -81,6 +88,9 @@ public class ObjectMapEditor extends EditorPart {
 	private boolean private_check = false;
 	private boolean public_view = false, private_view = false;
 	private String lock_message = "Lock for editing";
+	private ToolItem findSpecificElt;
+	private ToolItem validateallOM;
+	private AddOnUtility addOmUtility = AddOnUtility.getInstance();
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -248,6 +258,7 @@ public class ObjectMapEditor extends EditorPart {
 		parentComposite.setLayout(new GridLayout(1, false));
 		
 		Composite composite = new Composite(parentComposite, SWT.BORDER);
+		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_composite.widthHint = 587;
@@ -255,7 +266,6 @@ public class ObjectMapEditor extends EditorPart {
 		composite.setLayoutData(gd_composite);
 		
 		ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
-		iconsToolBar.setBounds(0, 0, 287, 22);
 		
 		btnAdd = new ToolItem(iconsToolBar, SWT.NONE);
 		btnAdd.setToolTipText("Add new object details");
@@ -307,10 +317,18 @@ public class ObjectMapEditor extends EditorPart {
 		
 		lockItem = new ToolItem(iconsToolBar, SWT.NONE);
 		lockItem.setToolTipText(lock_message);
-		lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+		lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
 		lockItem.setSelection(true);
 		lockItem.setData("Locked", false);
 		lockItem.setEnabled(viewAllElements && !private_view); //If Private View then do not show lock;
+		
+		findSpecificElt = new ToolItem(iconsToolBar, SWT.NONE);
+		findSpecificElt.setToolTipText("Find Specific Element");
+		findSpecificElt.setText("Find");
+		
+		validateallOM = new ToolItem(iconsToolBar, SWT.NONE);
+		validateallOM.setToolTipText("Validate all Object Map");
+		validateallOM.setText("Validate All OM");
 		
 		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());
@@ -612,6 +630,79 @@ public class ObjectMapEditor extends EditorPart {
 					pullItem.setEnabled(viewAllElements && public_view);
 					objectMapDataTable.setEnabled(viewAllElements && public_view);
 					lockItem.setData("Locked", !locked);
+				}
+			});
+			
+			findSpecificElt.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					try
+					{
+						int selectedIndex[] = objectMapDataTable.getSelectionIndices();
+						List<OMDetails> omDetails = (ArrayList<OMDetails>)objectMapTableViewer.getInput();
+						if(selectedIndex.length>0)
+						{
+							OMDetails omDetail = omDetails.get(selectedIndex[0]);
+							if(omDetail.locatorType.equalsIgnoreCase("xpath"))
+							{
+								boolean found_status = false;
+								WebSocketHandlerForAddIn.setVerifyElementsClass();
+								addOmUtility.openCloseServer(true);
+								addOmUtility.findElement(omDetail.locatorInfo);
+								int waitMaxCount = 50;
+								while(--waitMaxCount>0)
+								{
+									if(WebSocketHandlerForAddIn.getVerifyElementsClass()==null)
+									{
+										Thread.sleep(200);
+										continue;
+									}
+									found_status = WebSocketHandlerForAddIn.getVerifyElementsClass().status;
+									
+								}
+								TableItem item = (TableItem)objectMapDataTable.getItem(selectedIndex[0]);
+								if(found_status)
+								{
+									Color g_color = getSite().getShell().getDisplay().getSystemColor(SWT.COLOR_GREEN);
+									item.setBackground(g_color);
+									objectMapDataTable.forceFocus();
+								}
+								else
+								{
+									Color r_color = getSite().getShell().getDisplay().getSystemColor(SWT.COLOR_RED);
+									item.setBackground(r_color);
+									objectMapDataTable.forceFocus();
+								}
+							}
+							else
+							{
+								System.out.println("Find not support for other than xpath");
+							}
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[ObjectMapEditor : findSpecificElt.addListener()] - Exception : "  + e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
+			
+			validateallOM.addListener(SWT.Selection, new Listener() 
+			{				
+				public void handleEvent(Event event) 
+				{
+					addOmUtility.openCloseServer(true);
+					List<OMDetails> omDetails = (ArrayList<OMDetails>)objectMapTableViewer.getInput();
+					AddInProgressBar progressBar = new AddInProgressBar(getSite().getShell().getDisplay());
+					progressBar.initializeProgressBar(omDetails.size());
+					progressBar.open();
+					addOmUtility.verifyAllElements(omDetails);
+					/*ArrayList<VerifyElementsClass> elt = WebSocketHandlerForAddIn.getVerifyEltList();
+					for(int i=0;i<elt.size();i++)
+					{
+						System.out.println(elt.get(i).status);
+					}*/
+					
 				}
 			});
 			

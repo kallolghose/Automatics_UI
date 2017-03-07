@@ -201,13 +201,13 @@ public class TCEditor extends EditorPart {
 			script_composite.setLayout(new GridLayout(1, false));
 			
 			Composite composite = new Composite(script_composite, SWT.NONE);
+			composite.setLayout(new FillLayout(SWT.HORIZONTAL));
 			GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 			gd_composite.heightHint = 24;
 			gd_composite.widthHint = 576;
 			composite.setLayoutData(gd_composite);
 			
 			ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
-			iconsToolBar.setBounds(0, 0, 420, 23);
 			
 			addBtn = new ToolItem(iconsToolBar, SWT.NONE);
 			addBtn.setWidth(30);
@@ -265,6 +265,9 @@ public class TCEditor extends EditorPart {
 			lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
 			lockItem.setData("Locked", false);
 			lockItem.setEnabled(viewAllElements && !private_view); //If private view then do not show lock
+			
+			ToolItem start_stop_recording = new ToolItem(iconsToolBar, SWT.NONE);
+			start_stop_recording.setText("Recording");
 			
 			
 			//Implementation of table using TableViewer
@@ -421,7 +424,7 @@ public class TCEditor extends EditorPart {
 				}
 			}
 			
-			//Open test case parameter view
+			/*Open test case parameter view*/
 			TestCaseParamView.loadTestCaseParameters(tcTask.getTcGson());
 			
 			DropTarget dropTarget = new DropTarget(testscriptTable, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_DEFAULT);
@@ -775,7 +778,7 @@ public class TCEditor extends EditorPart {
 							testscriptsViewer.refresh();
 						}
 						else
-						{
+						{	
 							List<TCStepsGSON> tcIP = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
 							TCStepsGSON newStep = new TCStepsGSON();
 							newStep.stepNo = tcIP.size()+1;

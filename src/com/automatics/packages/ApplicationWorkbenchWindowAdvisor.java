@@ -34,8 +34,8 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 			Installables.createLogFileAtLocation();
 			
 			GitUtilities gitUtil = new GitUtilities();
-			//GitUtilities.GIT_PROPERTY_PATH = "D:/KG00360770/ATT/Automatic_DC/Automatics/git_config.properties"; /*For Desktop use this*/
-			GitUtilities.GIT_PROPERTY_PATH = System.getProperty("user.dir")+ "/git_config.properties"; /*For Exe Use this*/
+			GitUtilities.GIT_PROPERTY_PATH = "D:/KG00360770/ATT/Automatic_DC/Automatics/git_config.properties"; /*For Desktop use this*/
+			//GitUtilities.GIT_PROPERTY_PATH = System.getProperty("user.dir")+ "/git_config.properties"; /*For Exe Use this*/
 			Properties prop = gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
 			
 			prop.setProperty("LOCAL_PATH", ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/automatics1.3");

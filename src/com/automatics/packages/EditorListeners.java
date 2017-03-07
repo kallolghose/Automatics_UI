@@ -164,8 +164,21 @@ public class EditorListeners implements IPartListener2
 
 	public void partVisible(IWorkbenchPartReference partRef) {
 		// TODO Auto-generated method stub
-		
-		
+		try
+		{
+			if(partRef instanceof IEditorReference)
+			{
+				IEditorReference editor = (IEditorReference)partRef;
+				if(editor.getEditorInput() instanceof TestCaseEditorInput)
+				{
+				}		
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : partVisible()] - Exception - " + e.getMessage());
+			e.printStackTrace();
+		}
 	}
 
 	public void partInputChanged(IWorkbenchPartReference partRef) {
