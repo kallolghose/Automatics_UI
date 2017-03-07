@@ -177,10 +177,11 @@ public class TestCaseParamView extends ViewPart {
 							paramData.remove(selectedColIndex);
 							tcParamTableIP.set(i, paramData);
 						}
-						TestCaseParamColumnLabelProvider.COLUMN_DELETED = true;
+						TestCaseParamColumnLabelProvider.COLUMN_INDEX_DELETED = selectedColIndex;
 						testcaseParamTable.getColumn(selectedColIndex).dispose();
 						testcaseParamViewer.setInput(tcParamTableIP);
-						testcaseParamViewer.refresh(); 
+						testcaseParamViewer.refresh();
+						TestCaseParamColumnLabelProvider.COLUMN_INDEX_DELETED = 999;
 					}
 					break;
 				}
