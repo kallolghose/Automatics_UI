@@ -91,20 +91,17 @@ public class AddInProgressBar extends Shell {
 		 displayAync.asyncExec(new Runnable(){
 	         public void run() 
 	         {
-	     		progressBar.setSelection(updateVal);
+	     		 progressBar.setSelection(updateVal);
 	         }
 	     });
-		 
-		 
-		 if(updateVal == progressBar.getMaximum())
-	   	 {
-			 System.out.println("Some Update : " + updateVal + "   " + progressBar.getMaximum());
-			 displayAync.asyncExec(new Runnable(){
-				 public void run() 
-		         {
-					 okBtn.setEnabled(true);
-		         }
-			 });
-	   	 }
+	}
+	
+	public static void updateButtonDisplay(final boolean show)
+	{
+		displayAync.asyncExec(new Runnable() {
+			public void run() {
+				okBtn.setEnabled(show);
+			}
+		});
 	}
 }

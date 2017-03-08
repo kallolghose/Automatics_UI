@@ -18,8 +18,9 @@ public class CommitAllCommand extends AbstractHandler {
 			gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
 			gitUtil.initExistingRepository();
 			gitUtil.performCommit();
+			gitUtil.performPush();
 			MessageDialog commitDialog = new MessageDialog(window.getShell(), "Information", null, 
-					"Commit Performed", MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+					"Commit and Push Performed", MessageDialog.INFORMATION, new String[]{"OK"}, 0);
 			commitDialog.open();
 		}
 		catch(Exception e)

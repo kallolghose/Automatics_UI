@@ -91,6 +91,7 @@ public class ObjectMapEditor extends EditorPart {
 	private ToolItem findSpecificElt;
 	private ToolItem validateallOM;
 	private AddOnUtility addOmUtility = AddOnUtility.getInstance();
+	private ToolItem refresh;
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -329,6 +330,10 @@ public class ObjectMapEditor extends EditorPart {
 		validateallOM = new ToolItem(iconsToolBar, SWT.NONE);
 		validateallOM.setToolTipText("Validate all Object Map");
 		validateallOM.setText("Validate All OM");
+		
+		refresh = new ToolItem(iconsToolBar, SWT.NONE);
+		refresh.setToolTipText("Refresh");
+		refresh.setText("Refresh");
 		
 		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());
@@ -659,19 +664,7 @@ public class ObjectMapEditor extends EditorPart {
 									found_status = WebSocketHandlerForAddIn.getVerifyElementsClass().status;
 									
 								}
-								TableItem item = (TableItem)objectMapDataTable.getItem(selectedIndex[0]);
-								if(found_status)
-								{
-									Color g_color = getSite().getShell().getDisplay().getSystemColor(SWT.COLOR_GREEN);
-									item.setBackground(g_color);
-									objectMapDataTable.forceFocus();
-								}
-								else
-								{
-									Color r_color = getSite().getShell().getDisplay().getSystemColor(SWT.COLOR_RED);
-									item.setBackground(r_color);
-									objectMapDataTable.forceFocus();
-								}
+								updateTableRow(selectedIndex[0], found_status);
 							}
 							else
 							{
@@ -692,6 +685,7 @@ public class ObjectMapEditor extends EditorPart {
 				public void handleEvent(Event event) 
 				{
 					addOmUtility.openCloseServer(true);
+					addOmUtility.setEditorInput(getEditorInput());
 					List<OMDetails> omDetails = (ArrayList<OMDetails>)objectMapTableViewer.getInput();
 					AddInProgressBar progressBar = new AddInProgressBar(getSite().getShell().getDisplay());
 					progressBar.initializeProgressBar(omDetails.size());
@@ -703,6 +697,17 @@ public class ObjectMapEditor extends EditorPart {
 						System.out.println(elt.get(i).status);
 					}*/
 					
+				}
+			});
+			
+			refresh.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					TableItem items[] = objectMapDataTable.getItems();
+					Color t_color = getSite().getShell().getDisplay().getSystemColor(SWT.COLOR_WHITE);
+					for(TableItem item : items)
+					{
+						item.setBackground(t_color);
+					}
 				}
 			});
 			
@@ -741,6 +746,30 @@ public class ObjectMapEditor extends EditorPart {
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + " : loadObjectMapDetails()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	public void updateTableRow(int row, boolean found)
+	{
+		try
+		{
+			TableItem item = objectMapDataTable.getItem(row);
+			Color g_color = getSite().getShell().getDisplay().getSystemColor(SWT.COLOR_GREEN);
+			Color r_color = getSite().getShell().getDisplay().getSystemColor(SWT.COLOR_RED);
+			if(found)
+			{
+				item.setBackground(g_color);
+			}
+			else
+			{
+				item.setBackground(r_color);
+			}
+			objectMapDataTable.forceFocus();
+		}
+		catch(Exception e)
+		{
+			System.out.println("[ObjectMapEditor - updateTableRow()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -801,6 +830,8 @@ public class ObjectMapEditor extends EditorPart {
 			e.printStackTrace();
 		}
 	}
+	
+	
 	
 	public static ArrayList<String> getLocatorType()
 	{

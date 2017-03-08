@@ -21,6 +21,7 @@ import javax.json.JsonReader;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -29,7 +30,6 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
-
 
 import com.automatics.mongo.packages.AutomaticsDBConnection;
 import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
@@ -350,11 +350,11 @@ public class Utilities
 			
 			//Write Content to file
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-			String filepath = workspacePath + "\\" + PROJECT_NAME + "\\" + tsGson.tsName + ".xml";
+			String filepath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.data\\com\\automatics\\data\\temp\\" + tsGson.tsName + ".xml";
 			PrintWriter writer = new PrintWriter(filepath);
 			writer.println(suiteFile);
 			writer.close();
-			return filepath;
+			return tsGson.tsName;
 		}
 		catch(Exception e)
 		{
@@ -383,9 +383,12 @@ public class Utilities
 				parameter = parameter + "\t<parameter name=\"Exec_Type\" value=\""+ params.get(1).tcparamValue +"\" />\n";
 				parameter = parameter + "\t<parameter name=\"Run_on\" value=\""+ params.get(2).tcparamValue +"\" />\n";
 				
-				for(ItrParams tcParam : tcParams.iterParams)
-				{
-					parameter = parameter + "\t<parameter name=\""+ tcParam.iparamName +"\" value=\""+ tcParam.iparamValue +"\" />\n";
+				if (tcParams.toString().contains("iterParams")) {
+					
+					for(ItrParams tcParam : tcParams.iterParams)
+					{
+						parameter = parameter + "\t<parameter name=\""+ tcParam.iparamName +"\" value=\""+ tcParam.iparamValue +"\" />\n";
+					}
 				}
 				
 				parameter = parameter + "\n\t<classes>\n";
@@ -468,6 +471,7 @@ public class Utilities
 			{
 				//ResourcesPlugin.getWorkspace().getRoot().getProjects()[0].refreshLocal(IResource.DEPTH_INFINITE, null);
 				projects[i].refreshLocal(IResource.DEPTH_INFINITE, null);
+				projects[i].build(IncrementalProjectBuilder.FULL_BUILD, null);
 			}
 			
 			

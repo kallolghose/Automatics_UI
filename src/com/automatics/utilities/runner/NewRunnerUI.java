@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 
+
 /*
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.Realm;
@@ -47,6 +48,8 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.ResourceManager;
 
+import sun.security.krb5.Realm;
+
 import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
@@ -73,20 +76,20 @@ public class NewRunnerUI {
 	 * Launch the application.
 	 * @param args
 	 */
-	/*
+	
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
-		Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
+		/*Realm.runWithDefault(SWTObservables.getRealm(display), new Runnable() {
 			public void run() {
-				try {
+		*/		try {
 					NewRunnerUI window = new NewRunnerUI();
 					window.open();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
-			}
-		});
-	}*/
+			//}
+		//});
+	}
 
 	/**
 	 * Open the window.
@@ -174,7 +177,7 @@ public class NewRunnerUI {
 		
 		TreeColumn trclmnColumn_3 = new TreeColumn(remoteTable, SWT.NONE);
 		trclmnColumn_3.setWidth(81);
-		trclmnColumn_3.setText("Column4");
+		trclmnColumn_3.setText("Thread-Count");
 		
 		TreeColumn trclmnColumn_4 = new TreeColumn(remoteTable, SWT.NONE);
 		trclmnColumn_4.setWidth(115);
@@ -210,7 +213,7 @@ public class NewRunnerUI {
 		
 		TreeColumn trclmnColumn_8 = new TreeColumn(localHostTable, SWT.NONE);
 		trclmnColumn_8.setWidth(81);
-		trclmnColumn_8.setText("Column4");
+		trclmnColumn_8.setText("Thread-Count");
 		
 		final TreeColumn trclmnColumn_9 = new TreeColumn(localHostTable, SWT.NONE);
 		trclmnColumn_9.setWidth(100);
@@ -411,7 +414,7 @@ public class NewRunnerUI {
 	 */
 	private void createTestSuiteTable( final Tree table) 
 	{	
-		ArrayList<String>collList=	AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
+		ArrayList<String>collList =	AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
 		boolean checked=false;
 		for (String tsName : collList) 
 		{
@@ -420,11 +423,11 @@ public class NewRunnerUI {
 			trtmNewTreeitem.setData("EltType","TESTSUITE");
 			TSGson tsGson = Utilities.getGSONFromJSON(AutomaticsDBTestSuiteQueries.getTS(Utilities.getMongoDB(), tsName).toString(), TSGson.class);
 //			trtmNewTreeitem.setChecked(checked);
+			if(tsGson.tsTCLink==null)
+				continue;
 			for (TSTCGson tsTCGson : tsGson.tsTCLink) 
 			{
 				TreeItem trtmTestcases = new TreeItem(trtmNewTreeitem, SWT.NONE|SWT.MULTI);
-				
-		       
 				trtmTestcases.setText(new String[] {tsTCGson.tcName, tsTCGson.tcParams.get(0)!=null ?tsTCGson.tcParams.get(0).tcparamValue:"", tsTCGson.tcParams.get(1)!=null ?tsTCGson.tcParams.get(1).tcparamValue:"",tsTCGson.tcParams.get(2)!=null ?tsTCGson.tcParams.get(2).tcparamValue:"",tsTCGson.tcParams.get(3)!=null ?tsTCGson.tcParams.get(3).tcparamValue:"",tsTCGson.tcParams.get(4)!=null ?tsTCGson.tcParams.get(4).tcparamValue:"" });
 				trtmTestcases.setData("EltType","TESTCASE");
 //				trtmTestcases.setText(new String[] { "TestCase " + tsTCGson.tcName, tsTCGson.tcParams.get(0).tcparamValue, tsTCGson.tcParams.get(1).tcparamValue,tsTCGson.tcParams.get(2).tcparamValue,tsTCGson.tcParams.get(3).tcparamValue,tsTCGson.tcParams.get(4).tcparamValue });
@@ -633,16 +636,16 @@ public class NewRunnerUI {
   		
 		TestSuiteRunnerAPI runnerAPI = new TestSuiteRunnerAPI();
 		runnerAPI.selected = true;
-		runnerAPI.threadCount = "1";
+		runnerAPI.threadCount = items[i].getText(4);
 		runnerAPI.testsuiteName = tsGson.tsName;
 		runnerAPI.status = "Running";
 		testNGList.add(Utilities.createTestng(tsGson, runnerAPI));
 		
 	  }
-	  PrintWriter writer = new PrintWriter(new OutputStreamWriter(new ConsoleOutputStream(runnerConsole)));
-	  writer.print("Hello");
-	  writer.close();
-	  TestSuiteExecutor execution = new TestSuiteExecutor(testNGList, new ConsoleOutputStream(runnerConsole));
+//	  PrintWriter writer = new PrintWriter(new OutputStreamWriter(new ConsoleOutputStream(runnerConsole)));
+//	  writer.print("Hello");
+//	  writer.close();
+	  TestSuiteExecutor execution = new TestSuiteExecutor(testNGList, new ConsoleOutputStream(runnerConsole), runnerConsole);
 	  execution.executeTestSuite();
   }
 }

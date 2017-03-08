@@ -30,6 +30,7 @@ import com.automatics.utilities.alltablestyles.TCObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCOperationColumnEditable;
 import com.automatics.utilities.alltablestyles.TCPageNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCVariableColumnEditable;
+import com.automatics.utilities.chrome.extension.AddOnUtility;
 import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
@@ -76,7 +77,7 @@ public class TCEditor extends EditorPart {
 	private TableViewer testscriptsViewer; 
 	private boolean isDirty = false;
 	private GitUtilities gitUtil;
-	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor, commitItem, pullItem, lockItem;
+	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor, commitItem, pullItem, lockItem, start_stop_recording;
 	private boolean isFocus = false;
 	private boolean viewAllElements = true;
 	private List<TCStepsGSON> listOfTestCaseSteps;
@@ -84,6 +85,7 @@ public class TCEditor extends EditorPart {
 	private String lock_image = "images/icons/Open_lock.png";
 	private boolean public_view = false, private_view = false;
 	private String lock_message = "Lock for editing";
+	private AddOnUtility addOnUtility = AddOnUtility.getInstance();
 	
 	public TCEditor() {
 		// TODO Auto-generated constructor stub
@@ -266,9 +268,10 @@ public class TCEditor extends EditorPart {
 			lockItem.setData("Locked", false);
 			lockItem.setEnabled(viewAllElements && !private_view); //If private view then do not show lock
 			
-			ToolItem start_stop_recording = new ToolItem(iconsToolBar, SWT.NONE);
+			start_stop_recording = new ToolItem(iconsToolBar, SWT.NONE);
+			start_stop_recording.setToolTipText("Start Recording");
 			start_stop_recording.setText("Recording");
-			
+			start_stop_recording.setData("isRecorded", false);
 			
 			//Implementation of table using TableViewer
 			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
@@ -741,6 +744,29 @@ public class TCEditor extends EditorPart {
 				lockItem.setData("Locked", !locked);
 			}
 		});
+		
+		start_stop_recording.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TCEditor editor = (TCEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+				boolean isRecording = (Boolean)start_stop_recording.getData("isRecorded");
+				addOnUtility.setEditorInput(getEditorInput());
+				addOnUtility.setTestCaseEditor(editor);
+				addOnUtility.setDisplay(getSite().getShell().getDisplay());
+				if(!isRecording)
+				{
+					start_stop_recording.setToolTipText("Stop Recording");
+					start_stop_recording.setData("isRecorded", !isRecording);
+					addOnUtility.openCloseServer(true); /*Open the server*/
+					addOnUtility.start_stop_Recording(true);
+				}
+				else
+				{
+					start_stop_recording.setToolTipText("Start Recording");
+					start_stop_recording.setData("isRecorded", !isRecording);
+					addOnUtility.openCloseServer(false); /*Close the server*/
+				}
+			}
+		});
 	}
 	
 	public void setDropListener(DropTarget target)
@@ -1013,6 +1039,31 @@ public class TCEditor extends EditorPart {
 		catch(Exception e)
 		{
 			System.out.println("[TCEditor - refreshTableContents()] - Exception  : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	/*
+	 * Add Contents to table (Particularly for recording)
+	 * */
+	public void addContentsToTableGrid(TCStepsGSON step)
+	{
+		try
+		{
+			List<TCStepsGSON> list_of_steps = (List<TCStepsGSON>)testscriptsViewer.getInput();
+			if(list_of_steps == null)
+			{
+				list_of_steps = new ArrayList<TCStepsGSON>();
+			}
+			step.stepNo = list_of_steps.size()+1;
+			list_of_steps.add(step);
+			testscriptsViewer.setInput(list_of_steps);
+			testscriptsViewer.refresh();
+			
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + getClass().getName() + " : addContentsToTableGrid()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
 	}

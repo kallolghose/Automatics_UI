@@ -237,7 +237,7 @@ public class RunnerShell extends Shell {
 						//TSExecutor executor = new TSExecutor(listOfTestngXmls);
 						//executor.startThread();
 						
-						TestSuiteExecutor tsExe = new TestSuiteExecutor(listOfTestngXmls, new ConsoleOutputStream(consoleOutputTB));
+						TestSuiteExecutor tsExe = new TestSuiteExecutor(listOfTestngXmls, new ConsoleOutputStream(consoleOutputTB), consoleOutputTB);
 						tsExe.executeTestSuite();
 					}
 					catch(Exception e)

@@ -34,6 +34,8 @@ public class WebSocketHandlerForAddIn {
 	private static boolean isRecorded = false;
 	private static VerifyElementsClass verifyStandAlone = null;
 	
+	private AddOnUtility addOnUtility = AddOnUtility.getInstance();
+	
 	public static void initializeEntities()
 	{
 		omDetails = new ArrayList<OMDetails>();
@@ -120,7 +122,6 @@ public class WebSocketHandlerForAddIn {
     @OnWebSocketMessage
     public void onMessage(String message) throws ParseException, IOException {
         
-    	System.out.println("Hello");
 	        if(!message.equals("undefined"))
 	        {
 	        	//System.out.println("❮ Message: " + message);
@@ -152,6 +153,8 @@ public class WebSocketHandlerForAddIn {
 			        	step.stepObjName = ""; //Need to find out
 			        	step.stepArgument = obj.get("val").toString(); 
 			        	step.omName = "";
+			        	
+			        	addOnUtility.addRecordedContents(step, omDetails);
 		        	}
 		        	 /*
 		        	 Vector<Object> data = new Vector<Object>();

@@ -4,11 +4,24 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
+import javax.swing.JFrame;
+import javax.swing.JTextArea;
+
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecuteResultHandler;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteWatchdog;
+import org.apache.commons.exec.Executor;
+import org.apache.commons.exec.LogOutputStream;
+import org.apache.commons.exec.PumpStreamHandler;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Text;
 import org.testng.TestNG;
 
 import com.automatics.utilities.helpers.Utilities;
@@ -18,91 +31,66 @@ public class TestSuiteExecutor
 	private List<String> listofTestSuites;
 	private static String PROJECT_NAME = Utilities.PROJECT_NAME;
 	private ConsoleOutputStream consoleOP = null;
-	public TestSuiteExecutor(List<String> listofTestSuites, ConsoleOutputStream consoleOP)
+	private Text text;
+	public TestSuiteExecutor(List<String> listofTestSuites, ConsoleOutputStream consoleOP, Text text)
 	{
 		this.listofTestSuites = listofTestSuites;
 		this.consoleOP = consoleOP;
+		this.text = text;
 	}
-	
 	public void executeTestSuite()
 	{
+		String testng ="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\"><suite name=\"MyBatch\" >\n\t <suite-files>" ;
+		String workspacePath = "D:\\DesktopApplication\\com.automatics";
+		String location  = workspacePath + "\\" + PROJECT_NAME;
+		String libPath = workspacePath + "\\ext\\jars";
+		String binPath = location + "\\bin";
+		String dir = location.charAt(0) + ":";
+		String cmd_for_testng = "java -cp " + libPath + "\\*;" + binPath + " org.testng.TestNG " + location +"\\testng.xml";
+		
 		try
 		{	
-			for(String testNgPath : listofTestSuites)
+			for(String xmlName : listofTestSuites)
 			{
-				String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
-				String location  = workspacePath + "\\" + PROJECT_NAME;
-				//String libPath = location + "\\com.automatics.package\\com.automatics.package.jars";
-				String libPath = workspacePath + "\\ext\\jars";
-				String binPath = location + "\\bin";
-				String dir = location.charAt(0) + ":";
-				
-				String cmd_for_testng = "java -cp " + libPath + "\\*;" + binPath + " org.testng.TestNG " + testNgPath;
-				System.out.println(cmd_for_testng);
-				ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/k", dir + " && cd \"" + location + "\" && " + cmd_for_testng);
-				Process process = builder.start();
-				StringWriter writer = new StringWriter();
-				StreamBoozer setInfo = new StreamBoozer(process.getInputStream(), new PrintWriter(consoleOP));
-				StreamBoozer setError = new StreamBoozer(process.getErrorStream(), new PrintWriter(writer));
-				setInfo.start();
-				setError.start();
-				process.waitFor();
-				setInfo.join();
-				setError.join();
-				//ProcessBuilder builder = new ProcessBuilder("cmd.exe", "/c", cmd_for_testng);
-				
-				//process.destroy();
-			}
+				testng = testng + "\n\t<suite-file path=\"./com.automatics.data/com/automatics/data/temp/" + xmlName + ".xml\" />";
+		  	}
+			testng = testng + "\n\t</suite-files>\n	</suite>";
+			
+			PrintWriter writer = new PrintWriter(location + "\\testng.xml");
+			writer.println(testng);
+			writer.close();
+		
+			CommandLine cl = CommandLine.parse("cmd.exe /k" + dir +" && cd \"" + location + "\" && " + cmd_for_testng);
+	    	DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
+	    	ExecuteWatchdog watchdog = new ExecuteWatchdog(-1L);
+	    	Executor executor = new DefaultExecutor();
+	    	executor.setStreamHandler(new PumpStreamHandler(new LogOutputStream() {
+	       	
+		        @Override
+		        protected void processLine(final String line, @SuppressWarnings("unused") int level) {
+		           Display.getDefault().asyncExec(new Runnable() {
+					
+						public void run() {
+					
+							if (line.toLowerCase().indexOf("error") > -1) {
+				            	text.append(line + "\n");
+				            } else if (line.toLowerCase().indexOf("warn") > -1) {
+				            	text.append(line + "\n");
+				            } else {
+				            	text.append(line + "\n");
+				            }
+						}
+		           	});
+		        	
+		        }
+	    	}));
+	    	executor.setExitValue(1);
+	    	executor.setWatchdog(watchdog);
+	    	executor.execute(cl, resultHandler);
 		}
 		catch(Exception e)
 		{
 			e.printStackTrace(System.out);
-		}
-	}
-}
-
-class StreamBoozer extends Thread
-{
-	private InputStream in;
-	private PrintWriter pw;
-	
-	StreamBoozer(InputStream in, PrintWriter pw)
-	{
-		this.in = in;
-		this.pw = pw;
-	}
-	
-	@Override
-	public void run(){
-		BufferedReader br = null;
-		try
-		{
-			br = new BufferedReader(new InputStreamReader(in));
-			String line = null;
-			int count = 0;
-			while((line = br.readLine())!=null)
-			{
-				if(count>10)
-					break;
-				System.out.println(line);
-				pw.println(line);
-				count++;
-			}
-			pw.println("Hello");
-		}
-		catch(Exception e)
-		{
-			System.out.println("[" + getClass().getName() + " : run()] - Exception : " + e.getMessage());
-			e.printStackTrace();
-		}
-		finally
-		{
-			try {
-				br.close();
-			} catch (IOException e) {
-				System.out.println("[" + getClass().getName() + " : run()] - Exception : " + e.getMessage());
-				e.printStackTrace();
-			}
 		}
 	}
 }

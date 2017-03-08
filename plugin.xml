@@ -172,7 +172,7 @@
                label="Team">
             <command
                   commandId="com.automatics.utilities.git.pullAll"
-                  label="Pull All..."
+                  label="Pull All"
                   style="push">
             </command>
             <separator
@@ -181,7 +181,7 @@
             </separator>
             <command
                   commandId="com.automatics.utilities.git.CommitAll"
-                  label="Commit All..."
+                  label="Commit All"
                   style="push">
             </command>
             <command
