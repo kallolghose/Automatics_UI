@@ -1,22 +1,31 @@
 package com.automatics.utilities.alltablestyles;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
+import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.swt.SWT;
 
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 
 public class TSSecondColumnEditable extends EditingSupport 
 {
-	private TableViewer viewer;
-	private TextCellEditor editor;
+	private TableViewer viewer = null;
+	private ComboBoxViewerCellEditor editor = null;
 	
 	public TSSecondColumnEditable(TableViewer viewer) {
 		super(viewer);
 		this.viewer = viewer;
-		editor = new TextCellEditor(this.viewer.getTable());
-		// TODO Auto-generated constructor stub
+		
+		ArrayList<String> arrList = new ArrayList<String>(Arrays.asList("WINDOWS_WEB","WINDOWS_NONWEB","ANDROID_NATIVE","ANDROID_WEB"));
+		editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
+		editor.setContentProvider(new ArrayContentProvider());
+		editor.setInput(arrList);
 	}
 
 	@Override

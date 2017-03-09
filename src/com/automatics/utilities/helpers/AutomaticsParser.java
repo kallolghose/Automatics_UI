@@ -101,6 +101,7 @@ public class AutomaticsParser
 							tcStepGson.stepObjName = "NA";
 							String stepVarName = strVals[2].trim();
 							tcStepGson.stepVarName = stepVarName.substring(1, stepVarName.length()-1);
+							tcStepGson.omName = "";
 						}
 						else
 						{
@@ -113,6 +114,7 @@ public class AutomaticsParser
 							{
 								tcStepGson.stepPageName = "NA";
 								tcStepGson.stepObjName = "NA";
+								tcStepGson.omName = "";
 								if(strVals.length>1)
 								{
 									String stepArgument = strVals[1].trim();
@@ -127,6 +129,9 @@ public class AutomaticsParser
 								String pgObj[] = strVals[1].split("\\.")[1].split("__");
 								tcStepGson.stepPageName = pgObj[0];
 								tcStepGson.stepObjName = pgObj[1];
+								String omName = strVals[1].split("\\.")[0];
+								tcStepGson.omName = omName.trim();
+								
 								if(strVals.length>3)
 								{
 									String stepArgument = strVals[3].trim();

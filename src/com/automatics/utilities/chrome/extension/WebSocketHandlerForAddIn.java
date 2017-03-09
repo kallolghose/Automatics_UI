@@ -23,6 +23,8 @@ import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 @WebSocket
@@ -33,6 +35,8 @@ public class WebSocketHandlerForAddIn {
 	private static ArrayList<VerifyElementsClass> verifyEltsList = new ArrayList<VerifyElementsClass>();
 	private static boolean isRecorded = false;
 	private static VerifyElementsClass verifyStandAlone = null;
+	
+	private static int OBJ_ELT_COUNT = 1;
 	
 	private AddOnUtility addOnUtility = AddOnUtility.getInstance();
 	
@@ -138,10 +142,29 @@ public class WebSocketHandlerForAddIn {
 		    	 {
 		        	if(getRecorder())
 		        	{
+		        		String dom = obj.get("dom").toString();
+		        		String objName = dom.split("(\\s|>)+")[0];
+		        		objName = objName.trim();
+		        		objName = objName.substring(1, objName.length());
+		        		objName = objName + OBJ_ELT_COUNT; OBJ_ELT_COUNT++;
+		        		
+		        		String pageName = obj.get("title").toString();
+		        		pageName = pageName.replace(" ", "");
+		        		pageName = pageName.replace("-", "");
+		        		
+		        		//Add regex to replace all special characters
+		        		/*Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
+		        		Matcher match= pt.matcher(pageName);
+		        		while(match.find())
+		        		{
+		        			String s= match.group();
+		        			pageName = pageName.replace("\\"+s, "_");
+		        		}*/
+		        		
 			        	//Create Object Map Details
 			        	OMDetails omDetails = new OMDetails();
-			        	omDetails.pageName = obj.get("title").toString();
-			        	omDetails.objName = ""; //Need to find out
+			        	omDetails.pageName = pageName;
+			        	omDetails.objName = objName; 
 			        	omDetails.locatorInfo = obj.get("trgt").toString();
 			        	omDetails.locatorType = "xpath";
 			        	
@@ -149,22 +172,13 @@ public class WebSocketHandlerForAddIn {
 			        	TCStepsGSON step = new TCStepsGSON();
 			        	step.stepNo = -1; 
 			        	step.stepOperation = obj.get("cmd").toString();
-			        	step.stepPageName = obj.get("title").toString();
-			        	step.stepObjName = ""; //Need to find out
+			        	step.stepPageName = pageName;
+			        	step.stepObjName = objName; 
 			        	step.stepArgument = obj.get("val").toString(); 
 			        	step.omName = "";
 			        	
 			        	addOnUtility.addRecordedContents(step, omDetails);
 		        	}
-		        	 /*
-		        	 Vector<Object> data = new Vector<Object>();
-		        	 data.add(obj.get("cmd"));
-					 data.add(obj.get("trgt"));
-					 data.add(obj.get("val"));
-					 if(isRecording==true)
-					 {
-						 dm.addRow(data);
-					 }*/
 		    	 }
 		        
 		        /*NOT IS USE CURRENTLY*/

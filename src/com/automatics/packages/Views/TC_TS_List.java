@@ -77,7 +77,7 @@ public class TC_TS_List extends ViewPart {
 	private static Tree testCaseList;
 	private TestCaseTaskService tcService = TestCaseTaskService.getInstance();
 	private TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-	private MenuItem copyItem,pasteItemForTS,deleteItem,refreshItem;	
+	private MenuItem copyItem, pasteItemForTS, deleteItem, refreshItem, refreshForTC, newForTC;	
 	
 	private MenuItem copyItemforTC, pasteItemforTC;
 	private TestSuiteTask copyTask;
@@ -85,7 +85,6 @@ public class TC_TS_List extends ViewPart {
 	
 	
 	public TC_TS_List() {
-		// TODO Auto-generated constructor stub
 		
 	}
 
@@ -255,11 +254,16 @@ public class TC_TS_List extends ViewPart {
 				//System.out.println(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString());
 				TSGson tsGson = Utilities.getGSONFromJSON(AutomaticsDBTestSuiteQueries.getTS(db, tsName).toString(), TSGson.class);
 				
-				//Create task of test suite
+				//Create or Update task of test suite
 				if(tsService.getTaskByTSName(tsName)==null) //Add task only if the task is not already added
 				{
 					TestSuiteTask tsTask = new TestSuiteTask(tsName, tsGson.tsDesc, tsGson.tsIdentifier, tsGson);
 					tsService.addTasks(tsTask);
+				}
+				else
+				{
+					TestSuiteTask tsTask = tsService.getTaskByTSName(tsName);
+					tsTask.setTsGson(tsGson);
 				}
 				
 				List<TSTCGson> allTestCasesInTestSuite = tsGson.tsTCLink; 
@@ -291,11 +295,19 @@ public class TC_TS_List extends ViewPart {
 			org.eclipse.swt.widgets.Menu testcasePopUp = new org.eclipse.swt.widgets.Menu(testCaseList);
 			testCaseList.setMenu(testcasePopUp);
 			
+			newForTC = new MenuItem(testcasePopUp, SWT.NONE);
+			newForTC.setText("New");
+			
 			copyItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
 			copyItemforTC.setText("Copy");
 			
 			pasteItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
 			pasteItemforTC.setText("Paste");
+			
+			new MenuItem(testcasePopUp, SWT.SEPARATOR);
+			
+			refreshForTC = new MenuItem(testcasePopUp, SWT.NONE);
+			refreshForTC.setText("Refresh");
 			
 			ArrayList<String> allTCList = AutomaticsDBTestCaseQueries.getAllTC(db);
 			for(String tcName : allTCList)
@@ -304,12 +316,18 @@ public class TC_TS_List extends ViewPart {
 				testCaseItem.setText(tcName);
 				testCaseItem.setData("eltType","TESTCASE");
 				testCaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
-				//Add test case task
+				//Create or Update test case task
 				if(tcService.getTaskByTcName(tcName)==null) //Add task only if the task is not added
 				{
 					TCGson tcGson = Utilities.getGSONFromJSON(AutomaticsDBTestCaseQueries.getTC(db, tcName).toString(),TCGson.class);
 					TestCaseTask tcTask = new TestCaseTask(tcName, tcGson.tcDesc, tcGson.tcType, tcGson.tcIdentifier, tcGson);
 					tcService.addTasks(tcTask);
+				}
+				else
+				{
+					TCGson tcGson = Utilities.getGSONFromJSON(AutomaticsDBTestCaseQueries.getTC(db, tcName).toString(),TCGson.class);
+					TestCaseTask tcTask = tcService.getTaskByTcName(tcName);
+					tcTask.setTcGson(tcGson);
 				}
 			}
 			appName.setExpanded(true);
@@ -637,6 +655,28 @@ public class TC_TS_List extends ViewPart {
 				public void handleEvent(Event event) 
 				{
 					loadTestSuiteTestCaseTreeView();
+				}
+			});
+			
+			refreshForTC.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) 
+				{
+					loadTestSuiteTestCaseTreeView();
+				}
+			});
+			
+			newForTC.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					IHandlerService handlerService = (IHandlerService) getSite().getService(IHandlerService.class);
+					try
+					{
+						handlerService.executeCommand("com.automatics.packages.new.TestCase", event);
+					}
+					catch(Exception e)
+					{
+						System.out.println(e.getMessage());
+						e.printStackTrace();
+					}
 				}
 			});
 			

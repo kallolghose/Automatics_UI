@@ -28,7 +28,7 @@ public class TCObjectNameColumnEditable extends EditingSupport{
 		{
 			if(allObjectMaps.size()>0)
 			{
-				this.editor.setContenProvider(new ArrayContentProvider());
+				this.editor.setContentProvider(new ArrayContentProvider());
 				this.editor.setInput(allObjectMaps);
 				return editor;
 			}

@@ -82,16 +82,19 @@ public class ObjectMapEditor extends EditorPart {
 	private int index;
 	private ToolItem commitItem;
 	private ToolItem pullItem;
+	private ToolItem findSpecificElt;
+	private ToolItem validateallOM;
+	private ToolItem refresh;
+	private Label lockLabel;
+
+	private AddOnUtility addOmUtility = AddOnUtility.getInstance();
 	private GitUtilities gitUtil;
 	private boolean viewAllElements = true;
 	private String lock_image = "images/icons/Open_lock.png";
 	private boolean private_check = false;
 	private boolean public_view = false, private_view = false;
 	private String lock_message = "Lock for editing";
-	private ToolItem findSpecificElt;
-	private ToolItem validateallOM;
-	private AddOnUtility addOmUtility = AddOnUtility.getInstance();
-	private ToolItem refresh;
+	private String user_lock_message = "";
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -185,6 +188,7 @@ public class ObjectMapEditor extends EditorPart {
 			private_view = true;
 			public_view = private_view; 
 			viewAllElements = true;
+			user_lock_message = "";
 			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.username))
 			{
 				MessageDialog privateChk = new MessageDialog(site.getShell(), "Error", null, "Cannot Open Private Object Map", 
@@ -198,18 +202,21 @@ public class ObjectMapEditor extends EditorPart {
 		{
 			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.username))
 			{
-				viewAllElements = false; //Add this flag to disable all operations	
+				viewAllElements = false; //Add this flag to disable all operations
+				user_lock_message = "Locked By : " + omGson.username;
 			}
 			else
 	    	{
 	    		lock_image = "images/icons/lock.png";
 	    		lock_message = "Unlock the file";
 	    		public_view = true;
+	    		user_lock_message = "";
 	    	}
 		}
 		else
 		{
 			public_view = false;
+			user_lock_message = "";
 		    String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
 		    boolean syncstaus = gitUtil.getSync(currentFileName);
 		    if(syncstaus)
@@ -316,6 +323,22 @@ public class ObjectMapEditor extends EditorPart {
 		pullItem.setSelection(true);
 		pullItem.setEnabled(viewAllElements && public_view);
 		
+		findSpecificElt = new ToolItem(iconsToolBar, SWT.NONE);
+		findSpecificElt.setToolTipText("Find Specific Element");
+		findSpecificElt.setText("F");
+		findSpecificElt.setEnabled(viewAllElements && public_view);
+		
+		validateallOM = new ToolItem(iconsToolBar, SWT.NONE);
+		validateallOM.setToolTipText("Validate all Object Map");
+		validateallOM.setText("V");
+		validateallOM.setEnabled(viewAllElements && public_view);
+		
+		
+		refresh = new ToolItem(iconsToolBar, SWT.NONE);
+		refresh.setToolTipText("Refresh");
+		refresh.setText("R");
+		refresh.setEnabled(viewAllElements && public_view);
+		
 		lockItem = new ToolItem(iconsToolBar, SWT.NONE);
 		lockItem.setToolTipText(lock_message);
 		lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
@@ -323,17 +346,20 @@ public class ObjectMapEditor extends EditorPart {
 		lockItem.setData("Locked", false);
 		lockItem.setEnabled(viewAllElements && !private_view); //If Private View then do not show lock;
 		
-		findSpecificElt = new ToolItem(iconsToolBar, SWT.NONE);
-		findSpecificElt.setToolTipText("Find Specific Element");
-		findSpecificElt.setText("Find");
-		
-		validateallOM = new ToolItem(iconsToolBar, SWT.NONE);
-		validateallOM.setToolTipText("Validate all Object Map");
-		validateallOM.setText("Validate All OM");
-		
-		refresh = new ToolItem(iconsToolBar, SWT.NONE);
-		refresh.setToolTipText("Refresh");
-		refresh.setText("Refresh");
+		lockLabel = new Label(composite, SWT.NONE);
+		lockLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
+		lockLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		lockLabel.setAlignment(SWT.RIGHT);
+		lockLabel.setText("Locked By : UserName");
+		if(user_lock_message.equals(""))
+		{
+			lockLabel.setVisible(false);
+		}
+		else
+		{
+			lockLabel.setText(user_lock_message);
+			lockLabel.setVisible(true);
+		}
 		
 		objectMapTableViewer = new TableViewer(parentComposite, SWT.FULL_SELECTION | SWT.MULTI);
 		objectMapTableViewer.setContentProvider(new ArrayContentProvider());

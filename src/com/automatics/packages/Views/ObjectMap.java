@@ -47,12 +47,15 @@ public class ObjectMap extends ViewPart {
 	private static TabFolder tabFolder;
 	private MenuItem removefromTC;
 	
+	
 	/*
 	 * Risk involved in case user uses more than 2 object maps and each contains a same page name then only one object map 
 	 * will be reflected (which ever would be last one)
 	 */
 	private static HashMap<String,String> pageName_ObjectMapName = new HashMap<String,String>();
 	private static HashMap<String,ArrayList<String>> pageName_objectName = new HashMap<String,ArrayList<String>>();
+	
+	
 	
 	public ObjectMap() {
 		// TODO Auto-generated constructor stub
@@ -508,6 +511,7 @@ public class ObjectMap extends ViewPart {
 		}
 	}
 	
+	
 	public static ArrayList<String> getAllOjectMapNamesSelected()
 	{
 		try
@@ -531,6 +535,19 @@ public class ObjectMap extends ViewPart {
 	{
 		return objectTree.getItemCount();
 	}
+	
+	
+	public static void setPageNameObjectMapMapping(HashMap<String,String> val) 
+	{
+		pageName_ObjectMapName = val;
+	}
+
+	
+	public static void setPageNameObjectMapping(HashMap<String,ArrayList<String>> val)
+	{
+		pageName_objectName = val;
+	}
+	
 	
 	public void setFocus() {
 

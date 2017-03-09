@@ -40,7 +40,7 @@ public class TCOperationColumnEditable extends EditingSupport
 				opnName.add(opn.opnName);
 			}
 			this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
-			this.editor.setContenProvider(new ArrayContentProvider());
+			this.editor.setContentProvider(new ArrayContentProvider());
 			this.editor.setInput(opnName);
 		}
 		catch(Exception e)

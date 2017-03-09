@@ -259,11 +259,16 @@ public class ObjectList extends ViewPart {
 				ObjectMapSaveTask omTask = new ObjectMapSaveTask(omGson.omName,omGson);
 				ObjectMapSaveService.getInstance().addSaveTask(omTask);
 				
-				//Add Editor Task
+				//Add | Update Editor Task
 				if(service.getTaskByOmName(om) == null)
 				{
 					ObjectMapTask omEditorTask = new ObjectMapTask(om, omGson.omDesc, omGson.omIdentifier, omGson);
 					service.addTasks(omEditorTask);
+				}
+				else
+				{
+					ObjectMapTask task = service.getTaskByOmName(om);
+					task.setOmGson(omGson);
 				}
 			}
 			root.setExpanded(true);
@@ -310,6 +315,32 @@ public class ObjectList extends ViewPart {
 		catch(Exception e)
 		{
 			System.out.println("[ObjectList - createObjectMap()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * This method is to add the Object Map to the list (Particularly for recording)
+	 */
+	public static void addNewObjectMap(ObjectMapTask omTask) 
+	{
+		try
+		{
+			/*Check if the omTask is alreader added to the treelist*/
+			TreeItem parent = omListTree.getItem(0);
+			TreeItem newItem = new TreeItem(parent, SWT.NONE);
+			for(TreeItem item : parent.getItems())
+			{
+				if(item.getText().equalsIgnoreCase(omTask.getOmName())) //If already added no need to add the same
+					return;
+			}
+			newItem.setText(omTask.getOmName());
+			newItem.setData("eltType", "OBJECTMAP");
+			newItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/om_logo_new.png"));
+		}
+		catch(Exception e)
+		{
+			System.out.println("[ObjectList : addNewObjectMap() ] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
 	}

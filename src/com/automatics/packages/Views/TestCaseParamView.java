@@ -418,7 +418,7 @@ public class TestCaseParamView extends ViewPart {
 		try
 		{
 			removeAllColumns();
-			if(tcGSON.tcParams!=null)
+			if(tcGSON.tcParams!=null && tcGSON.tcParams.size()>0)
 			{
 				addColumns(tcGSON.tcParams.get(0));		
 				//Create ArrayList 

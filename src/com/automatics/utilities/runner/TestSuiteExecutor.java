@@ -22,6 +22,7 @@ import org.apache.commons.exec.PumpStreamHandler;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.PlatformUI;
 import org.testng.TestNG;
 
 import com.automatics.utilities.helpers.Utilities;
@@ -41,7 +42,7 @@ public class TestSuiteExecutor
 	public void executeTestSuite()
 	{
 		String testng ="<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE suite SYSTEM \"http://testng.org/testng-1.0.dtd\"><suite name=\"MyBatch\" >\n\t <suite-files>" ;
-		String workspacePath = "D:\\DesktopApplication\\com.automatics";
+		String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 		String location  = workspacePath + "\\" + PROJECT_NAME;
 		String libPath = workspacePath + "\\ext\\jars";
 		String binPath = location + "\\bin";

@@ -369,13 +369,14 @@ public class Utilities
 		{
 			String parameter = "";
 			List<TSTCParamGson> params = tstcGson.tcParams;
+			
 			//Get the test case
 			String tcName = tstcGson.tcName;
 			TCGson tcGson = getGSONFromJSON(AutomaticsDBTestCaseQueries.getTC(getMongoDB(), tcName).toString(), TCGson.class);
 			
-			int itrCntr = 1;
-			
-			for(TCParams tcParams : tcGson.tcParams)
+			int itrCntr = 1, index =0 ;
+			//for(TCParams tcParams : tcGson.tcParams)
+			do
 			{
 				parameter = parameter + "\n<test name=\""+tcName+"_TP_ITR"+itrCntr+"\">\n";
 				parameter = parameter + "\t<parameter name=\"Test_Name\" value=\""+ tstcGson.tcName +"\" />\n";
@@ -383,8 +384,11 @@ public class Utilities
 				parameter = parameter + "\t<parameter name=\"Exec_Type\" value=\""+ params.get(1).tcparamValue +"\" />\n";
 				parameter = parameter + "\t<parameter name=\"Run_on\" value=\""+ params.get(2).tcparamValue +"\" />\n";
 				
-				if (tcParams.toString().contains("iterParams")) {
-					
+				
+				TCParams tcParams = tcGson.tcParams.size()>0 ? tcGson.tcParams.get(index) : null;
+				//if (tcParams.toString().contains("iterParams")) {
+				if (tcParams!=null)
+				{
 					for(ItrParams tcParam : tcParams.iterParams)
 					{
 						parameter = parameter + "\t<parameter name=\""+ tcParam.iparamName +"\" value=\""+ tcParam.iparamValue +"\" />\n";
@@ -396,7 +400,8 @@ public class Utilities
 				parameter = parameter + "\t</classes>\n";
 				parameter = parameter + "</test>\n";
 				itrCntr ++;
-			}
+				index ++;
+			}while(index<tcGson.tcParams.size());
 			
 			
 			return parameter;

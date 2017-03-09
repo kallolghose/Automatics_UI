@@ -56,6 +56,20 @@ public class AddOnUtility
 		objectmapEditor = editor;
 	}
 	
+	public void setTestCaseEditorAndDisplay(TCEditor editor, IEditorInput eInput, Display d)
+	{
+		testcaseEditor = editor;
+		editorInput = eInput;
+		display = d;
+	}
+	
+	public void setObjectMapEditorAndDisplay(ObjectMapEditor editor, IEditorInput eInput, Display d)
+	{
+		objectmapEditor = editor;
+		editorInput = eInput;
+		display = d;
+	}
+	
 	public void openCloseServer(boolean open)
 	{
 		try
@@ -204,19 +218,18 @@ public class AddOnUtility
 		verifyStandAlone = new VerifyElementsClass();
 	}
 	
-	public void addRecordedContents(final TCStepsGSON step, OMDetails details)
+	public void addRecordedContents(final TCStepsGSON step, final OMDetails details)
 	{
 		try
 		{
 			if(editorInput instanceof TestCaseEditorInput)
 			{
-				System.out.println("Hello");
 				//TCEditor editor = (TCEditor)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findEditor(editorInput);
 				
 				/*Call Test Case Editor Method to add contents to editor*/
 				display.asyncExec(new Runnable() {	
 					public void run() {
-						testcaseEditor.addContentsToTableGrid(step);
+						testcaseEditor.addContentsToTableGrid(step, details);
 					}
 				});
 			}

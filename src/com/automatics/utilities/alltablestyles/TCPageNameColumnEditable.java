@@ -29,7 +29,7 @@ public class TCPageNameColumnEditable extends EditingSupport {
 		ArrayList<String> allPageName = ObjectMap.getPageNamesAddedToObjectMap();
 		if(allPageName.size()>0)
 		{
-			this.editor.setContenProvider(new ArrayContentProvider());
+			this.editor.setContentProvider(new ArrayContentProvider());
 			this.editor.setInput(allPageName);
 			return editor;
 		}

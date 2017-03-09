@@ -99,7 +99,7 @@
                visible="true">
          </view>
          <view
-               closeable="true"
+               closeable="false"
                id="com.automatics.pacakges.Views.ConfigParametersView"
                minimized="false"
                relationship="bottom"
@@ -107,7 +107,7 @@
                visible="true">
          </view>
          <view
-               closeable="true"
+               closeable="false"
                id="com.automatics.pacakges.Views.TestCaseParamView"
                minimized="false"
                relationship="stack"
