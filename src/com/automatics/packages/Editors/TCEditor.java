@@ -77,6 +77,7 @@ import org.eclipse.swt.widgets.ToolBar;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.layout.RowLayout;
 
 
 public class TCEditor extends EditorPart {
@@ -227,13 +228,17 @@ public class TCEditor extends EditorPart {
 			script_composite.setLayout(new GridLayout(1, false));
 			
 			Composite composite = new Composite(script_composite, SWT.NONE);
-			composite.setLayout(new FillLayout(SWT.HORIZONTAL));
-			GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+			GridLayout gl_composite = new GridLayout(2, false);
+			gl_composite.marginHeight = 0;
+			gl_composite.marginWidth = 0;
+			composite.setLayout(gl_composite);
+			GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 2, 1);
 			gd_composite.heightHint = 24;
 			gd_composite.widthHint = 576;
 			composite.setLayoutData(gd_composite);
 			
 			ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
+			iconsToolBar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 			
 			addBtn = new ToolItem(iconsToolBar, SWT.NONE);
 			addBtn.setWidth(30);
@@ -286,8 +291,8 @@ public class TCEditor extends EditorPart {
 			pullItem.setEnabled(viewAllElements && public_view);
 			
 			start_stop_recording = new ToolItem(iconsToolBar, SWT.NONE);
+			start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/start_rec_2.png"));
 			start_stop_recording.setToolTipText("Start Recording");
-			start_stop_recording.setText("Recording");
 			start_stop_recording.setData("isRecorded", false);
 			start_stop_recording.setEnabled(viewAllElements && public_view);
 			
@@ -299,6 +304,7 @@ public class TCEditor extends EditorPart {
 			lockItem.setEnabled(viewAllElements && !private_view); //If private view then do not show lock
 			
 			lockLabel = new Label(composite, SWT.HORIZONTAL | SWT.RIGHT);
+			lockLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 			lockLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
 			lockLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
 			lockLabel.setText("Lock Message");
@@ -685,6 +691,7 @@ public class TCEditor extends EditorPart {
 				commitItem.setEnabled(viewAllElements && public_view);
 				pullItem.setEnabled(viewAllElements && public_view);
 				testscriptTable.setEnabled(viewAllElements && public_view);
+				start_stop_recording.setEnabled(viewAllElements && public_view);
 				
 				/*Commit the changes*/
 				String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
@@ -780,6 +787,7 @@ public class TCEditor extends EditorPart {
 				commitItem.setEnabled(viewAllElements && public_view);
 				pullItem.setEnabled(viewAllElements && public_view);
 				testscriptTable.setEnabled(viewAllElements && public_view);
+				start_stop_recording.setEnabled(viewAllElements && public_view);
 				lockItem.setData("Locked", !locked);
 			}
 		});
@@ -823,6 +831,8 @@ public class TCEditor extends EditorPart {
 					//Add ObjectMap
 					TCGson tcGson = tcTask.getTcGson();
 					List<String> omLink = tcGson.tcObjectMapLink;
+					if(omLink==null || omLink.size()==0)
+						omLink = new ArrayList<String>();
 					omLink.add(OBJECTMAP_FOR_RECORDING);
 					Set<String> hs = new HashSet();
 					hs.addAll(omLink);
@@ -833,13 +843,20 @@ public class TCEditor extends EditorPart {
 					ObjectList.addNewObjectMap(omTask);
 					
 					start_stop_recording.setToolTipText("Stop Recording");
+					start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/stop_rec.png"));
 					start_stop_recording.setData("isRecorded", !isRecording);
 					addOnUtility.openCloseServer(true); /*Open the server*/
 					addOnUtility.start_stop_Recording(true);
+					
+					MessageDialog popup = new MessageDialog(getSite().getShell(), "Start Recording", null, 
+							"Recording started. Please use Google chrome to perform recording.", 
+							MessageDialog.INFORMATION, new String[]{"OK"}, 0);
+					popup.open();
 				}
 				else
 				{
 					start_stop_recording.setToolTipText("Start Recording");
+					start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/start_rec_2.png"));
 					start_stop_recording.setData("isRecorded", !isRecording);
 					addOnUtility.openCloseServer(false); /*Close the server*/
 				}

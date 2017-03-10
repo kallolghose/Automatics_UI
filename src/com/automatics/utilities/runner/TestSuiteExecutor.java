@@ -62,6 +62,7 @@ public class TestSuiteExecutor
 			writer.close();
 		
 			CommandLine cl = CommandLine.parse("cmd.exe /k" + dir +" && cd \"" + location + "\" && " + cmd_for_testng);
+			System.out.println(cl.toString());
 	    	DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
 	    	ExecuteWatchdog watchdog = new ExecuteWatchdog(-1L);
 	    	Executor executor = new DefaultExecutor();

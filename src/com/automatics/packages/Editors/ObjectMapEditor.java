@@ -266,7 +266,10 @@ public class ObjectMapEditor extends EditorPart {
 		parentComposite.setLayout(new GridLayout(1, false));
 		
 		Composite composite = new Composite(parentComposite, SWT.BORDER);
-		composite.setLayout(new FillLayout(SWT.HORIZONTAL));
+		GridLayout gl_composite = new GridLayout(2, false);
+		gl_composite.marginHeight = 0;
+		gl_composite.marginWidth = 0;
+		composite.setLayout(gl_composite);
 		
 		GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_composite.widthHint = 587;
@@ -274,6 +277,7 @@ public class ObjectMapEditor extends EditorPart {
 		composite.setLayoutData(gd_composite);
 		
 		ToolBar iconsToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
+		iconsToolBar.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, true, false, 1, 1));
 		
 		btnAdd = new ToolItem(iconsToolBar, SWT.NONE);
 		btnAdd.setToolTipText("Add new object details");
@@ -324,19 +328,19 @@ public class ObjectMapEditor extends EditorPart {
 		pullItem.setEnabled(viewAllElements && public_view);
 		
 		findSpecificElt = new ToolItem(iconsToolBar, SWT.NONE);
+		findSpecificElt.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/find_2.png"));
 		findSpecificElt.setToolTipText("Find Specific Element");
-		findSpecificElt.setText("F");
 		findSpecificElt.setEnabled(viewAllElements && public_view);
 		
 		validateallOM = new ToolItem(iconsToolBar, SWT.NONE);
+		validateallOM.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/validate.png"));
 		validateallOM.setToolTipText("Validate all Object Map");
-		validateallOM.setText("V");
 		validateallOM.setEnabled(viewAllElements && public_view);
 		
 		
 		refresh = new ToolItem(iconsToolBar, SWT.NONE);
+		refresh.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Refresh.png"));
 		refresh.setToolTipText("Refresh");
-		refresh.setText("R");
 		refresh.setEnabled(viewAllElements && public_view);
 		
 		lockItem = new ToolItem(iconsToolBar, SWT.NONE);
@@ -347,6 +351,7 @@ public class ObjectMapEditor extends EditorPart {
 		lockItem.setEnabled(viewAllElements && !private_view); //If Private View then do not show lock;
 		
 		lockLabel = new Label(composite, SWT.NONE);
+		lockLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lockLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
 		lockLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
 		lockLabel.setAlignment(SWT.RIGHT);
@@ -584,6 +589,9 @@ public class ObjectMapEditor extends EditorPart {
 					commitItem.setEnabled(viewAllElements && public_view);
 					pullItem.setEnabled(viewAllElements && public_view);
 					objectMapDataTable.setEnabled(viewAllElements && public_view);
+					findSpecificElt.setEnabled(viewAllElements && public_view);
+					validateallOM.setEnabled(viewAllElements && public_view);
+					refresh.setEnabled(viewAllElements && public_view);
 					
 					/*Commit the files to the GIT repository*/
 					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
@@ -660,6 +668,9 @@ public class ObjectMapEditor extends EditorPart {
 					commitItem.setEnabled(viewAllElements && public_view);
 					pullItem.setEnabled(viewAllElements && public_view);
 					objectMapDataTable.setEnabled(viewAllElements && public_view);
+					findSpecificElt.setEnabled(viewAllElements && public_view);
+					validateallOM.setEnabled(viewAllElements && public_view);
+					refresh.setEnabled(viewAllElements && public_view);
 					lockItem.setData("Locked", !locked);
 				}
 			});
