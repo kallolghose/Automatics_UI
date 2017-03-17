@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class TC_TS_List extends ViewPart {
 	private static Tree testCaseList;
 	private TestCaseTaskService tcService = TestCaseTaskService.getInstance();
 	private TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-	private MenuItem copyItem, pasteItemForTS, deleteItem, refreshItem, refreshForTC, newForTC;	
+	private MenuItem copyItem, pasteItemForTS, deleteItem, refreshItem, refreshForTC, newForTC, openItem;
 	
 	private MenuItem copyItemforTC, pasteItemforTC;
 	private TestSuiteTask copyTask;
@@ -174,7 +175,7 @@ public class TC_TS_List extends ViewPart {
 		});
 		
 		
-		MenuItem openItem = new MenuItem(testsuitePopUp, SWT.NONE);
+		openItem = new MenuItem(testsuitePopUp, SWT.NONE);
 		openItem.setText("Open");
 		
 		new MenuItem(testsuitePopUp, SWT.SEPARATOR);
@@ -241,7 +242,7 @@ public class TC_TS_List extends ViewPart {
 			application_name_item.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
 			
 			ArrayList<String> allTSList = AutomaticsDBTestSuiteQueries.getAllTS(db); //Get all test suites
-			
+			Collections.sort(allTSList);
 			for(String tsName : allTSList)
 			{
 				//Add test suite to the application tree
@@ -310,6 +311,7 @@ public class TC_TS_List extends ViewPart {
 			refreshForTC.setText("Refresh");
 			
 			ArrayList<String> allTCList = AutomaticsDBTestCaseQueries.getAllTC(db);
+			Collections.sort(allTCList);
 			for(String tcName : allTCList)
 			{
 				TreeItem testCaseItem = new TreeItem(appName,SWT.NONE);
@@ -383,27 +385,38 @@ public class TC_TS_List extends ViewPart {
 				
 					TreeItem item = testSuiteList.getSelection()[0];
 					String value = item.getData("eltType").toString();
-					if(!value.equals("APPLICATION")&& value.equals("TESTSUITE")){
-					item.dispose();
-				AutomaticsDBTestSuiteQueries.deleteTS(Utilities.getMongoDB(), item.getText());
+					MessageDialog deleteDialog = new MessageDialog(getSite().getShell(), "Delete Test Entity", null,
+							"Are you sure you want to delete - " + item.getText() + " ?", 
+							MessageDialog.CONFIRM, new String[]{"Delete", "Cancel"}, 0);
+					int optionSelected = deleteDialog.open();
 					
-					}else{
-						if(!value.equals("APPLICATION") && value.equals("TESTCASE")){
-						TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-						TestSuiteTask tsTask = tsService.getTaskByTSName(item.getParentItem().getText());
-						TSGson  tsGson = tsTask.getTsGson();
-						List<TSTCGson> list = tsGson.tsTCLink;
-						
-						for (int i=0;i<list.size();i++) 
-						{
-							TSTCGson tstcGson = list.get(i); 
-							if(tstcGson.tcName.equals(item.getText())){
-								list.remove(i);
-							}
-						}
+					if(optionSelected == 1) //User selected not to delete i.e., Cancel
+						return;
+					
+					if(!value.equals("APPLICATION")&& value.equals("TESTSUITE"))
+					{
+						AutomaticsDBTestSuiteQueries.deleteTS(Utilities.getMongoDB(), item.getText());
 						item.dispose();
-						AutomaticsDBTestCaseQueries.deleteTC(Utilities.getMongoDB(), item.getText());
 					}
+					else
+					{
+						if(!value.equals("APPLICATION") && value.equals("TESTCASE"))
+						{
+							TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
+							TestSuiteTask tsTask = tsService.getTaskByTSName(item.getParentItem().getText());
+							TSGson  tsGson = tsTask.getTsGson();
+							List<TSTCGson> list = tsGson.tsTCLink;
+							
+							for (int i=0;i<list.size();i++) 
+							{
+								TSTCGson tstcGson = list.get(i); 
+								if(tstcGson.tcName.equals(item.getText())){
+									list.remove(i);
+								}
+							}
+							AutomaticsDBTestCaseQueries.deleteTC(Utilities.getMongoDB(), item.getText());
+							item.dispose();
+						}
 					}
 				}
 			});
@@ -519,58 +532,7 @@ public class TC_TS_List extends ViewPart {
 				}
 			});
 			
-			deleteItem.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) 
-				{
-					try
-					{
-						TreeItem item = testSuiteList.getSelection()[0];
-						boolean result = MessageDialog.openConfirm(
-								testSuiteList.getShell(), "Confirm",
-								"Are you sure that you want to permanently  delete the seleted item");
-	
-						if (result) {
-							String value = item.getData("eltType").toString();
-							if (!value.equals("APPLICATION")
-									&& value.equals("TESTSUITE")) {
-	
-								AutomaticsDBTestSuiteQueries.deleteTS(
-										Utilities.getMongoDB(), item.getText());
-								item.dispose();
-	
-							} else {
-								if (!value.equals("APPLICATION")
-										&& value.equals("TESTCASE")) {
-									TestSuiteTaskService tsService = TestSuiteTaskService
-											.getInstance();
-									TestSuiteTask tsTask = tsService
-											.getTaskByTSName(item.getParentItem()
-													.getText());
-									TSGson tsGson = tsTask.getTsGson();
-									List<TSTCGson> list = tsGson.tsTCLink;
-	
-									for (int i = 0; i < list.size(); i++) {
-										TSTCGson tstcGson = list.get(i);
-										String name = tstcGson.tcName;
-										if (name.equals(item.getText())) {
-											list.remove(i);
-											AutomaticsDBTestCaseQueries.deleteTC(
-													Utilities.getMongoDB(), name);
-											item.dispose();
-											break;
-										}
-									}
-								}
-							}
-						}
-					}
-					catch(Exception e)
-					{
-						System.out.println("[" + getClass().getName() + " : deleteItem.addListener()] - Exception : " + e.getMessage());
-						e.printStackTrace();
-					}
-				}
-			});
+			
 			
 			copyItemforTC.addListener(SWT.Selection, new Listener() {
 				
@@ -675,6 +637,35 @@ public class TC_TS_List extends ViewPart {
 					catch(Exception e)
 					{
 						System.out.println(e.getMessage());
+						e.printStackTrace();
+					}
+				}
+			});
+			
+			openItem.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					try
+					{
+						//Get All Workbench
+						IWorkbench workbench = PlatformUI.getWorkbench();
+						IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+						IWorkbenchPage page = window.getActivePage();
+						
+						TreeItem selected[] = testSuiteList.getSelection();
+						if(selected[0].getData("eltType").toString().equalsIgnoreCase("TESTCASE"))
+						{
+					        TestCaseEditorInput input = new TestCaseEditorInput(selected[0].getText());
+					        page.openEditor(input, TCEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
+						}
+						if(selected[0].getData("eltType").toString().equalsIgnoreCase("TESTSUITE"))
+						{
+							TestSuiteEditorInput input = new TestSuiteEditorInput(selected[0].getText());
+							page.openEditor(input, TestSuiteEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
+						}
+					}
+					catch(Exception e)
+					{
+						System.out.println("[" + getClass().getName() + " - openItem.addListener()] : Exception : " + e.getMessage());
 						e.printStackTrace();
 					}
 				}

@@ -57,22 +57,24 @@ public class EditorListeners implements IPartListener2
 					TestCaseTask tcTask = TestCaseTaskService.getInstance().getTaskByTcName(input.getId());
 					
 					ObjectMap.disposeObjMaps();
-					if(tcTask.getTcGson().tcObjectMapLink!=null)
+					if(!tcTask.getTcGson().tcFlag.equalsIgnoreCase("PRIVATE"))
 					{
-						boolean first = true;
-						for(String omName : tcTask.getTcGson().tcObjectMapLink)
+						if(tcTask.getTcGson().tcObjectMapLink!=null)
 						{
-							if(first) {
-								ObjectMap.loadObjectMap(omName);
-								first=false;
-							}
-							else
+							boolean first = true;
+							for(String omName : tcTask.getTcGson().tcObjectMapLink)
 							{
-								ObjectMap.addObjectMap(omName);
+								if(first) {
+									ObjectMap.loadObjectMap(omName);
+									first=false;
+								}
+								else
+								{
+									ObjectMap.addObjectMap(omName);
+								}
 							}
 						}
 					}
-					
 					/*Set the test case parameter if any*/
 					/*Try to use the object to access the value*/
 					TestCaseParamView.currentTask = tcTask;

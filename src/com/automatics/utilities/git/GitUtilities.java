@@ -44,7 +44,7 @@ public class GitUtilities
 	private static Git git = null;
 	private Properties gitProperties;
 	
-	private static String errMsgForAnyOperation = "";
+	private static String ERR_MSG_GIT = "";
 	
 	public Properties loadAndSetProperties(String configProperties)
 	{
@@ -72,7 +72,7 @@ public class GitUtilities
 
 	
 	public String getErrMsg() {
-		return errMsgForAnyOperation;
+		return ERR_MSG_GIT;
 	}
 
 	public void init()
@@ -122,7 +122,7 @@ public class GitUtilities
 		catch(Exception e)
 		{
 		
-			errMsgForAnyOperation = e.getMessage();
+			ERR_MSG_GIT = e.getMessage();
 			System.out.println("[" + getClass().getName() +" : createRepositary()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 			return false;
@@ -151,7 +151,7 @@ public class GitUtilities
 		{
 			if(e.getMessage().contains("Repository already exists"))
 				return true;
-			errMsgForAnyOperation = e.getMessage();
+			ERR_MSG_GIT = e.getMessage();
 			System.out.println("[" + getClass().getName() + " - cloneRepository()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 			return false;
@@ -266,6 +266,55 @@ public class GitUtilities
 			e.printStackTrace();
 		}
 	}
+	
+	public boolean performGITSyncOperation()
+	{
+		try
+		{
+			boolean ret_val = true;
+			SshSessionFactory.setInstance(new JschConfigSessionFactory() {
+				@Override
+				protected void configure(Host host, Session session) {
+					session.setConfig("StrictHostKeyChecking","no");
+					session.setPassword("admin");
+				}
+			});
+			this.git.pull().call();
+			this.git.add().addFilepattern(".").call();
+			this.git.commit().setMessage("Automatics Committed on : " + new Date()).call();
+			for(int i=0;i<5;i++)
+			{
+				try
+				{
+					this.git.push().call();
+					ERR_MSG_GIT = "";
+					ret_val = true;
+					break;
+				}
+				catch(Exception e)
+				{
+					try
+					{
+						this.git.pull().call();
+					}
+					catch(Exception e1)
+					{
+						ERR_MSG_GIT = e1.getMessage();
+						ret_val = false;
+					}
+				}
+			}
+			return ret_val;
+		}
+		catch(Exception e)
+		{
+			ERR_MSG_GIT = e.getMessage();
+			System.out.println("[" + getClass().getName() + " : performGITSyncOperation()] - Exception : " + e.getMessage());
+			e.printStackTrace();
+		}
+		return false;
+	}
+	
 	
 	public boolean getSync(String fileLocation)
 	{

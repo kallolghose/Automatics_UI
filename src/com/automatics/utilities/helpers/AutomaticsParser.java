@@ -178,7 +178,7 @@ public class AutomaticsParser
 					if(stmt.contains("WebElement"))
 					{
 						String dataInLine[] = stmt.trim().split(" ");
-						String pgObj[] = dataInLine[3].split("__");
+						String pgObj[] = dataInLine[2].split("__");
 						temp.pageName = pgObj[0];
 						temp.objName = pgObj[1];
 						temp.objName = temp.objName.substring(0,temp.objName.length()-1);

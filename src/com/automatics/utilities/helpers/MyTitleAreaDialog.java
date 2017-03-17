@@ -23,8 +23,8 @@ public class MyTitleAreaDialog extends TitleAreaDialog {
         @Override
         public void create() {
                 super.create();
-                setTitle("This is my custom dialog");
-                setMessage("This is a TitleAreaDialog", IMessageProvider.INFORMATION);
+                setTitle("Rename");
+                setMessage("Add a new name", IMessageProvider.INFORMATION);
         }
 
         @Override

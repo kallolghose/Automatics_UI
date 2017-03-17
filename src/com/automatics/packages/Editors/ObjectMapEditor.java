@@ -54,8 +54,14 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
+import org.eclipse.jface.viewers.FocusCellHighlighter;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.TableViewerEditor;
+import org.eclipse.jface.viewers.TableViewerFocusCellManager;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Button;
@@ -175,6 +181,11 @@ public class ObjectMapEditor extends EditorPart {
 		
 		this.input = (ObjectMapEditorInput) input;
 		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(this.input.getId());
+		
+		if(omTask == null)
+		{
+			throw new RuntimeException("Object Map does not exists.");
+		}
 		
 		//Check for sync status from remote GIT
 		gitUtil = new GitUtilities();
@@ -373,6 +384,22 @@ public class ObjectMapEditor extends EditorPart {
 		objectMapDataTable.setHeaderVisible(true);
 		objectMapDataTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		objectMapDataTable.setEnabled(viewAllElements && public_view);
+		
+		/*Biswabir - Tabbing Issue*/
+		TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(objectMapTableViewer,
+				new FocusCellHighlighter(objectMapTableViewer){});
+		ColumnViewerEditorActivationStrategy editorActivationStrategy =
+					new ColumnViewerEditorActivationStrategy(objectMapTableViewer) 
+					{
+			            @Override
+			            protected boolean isEditorActivationEvent(
+			                ColumnViewerEditorActivationEvent event) {
+			                    ViewerCell cell = (ViewerCell) event.getSource();
+			                   return cell.getColumnIndex() == 1 || cell.getColumnIndex() == 2;
+		            }};
+
+		TableViewerEditor.create(objectMapTableViewer, focusCellManager, editorActivationStrategy,
+			    TableViewerEditor.TABBING_HORIZONTAL);
 		
 		TableViewerColumn pagaNameColViewer = new TableViewerColumn(objectMapTableViewer, SWT.NONE);
 		pagaNameColViewer.setLabelProvider(new ColumnLabelProvider() {

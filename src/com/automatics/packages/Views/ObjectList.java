@@ -65,6 +65,36 @@ public class ObjectList extends ViewPart {
 		
 		omListTree = new Tree(composite, SWT.BORDER);
 		
+		Menu menu = new Menu(omListTree);
+		omListTree.setMenu(menu);
+		
+		addToTestCase = new MenuItem(menu, SWT.NONE);
+		addToTestCase.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/arrow_left.png"));
+		addToTestCase.setText("Add To Test Case");
+		
+		new MenuItem(menu, SWT.SEPARATOR);
+		
+		newObjMap = new MenuItem(menu, SWT.NONE);
+		newObjMap.setText("New");
+		
+		opnObjMap = new MenuItem(menu, SWT.NONE);
+		opnObjMap.setText("Open");
+		
+		new MenuItem(menu, SWT.SEPARATOR);
+		
+		copyObjMap = new MenuItem(menu, SWT.NONE);
+		copyObjMap.setText("Copy");
+		
+		pasteObjMap = new MenuItem(menu, SWT.NONE);
+		pasteObjMap.setText("Paste");
+		
+		delObjMap = new MenuItem(menu, SWT.NONE);
+		delObjMap.setText("Delete");
+		
+		new MenuItem(menu, SWT.SEPARATOR);
+		
+		refreshMap = new MenuItem(menu, SWT.NONE);
+		refreshMap.setText("Refresh");
 		
 		loadOMList();
 		setListerners();
@@ -212,37 +242,6 @@ public class ObjectList extends ViewPart {
 			root.setData("eltType","APPNAME");
 			root.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
 			
-			Menu menu = new Menu(omListTree);
-			omListTree.setMenu(menu);
-			
-			addToTestCase = new MenuItem(menu, SWT.NONE);
-			addToTestCase.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/arrow_left.png"));
-			addToTestCase.setText("Add To Test Case");
-			
-			new MenuItem(menu, SWT.SEPARATOR);
-			
-			newObjMap = new MenuItem(menu, SWT.NONE);
-			newObjMap.setText("New");
-			
-			opnObjMap = new MenuItem(menu, SWT.NONE);
-			opnObjMap.setText("Open");
-			
-			new MenuItem(menu, SWT.SEPARATOR);
-			
-			copyObjMap = new MenuItem(menu, SWT.NONE);
-			copyObjMap.setText("Copy");
-			
-			pasteObjMap = new MenuItem(menu, SWT.NONE);
-			pasteObjMap.setText("Paste");
-			
-			delObjMap = new MenuItem(menu, SWT.NONE);
-			delObjMap.setText("Delete");
-			
-			new MenuItem(menu, SWT.SEPARATOR);
-			
-			refreshMap = new MenuItem(menu, SWT.NONE);
-			refreshMap.setText("Refresh");
-			
 			
 			DB db = Utilities.getMongoDB();
 			ArrayList<String> omList = AutomaticsDBObjectMapQueries.getAllOM(db);
@@ -255,20 +254,28 @@ public class ObjectList extends ViewPart {
 				
 				//Get Specific OMs add load the same
 				OMGson omGson = Utilities.getGSONFromJSON(AutomaticsDBObjectMapQueries.getOM(db,om).toString(), OMGson.class);
-				//Add the same to save task
-				ObjectMapSaveTask omTask = new ObjectMapSaveTask(omGson.omName,omGson);
-				ObjectMapSaveService.getInstance().addSaveTask(omTask);
+			
 				
 				//Add | Update Editor Task
 				if(service.getTaskByOmName(om) == null)
 				{
+					//Add Editor task
 					ObjectMapTask omEditorTask = new ObjectMapTask(om, omGson.omDesc, omGson.omIdentifier, omGson);
 					service.addTasks(omEditorTask);
+					
+					//Add Save Task
+					ObjectMapSaveTask omTask = new ObjectMapSaveTask(omGson.omName,omGson);
+					ObjectMapSaveService.getInstance().addSaveTask(omTask);
 				}
 				else
 				{
+					//Update Editor Task
 					ObjectMapTask task = service.getTaskByOmName(om);
 					task.setOmGson(omGson);
+					
+					//Update Save Task
+					ObjectMapSaveTask omsaveTask = ObjectMapSaveService.getInstance().getSaveTask(om);
+					omsaveTask.setOmGson(omGson);
 				}
 			}
 			root.setExpanded(true);

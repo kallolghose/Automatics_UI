@@ -112,7 +112,7 @@ public class NewRunnerUI {
 	 */
 	protected void createContents() {
 		shlRunner = new Shell();
-		shlRunner.setSize(554, 572);
+		shlRunner.setSize(555, 582);
 		shlRunner.setText("Runner");
 		shlRunner.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
@@ -120,9 +120,13 @@ public class NewRunnerUI {
 		parentComposite.setLayout(new FillLayout(SWT.VERTICAL));
 		
 		Composite suitedetailsComposite = new Composite(parentComposite, SWT.NONE);
+		GridLayout gl_suitedetailsComposite = new GridLayout(1, true);
+		gl_suitedetailsComposite.marginHeight = 0;
+		gl_suitedetailsComposite.marginWidth = 0;
+		suitedetailsComposite.setLayout(gl_suitedetailsComposite);
 		
 		Composite composite = new Composite(suitedetailsComposite, SWT.NONE);
-		composite.setBounds(0, 0, 538, 29);
+		composite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		ToolBar iConToolBar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
 		iConToolBar.setBounds(0, 0, 538, 29);
@@ -143,7 +147,7 @@ public class NewRunnerUI {
 		refresh.setText("Refresh");
 		
 		final TabFolder tabFolder = new TabFolder(suitedetailsComposite, SWT.NONE);
-		tabFolder.setBounds(0, 35, 538, 361);
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
 		
 //		ArrayList<String>collList=	AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
 		
@@ -152,10 +156,15 @@ public class NewRunnerUI {
 		
 		Composite composite_1 = new Composite(tabFolder, SWT.NONE);
 		tbtmNewItem.setControl(composite_1);
-		composite_1.setLayout(new FillLayout(SWT.HORIZONTAL));
+		 GridLayout gl_composite_1 = new GridLayout(1, false);
+		 gl_composite_1.marginWidth = 0;
+		 gl_composite_1.marginHeight = 0;
+		 composite_1.setLayout(gl_composite_1);
+		 //composite_1.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		 remoteTable = new Tree(composite_1, SWT.BORDER | SWT.CHECK | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		remoteTable.setBounds(0, 0, 530, 411);
+		 remoteTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		 remoteTable.setLinesVisible(true);
 		remoteTable.setHeaderVisible(true);
 		
 		TreeColumn trclmnNewColumn = new TreeColumn(remoteTable, SWT.NONE);
@@ -180,7 +189,7 @@ public class NewRunnerUI {
 		trclmnColumn_3.setText("Thread-Count");
 		
 		TreeColumn trclmnColumn_4 = new TreeColumn(remoteTable, SWT.NONE);
-		trclmnColumn_4.setWidth(115);
+		trclmnColumn_4.setWidth(88);
 		trclmnColumn_4.setText("Column5");
 		
 		createTestSuiteTable(remoteTable);
@@ -190,9 +199,14 @@ public class NewRunnerUI {
 		
 		Composite composite_2 = new Composite(tabFolder, SWT.NONE);
 		tbtmNewItem_1.setControl(composite_2);
+		 GridLayout gl_composite_2 = new GridLayout(1, false);
+		 gl_composite_2.marginWidth = 0;
+		 gl_composite_2.marginHeight = 0;
+		 composite_2.setLayout(gl_composite_2);
 		
 		 localHostTable = new Tree(composite_2,SWT.BORDER | SWT.CHECK | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		localHostTable.setBounds(0, 0, 540, 347);
+		 localHostTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		 localHostTable.setLinesVisible(true);
 		localHostTable.setHeaderVisible(true);
 		
 		TreeColumn trclmnNewColumn_1 = new TreeColumn(localHostTable, SWT.NONE);
@@ -216,7 +230,7 @@ public class NewRunnerUI {
 		trclmnColumn_8.setText("Thread-Count");
 		
 		final TreeColumn trclmnColumn_9 = new TreeColumn(localHostTable, SWT.NONE);
-		trclmnColumn_9.setWidth(100);
+		trclmnColumn_9.setWidth(97);
 		trclmnColumn_9.setText("Column5");
 		trclmnColumn_9.addSelectionListener(new SelectionListener() {
 			
@@ -363,20 +377,24 @@ public class NewRunnerUI {
 		getChecked(localHostTable);
 		
 		Composite composite_4 = new Composite(suitedetailsComposite, SWT.NONE);
-		composite_4.setBounds(0, 398, 538, 135);
+		GridLayout gl_composite_4 = new GridLayout(1, false);
+		gl_composite_4.marginWidth = 0;
+		gl_composite_4.marginHeight = 0;
+		composite_4.setLayout(gl_composite_4);
+		composite_4.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		TabFolder tabFolder_1 = new TabFolder(composite_4, SWT.NONE);
-		tabFolder_1.setBounds(0, 0, 538, 135);
+		tabFolder_1.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
 		TabItem tbtmConsole = new TabItem(tabFolder_1, SWT.NONE);
 		tbtmConsole.setText("Console");
 		
 		Composite composite_5 = new Composite(tabFolder_1, SWT.NONE);
 		tbtmConsole.setControl(composite_5);
+		composite_5.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		runnerConsole = new Text(composite_5, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL | SWT.MULTI);
 		runnerConsole.setEditable(false);
-		runnerConsole.setBounds(0, 0, 530, 107);
 		
 		btnNewButton.addSelectionListener(new SelectionAdapter()
 		  {
@@ -463,7 +481,7 @@ public class NewRunnerUI {
 	                if (item == null) {
 	                    return;
 	                }
-	                for (int i = 0; i < table.getColumnCount(); ++i) {
+	                for (int i = 1; i < table.getColumnCount(); ++i) {
 	                    if (item.getBounds(i).contains(p)) {
 	                        final int columnIndex = i;
 	                        // The control that will be the editor must be a

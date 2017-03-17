@@ -23,6 +23,7 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
+import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.packages.Model.ObjectMapTask;
 import com.automatics.packages.Model.ObjectMapTaskService;
@@ -61,9 +62,15 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
+import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
+import org.eclipse.jface.viewers.FocusCellHighlighter;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.TableViewerEditor;
+import org.eclipse.jface.viewers.TableViewerFocusCellManager;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.dnd.DropTarget;
@@ -134,6 +141,11 @@ public class TCEditor extends EditorPart {
 	
 	    this.input = (TestCaseEditorInput) input;
 	    tcTask = TestCaseTaskService.getInstance().getTaskByTcName(this.input.getId());
+	    
+	    if(tcTask==null)
+	    {
+	    	throw new RuntimeException("Test Case does not exists.");
+	    }
 		
 	    //Initialize the Existing GIT Repository
 	    this.gitUtil = new GitUtilities();
@@ -216,7 +228,6 @@ public class TCEditor extends EditorPart {
 	public void createPartControl(Composite parent) {
 		try
 		{
-			
 			parent.setLayout(new FillLayout(SWT.HORIZONTAL));
 			TabFolder tcEditorTabFolder = new TabFolder(parent, SWT.BOTTOM);
 			
@@ -326,6 +337,21 @@ public class TCEditor extends EditorPart {
 			testscriptTable.setHeaderVisible(true);
 			testscriptTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			testscriptTable.setEnabled(viewAllElements && public_view);
+			
+			/*Biswabir Code - Tabbing*/
+			TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(testscriptsViewer,new FocusCellHighlighter(testscriptsViewer) {});
+			ColumnViewerEditorActivationStrategy editorActivationStrategy =
+						new ColumnViewerEditorActivationStrategy(testscriptsViewer) 
+						{
+				            @Override
+				            protected boolean isEditorActivationEvent(
+				                ColumnViewerEditorActivationEvent event) {
+				                    ViewerCell cell = (ViewerCell) event.getSource();
+				                   return cell.getColumnIndex() == 1 || cell.getColumnIndex() == 2;
+			            }};
+
+			TableViewerEditor.create(testscriptsViewer, focusCellManager, editorActivationStrategy,
+				    TableViewerEditor.TABBING_HORIZONTAL);
 			
 			TableViewerColumn snoViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
 			snoViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -572,7 +598,36 @@ public class TCEditor extends EditorPart {
 			public void handleEvent(Event event) {
 				try
 				{
-				saveActionPerform();
+					/*Biswabir fix*/
+					List<String>collList=new ArrayList<String>(); 
+					List<TCStepsGSON> steps = (ArrayList<TCStepsGSON>)testscriptsViewer.getInput();
+					for (TCStepsGSON tcStepsGSON : steps) {
+						if(tcStepsGSON.stepOperation.equals("")){
+							collList.add(tcStepsGSON.stepOperation);
+							break;
+						}
+						
+						else if(tcStepsGSON.stepPageName.equals("")){
+							collList.add(tcStepsGSON.stepPageName);
+							break;
+									
+						}
+						else if(tcStepsGSON.stepObjName.equals("")){
+							collList.add(tcStepsGSON.stepObjName);
+							break;
+						}
+					}
+					if(!collList.contains(""))
+					{
+						saveActionPerform();
+					}
+					else
+					{
+						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Error", null,
+							    "Please fill all the fields", MessageDialog.ERROR, new String[] { "ok"
+							         }, 0);
+						dialog.open();
+					}
 				}
 				catch(Exception e)
 				{
@@ -587,7 +642,6 @@ public class TCEditor extends EditorPart {
 				try
 				{
 					listOfTestCaseSteps = (List<TCStepsGSON>)testscriptsViewer.getInput();
-					System.out.println(testscriptTable.getSelectionIndex());
 					copiedGson = listOfTestCaseSteps.get(testscriptTable.getSelectionIndex());
 					isDirty = true;
 					firePropertyChange(PROP_DIRTY);
@@ -826,6 +880,11 @@ public class TCEditor extends EditorPart {
 						omSaveTask = new ObjectMapSaveTask(OBJECTMAP_FOR_RECORDING, omGson);
 						ObjectMapTaskService.getInstance().addTasks(omTask);
 						ObjectMapSaveService.getInstance().addSaveTask(omSaveTask);
+						JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, omGson));
+						if(jsonObj!=null)
+						{
+							AutomaticsDBObjectMapQueries.postOM(Utilities.getMongoDB(), jsonObj);
+						}
 					}
 					
 					//Add ObjectMap
@@ -1032,6 +1091,18 @@ public class TCEditor extends EditorPart {
 					
 					tcTask.setTcGson(tcSaveGson);
 					
+					//Perform git operations
+					Utilities.createJavaFiles(tcTask.getTcGson());
+					boolean gitPassed = this.gitUtil.performGITSyncOperation();
+					if(!gitPassed)
+					{
+						MessageDialog errDialog = new MessageDialog(getSite().getShell(),"Save Failure", 
+								null, "Something went wrong - " + this.gitUtil.getErrMsg() + "\nPlease save again", MessageDialog.ERROR, 
+								new String[]{"OK"}, 0);
+						errDialog.open();
+						return;
+					}
+					
 					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, tcSaveGson));
 					System.out.println(jsonObj.toString());
 					if(jsonObj !=null)
@@ -1039,12 +1110,11 @@ public class TCEditor extends EditorPart {
 						AutomaticsDBTestCaseQueries.updateTC(Utilities.getMongoDB(), tcSaveGson.tcName, jsonObj);
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
-						Utilities.createJavaFiles(tcTask.getTcGson());
 					}
 					else 
 					{
 						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
-											 "Some Unexpected Error Occured", "ERR");
+											 "Some Unexpected Error Occured", "ERR").open();
 						throw new RuntimeException("Error In Test Case Save");
 					}
 				}

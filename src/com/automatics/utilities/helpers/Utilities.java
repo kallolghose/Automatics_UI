@@ -51,16 +51,18 @@ import com.mongodb.DB;
 public class Utilities 
 {
 	//private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
-	private static DB db = AutomaticsDBConnection.getConnection("10.13.64.27", 27017, "automatics_db");
-	public static String PROJECT_NAME = "automatics1.3";
+	private static DB db = AutomaticsDBConnection.getConnection(Utilities.MONGO_DB_URL, 27017, "automatics_db");
+	public static String PROJECT_NAME = "automatics1.4";
 	public final static String TESTCASE_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/testScripts/";
 	public final static String OBJECTMAP_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/objectMap/";
 	public final static String TESTNG_FILE_LOCATION = "";
+	public static String MONGO_DB_URL = "localhost";
 	
 	public final static String AUTOMATICS_USERNAME = System.getProperty("user.name");
 	
 	public static DB getMongoDB()
 	{
+		db = AutomaticsDBConnection.getConnection(Utilities.MONGO_DB_URL, 27017, "automatics_db");
 		return db;
 	}
 	
@@ -303,7 +305,7 @@ public class Utilities
 			for(OMDetails details : omGson.omDetails)
 			{
 				javaStmt = javaStmt + "\t@FindBy(" + details.locatorType + " = \"" + details.locatorInfo + "\")\n";
-				javaStmt = javaStmt + "\tpublic static WebElement " + details.pageName + "__" + details.objName + ";\n\n";
+				javaStmt = javaStmt + "\tpublic WebElement " + details.pageName + "__" + details.objName + ";\n\n";
 			}
 			
 			javaStmt = javaStmt + "\tWebDriver driver;\n";
@@ -545,11 +547,17 @@ public class Utilities
 		Pattern blankCheck1 = Pattern.compile("^\\d");
 		//Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-[[:blank:]]])");
 		Pattern blankCheck2 = Pattern.compile("[^A-Za-z0-9_]+");
+		/*Biswabir Code*/
+		Pattern keywordCheck= Pattern.compile("(final|abstract|assert|booean|break|byte|switch|case|try|catch|finally|char|class|continue|"
+				+ "default|do|double|if|else|enum|extends|float|for|implements|import|instanceOf|int|interface|long|native|new|package|"
+				+ "private|protected|public|return|short|static|strictfp|super|synchronized|this|throw|throws|transient|void|volatile|"
+				+ "while|goto|const)");
 		
 		final Matcher  blankCheckForTsName = blankCheck.matcher(str); 
 	    final Matcher  blankCheckForTsNameForNumberCheck = blankCheck1.matcher(str);
 	    final Matcher  blankCheckForTsNameForSpecialCherecterCheck = blankCheck2.matcher(str);
-
+	    final Matcher  blankCheckForTsNameForJavaKeywordCheck = keywordCheck.matcher(str);
+	    
 		if(blankCheckForTsName.find())
 		{ 
 			collvalidityMessage.add("Please enter name");
@@ -561,6 +569,10 @@ public class Utilities
 		if(blankCheckForTsNameForSpecialCherecterCheck.find())
 		{ 
 			collvalidityMessage.add("Special Characters/Space not allowed in name");
+		}
+		if(blankCheckForTsNameForJavaKeywordCheck.find())
+		{
+			collvalidityMessage.add("Java Keyword not allowed in name");
 		}
 		return collvalidityMessage;
     }
@@ -579,7 +591,7 @@ public class Utilities
 			final Matcher blankCheckForTsName = blankCheck.matcher(str); 
 			if(blankCheckForTsName.find())
 			{ 
-				collMessage.add("Please enter Description, it canot be blank");
+				collMessage.add("Please enter Description, it cannot be blank");
 			}
 			return collMessage;
 		}

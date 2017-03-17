@@ -38,8 +38,10 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 			//GitUtilities.GIT_PROPERTY_PATH = System.getProperty("user.dir")+ "/git_config.properties"; /*For Exe Use this*/
 			Properties prop = gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
 			
-			prop.setProperty("LOCAL_PATH", ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/automatics1.3");
+			prop.setProperty("LOCAL_PATH", ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/" + Utilities.PROJECT_NAME);
 			prop.setProperty("REMOTE_PATH", prop.getProperty("REMOTE_PATH"));
+			prop.setProperty("MONGO_DB_URL",  prop.getProperty("MONGO_DB_URL"));
+			Utilities.MONGO_DB_URL = prop.getProperty("MONGO_DB_URL");
 			prop.store(new FileOutputStream(GitUtilities.GIT_PROPERTY_PATH), null);
 			gitUtil.setGitProperties(prop);
 			if(gitUtil.cloneRepository())
