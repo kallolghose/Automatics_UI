@@ -246,7 +246,7 @@ public class GitUtilities
 		}
 	}
 	
-	public void performPull()
+	public boolean performPull()
 	{
 		try
 		{
@@ -259,11 +259,13 @@ public class GitUtilities
 			});
 			this.git.pull().call();
 			System.out.println("[" + new Date() + "] GIT : Pull Performed ");
+			return true;
 		}
 		catch(Exception e)
 		{
 			System.out.println("[" + getClass().getName() + " : perfromPull()] - Exception : " + e.getMessage());
 			e.printStackTrace();
+			return false;
 		}
 	}
 	
@@ -304,6 +306,7 @@ public class GitUtilities
 					}
 				}
 			}
+			System.out.println("[" + new Date() + "] GIT : Pull Sync Performed ");
 			return ret_val;
 		}
 		catch(Exception e)

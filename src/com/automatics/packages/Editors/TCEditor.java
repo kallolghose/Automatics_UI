@@ -97,7 +97,7 @@ public class TCEditor extends EditorPart {
 	private TableViewer testscriptsViewer; 
 	private boolean isDirty = false;
 	private GitUtilities gitUtil;
-	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor, commitItem, pullItem, lockItem, start_stop_recording;
+	private ToolItem addBtn, delBtn, saveItem, copyItem, pasteItem, openEditor, lockItem, start_stop_recording;
 	private Label lockLabel;
 	
 	private boolean isFocus = false;
@@ -287,19 +287,6 @@ public class TCEditor extends EditorPart {
 			openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 			openEditor.setSelection(true);
 			openEditor.setEnabled(viewAllElements && public_view);
-			
-			commitItem = new ToolItem(iconsToolBar, SWT.NONE);
-			commitItem.setToolTipText("Commit And Push");
-			commitItem.setWidth(26);
-			commitItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/git_commit.png"));
-			commitItem.setSelection(true);
-			commitItem.setEnabled(viewAllElements && public_view);
-			
-			pullItem = new ToolItem(iconsToolBar, SWT.NONE);
-			pullItem.setToolTipText("Pull");
-			pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
-			pullItem.setSelection(true);
-			pullItem.setEnabled(viewAllElements && public_view);
 			
 			start_stop_recording = new ToolItem(iconsToolBar, SWT.NONE);
 			start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/start_rec_2.png"));
@@ -721,80 +708,6 @@ public class TCEditor extends EditorPart {
 			}
 		});
 		
-		commitItem.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				
-				/*Save the test case with Flag as Public*/
-				TCGson tcGson = tcTask.getTcGson();
-				tcGson.tcFlag = "PUBLIC";
-				tcTask.setTcGson(tcGson);
-				saveActionPerform();
-				lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
-				lockItem.setToolTipText("Lock for editing");
-				lockItem.setData("Locked",false);
-				lockItem.setEnabled(true);
-				
-				/*Add lock to make components un-editable*/
-				public_view = false;
-				addBtn.setEnabled(viewAllElements && public_view);
-				delBtn.setEnabled(viewAllElements && public_view);
-				saveItem.setEnabled(viewAllElements && public_view);
-				copyItem.setEnabled(viewAllElements && public_view);
-				pasteItem.setEnabled(viewAllElements && public_view);
-				openEditor.setEnabled(viewAllElements && public_view);
-				commitItem.setEnabled(viewAllElements && public_view);
-				pullItem.setEnabled(viewAllElements && public_view);
-				testscriptTable.setEnabled(viewAllElements && public_view);
-				start_stop_recording.setEnabled(viewAllElements && public_view);
-				
-				/*Commit the changes*/
-				String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
-				gitUtil.performPull();
-				gitUtil.performSpecificCommit(currentFileName);
-				gitUtil.performPush();
-				MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit And Push Performed.", 
-	    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-	    		commitMsg.open();
-			}
-		});
-		
-		pullItem.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
-				if(gitUtil.getDiff(currentFileName)) //If changes are made to the file then ask to commit or contents shall be replaced
-				{
-					MessageDialog dialog = new MessageDialog(getSite().getShell(), "Warning", null,
-							"Changes made in file are not commited.Please commit them them or changes will be overwritten.",
-			    			MessageDialog.WARNING, 
-							new String[]{"Commit","Overwrite/Pull"}, 0);
-			    	int selected = dialog.open();
-			    	switch(selected)
-			    	{
-			    	case 0:
-			    		gitUtil.performSpecificCommit(currentFileName);
-			    		MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit Completed !!", 
-			    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-			    		commitMsg.open();
-			    		break;
-			    	case 1:
-			    		gitUtil.performSpecificPull(currentFileName);
-			    		MessageDialog pullMsg = new MessageDialog(getSite().getShell(), "Information", null,"Pull Performed !!", 
-			    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-			    		pullMsg.open();
-			    		break;
-			    	}
-				}
-				else
-				{
-					gitUtil.performSpecificPull(currentFileName);
-		    		MessageDialog pullMsg = new MessageDialog(getSite().getShell(), "Information", null,"Pull Performed !!", 
-		    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-		    		pullMsg.open();
-				}
-				
-			}
-		});
-		
 		lockItem.addListener(SWT.Selection, new Listener() 
 		{
 			public void handleEvent(Event event) 
@@ -838,8 +751,8 @@ public class TCEditor extends EditorPart {
 				copyItem.setEnabled(viewAllElements && public_view);
 				pasteItem.setEnabled(viewAllElements && public_view);
 				openEditor.setEnabled(viewAllElements && public_view);
-				commitItem.setEnabled(viewAllElements && public_view);
-				pullItem.setEnabled(viewAllElements && public_view);
+				//commitItem.setEnabled(viewAllElements && public_view);
+				//pullItem.setEnabled(viewAllElements && public_view);
 				testscriptTable.setEnabled(viewAllElements && public_view);
 				start_stop_recording.setEnabled(viewAllElements && public_view);
 				lockItem.setData("Locked", !locked);

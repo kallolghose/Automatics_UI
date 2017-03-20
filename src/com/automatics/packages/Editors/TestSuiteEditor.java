@@ -37,10 +37,12 @@ import com.automatics.utilities.alltablestyles.TSFourthColumnEditable;
 import com.automatics.utilities.alltablestyles.TSSecondColumnEditable;
 import com.automatics.utilities.alltablestyles.TSTestCaseColumnEditable;
 import com.automatics.utilities.alltablestyles.TSThirdColumnEditable;
+import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
 import com.automatics.utilities.helpers.Utilities;
+import com.automatics.utilities.runner.TestSuiteRunnerAPI;
 import com.mongodb.DB;
 
 import org.eclipse.swt.layout.FillLayout;
@@ -49,6 +51,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
@@ -86,6 +89,7 @@ public class TestSuiteEditor extends EditorPart {
 	private ToolItem addBtn,delBtn, saveItem, copyItem, pasteItem, viewEditor;
 	private List<TSTCGson> listStepGSON;
 	private TSTCGson copiedCell;
+	private GitUtilities gitUtil;
 	
 	public TestSuiteEditor() {
 		// TODO Auto-generated constructor stub
@@ -121,6 +125,11 @@ public class TestSuiteEditor extends EditorPart {
 		//Load all the test case names in the ArrayList for drop down
 		db = Utilities.getMongoDB();
 		testCaseList = AutomaticsDBTestCaseQueries.getAllTC(db);
+		
+		//Initialize GIT properties
+		gitUtil = new GitUtilities();
+		gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+		gitUtil.initExistingRepository();
 		
 	}
 
@@ -179,6 +188,10 @@ public class TestSuiteEditor extends EditorPart {
 		viewEditor.setEnabled(false);
 		viewEditor.setToolTipText("View Editor");
 		viewEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
+		
+		ToolItem lockItem = new ToolItem(iconsToolbar, SWT.NONE);
+		lockItem.setToolTipText("Lock for editing");
+		lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
 		
 		testsuiteviewer = new TableViewer(parentComposite, SWT.BORDER | SWT.FULL_SELECTION);
 		testsuiteviewer.setContentProvider(new ArrayContentProvider());
@@ -624,8 +637,24 @@ public class TestSuiteEditor extends EditorPart {
 				//Save the file new data in the task
 				tsTask.setTsGson(tssaveGson);
 				
+				TestSuiteRunnerAPI runnerAPI = new TestSuiteRunnerAPI();
+				runnerAPI.selected = true;
+				runnerAPI.threadCount = tssaveGson.tsName;
+				runnerAPI.testsuiteName = tssaveGson.tsName;
+				runnerAPI.status = "Running";
+				//Create Testng File
+				Utilities.createTestng(tssaveGson, runnerAPI);
+				boolean gitPassed = this.gitUtil.performGITSyncOperation();
+				if(!gitPassed)
+				{
+					MessageDialog errDialog = new MessageDialog(getSite().getShell(),"Save Failure", 
+							null, "Something went wrong - " + this.gitUtil.getErrMsg() + "\nPlease save again", MessageDialog.ERROR, 
+							new String[]{"OK"}, 0);
+					errDialog.open();
+					return;
+				}
+				
 				JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, tssaveGson));
-				System.out.println(jsonObj.toString());
 				if(jsonObj!=null)
 				{
 					AutomaticsDBTestSuiteQueries.updateTS(Utilities.getMongoDB(), tsTask.getTsName(), jsonObj);

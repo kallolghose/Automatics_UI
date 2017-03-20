@@ -16,6 +16,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.Saveable;
 import org.eclipse.ui.part.EditorPart;
 
 import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
@@ -86,8 +87,6 @@ public class ObjectMapEditor extends EditorPart {
 	private ToolItem btnAdd,btnDelete, pasteItem, copyItem, openEditor, saveItem,lockItem;
 	private List<OMDetails> list;
 	private int index;
-	private ToolItem commitItem;
-	private ToolItem pullItem;
 	private ToolItem findSpecificElt;
 	private ToolItem validateallOM;
 	private ToolItem refresh;
@@ -109,7 +108,7 @@ public class ObjectMapEditor extends EditorPart {
 	@Override
 	public void doSave(IProgressMonitor monitor) {
 		// TODO Auto-generated method stub
-		try
+		/*try
 		{
 			boolean warning= false;
 			List<OMDetails> list = (List<OMDetails>) objectMapTableViewer.getInput();
@@ -160,8 +159,8 @@ public class ObjectMapEditor extends EditorPart {
 		{
 			System.out.println("[" + getClass().getName() + " - doSave()] - Exception : " + e.getMessage());
 			e.printStackTrace();
-		}
-
+		}*/
+		saveActionPerform();
 	}
 
 	@Override
@@ -325,18 +324,6 @@ public class ObjectMapEditor extends EditorPart {
 		openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 		openEditor.setSelection(true);
 		openEditor.setEnabled(viewAllElements && public_view);
-		
-		commitItem = new ToolItem(iconsToolBar, SWT.NONE);
-		commitItem.setWidth(30);
-		commitItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/git_commit.png"));
-		commitItem.setToolTipText("Commit and Push");
-		commitItem.setEnabled(viewAllElements && public_view);
-		
-		pullItem = new ToolItem(iconsToolBar, SWT.NONE);
-		pullItem.setToolTipText("Pull");
-		pullItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/pull.png"));
-		pullItem.setSelection(true);
-		pullItem.setEnabled(viewAllElements && public_view);
 		
 		findSpecificElt = new ToolItem(iconsToolBar, SWT.NONE);
 		findSpecificElt.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/find_2.png"));
@@ -592,74 +579,6 @@ public class ObjectMapEditor extends EditorPart {
 				}
 			});
 			
-			commitItem.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					/*Save the object map with flag as PUBLIC*/
-					OMGson omGson = omTask.getOmGson();
-					omGson.omFlag = "PUBLIC";
-					omTask.setOmGson(omGson);
-					saveActionPerform();
-
-					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
-					lockItem.setToolTipText("Lock for editing");
-					lockItem.setData("Locked",false);
-					lockItem.setEnabled(true);
-					
-					/*Add lock to make components un-editable*/
-					public_view = false;
-					btnAdd.setEnabled(viewAllElements && public_view);
-					btnDelete.setEnabled(viewAllElements && public_view);
-					saveItem.setEnabled(viewAllElements && public_view);
-					copyItem.setEnabled(viewAllElements && public_view);
-					pasteItem.setEnabled(viewAllElements && public_view);
-					openEditor.setEnabled(viewAllElements && public_view);
-					commitItem.setEnabled(viewAllElements && public_view);
-					pullItem.setEnabled(viewAllElements && public_view);
-					objectMapDataTable.setEnabled(viewAllElements && public_view);
-					findSpecificElt.setEnabled(viewAllElements && public_view);
-					validateallOM.setEnabled(viewAllElements && public_view);
-					refresh.setEnabled(viewAllElements && public_view);
-					
-					/*Commit the files to the GIT repository*/
-					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
-					gitUtil.performPull();
-					gitUtil.performSpecificCommit(currentFileName);
-					gitUtil.performPush();
-					MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit and Push Performed.", 
-		    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-					commitMsg.open();
-				}
-			});
-			
-			pullItem.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
-					if(gitUtil.getDiff(currentFileName)) //If changes are made to the file then ask to commit or contents shall be replaced
-					{
-						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Warning", null,
-								"Changes made in file are not commited.Please commit them them or changes will be overwritten.",
-				    			MessageDialog.WARNING, 
-								new String[]{"Commit","Overwrite/Pull"}, 0);
-				    	int selected = dialog.open();
-				    	switch(selected)
-				    	{
-				    	case 0:
-				    		gitUtil.performSpecificCommit(currentFileName);
-				    		MessageDialog commitMsg = new MessageDialog(getSite().getShell(), "Information", null,"Commit Completed !!", 
-				    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-				    		commitMsg.open();
-				    		break;
-				    	case 1:
-				    		gitUtil.performSpecificPull(currentFileName);
-				    		MessageDialog pullMsg = new MessageDialog(getSite().getShell(), "Information", null,"Pull Performed !!", 
-				    				MessageDialog.INFORMATION, new String[]{"OK"}, 0);
-				    		pullMsg.open();
-				    		break;
-				    	}
-					}
-				}
-			});
-			
 			lockItem.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
 					boolean locked = new Boolean(lockItem.getData("Locked").toString());
@@ -692,8 +611,8 @@ public class ObjectMapEditor extends EditorPart {
 					copyItem.setEnabled(viewAllElements && public_view);
 					pasteItem.setEnabled(viewAllElements && public_view);
 					openEditor.setEnabled(viewAllElements && public_view);
-					commitItem.setEnabled(viewAllElements && public_view);
-					pullItem.setEnabled(viewAllElements && public_view);
+					//commitItem.setEnabled(viewAllElements && public_view);
+					//pullItem.setEnabled(viewAllElements && public_view);
 					objectMapDataTable.setEnabled(viewAllElements && public_view);
 					findSpecificElt.setEnabled(viewAllElements && public_view);
 					validateallOM.setEnabled(viewAllElements && public_view);
@@ -863,6 +782,19 @@ public class ObjectMapEditor extends EditorPart {
 					OMGson saveGSON = omTask.getOmGson();
 					saveGSON.omDetails = list;
 					omTask.setOmGson(saveGSON); //Add the value to task
+
+					//Perform GIT sync
+					Utilities.createObjectMap(omTask.getOmGson());
+					boolean gitPassed = this.gitUtil.performGITSyncOperation();
+					if(!gitPassed)
+					{
+						MessageDialog errDialog = new MessageDialog(getSite().getShell(),"Save Failure", 
+								null, "Something went wrong - " + this.gitUtil.getErrMsg() + "\nPlease save again", MessageDialog.ERROR, 
+								new String[]{"OK"}, 0);
+						errDialog.open();
+						return;
+					}
+					
 					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, saveGSON));
 					if(jsonObj !=null)
 					{
@@ -870,7 +802,6 @@ public class ObjectMapEditor extends EditorPart {
 						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
-						Utilities.createObjectMap(omTask.getOmGson());
 					}
 					else 
 					{

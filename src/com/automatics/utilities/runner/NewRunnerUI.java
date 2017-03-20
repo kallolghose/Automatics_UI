@@ -660,9 +660,6 @@ public class NewRunnerUI {
 		testNGList.add(Utilities.createTestng(tsGson, runnerAPI));
 		
 	  }
-//	  PrintWriter writer = new PrintWriter(new OutputStreamWriter(new ConsoleOutputStream(runnerConsole)));
-//	  writer.print("Hello");
-//	  writer.close();
 	  TestSuiteExecutor execution = new TestSuiteExecutor(testNGList, new ConsoleOutputStream(runnerConsole), runnerConsole);
 	  execution.executeTestSuite();
   }
