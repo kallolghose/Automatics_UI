@@ -50,7 +50,10 @@ public class TSSecondColumnEditable extends EditingSupport
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TSTCGson) element).tcParams.get(1).tcparamValue = value.toString(); 
+		String updateVal = "";
+		if(value!=null)
+			updateVal = value.toString();
+		((TSTCGson) element).tcParams.get(1).tcparamValue = updateVal; 
 		viewer.update(element, null);
 	}
 	

@@ -33,6 +33,7 @@ public class TestCaseDetails extends Shell {
 	private Combo applicationType;
 	private Label errLabel;
 	private HashMap<String, String> tcTypeMapping = Utilities.getTCApplicationTypeMapping();
+	private static boolean CREATE_ONLY_TESTCASE = false;
 	/**
 	 * Launch the application.
 	 * @param args
@@ -57,8 +58,10 @@ public class TestCaseDetails extends Shell {
 	 * Create the shell.
 	 * @param display
 	 */
-	public TestCaseDetails(Shell shell) {
+	public TestCaseDetails(Shell shell, boolean createOnlyTestCase) {
 		super(shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
+		
+		CREATE_ONLY_TESTCASE = createOnlyTestCase;
 		
 		setLayout(new FillLayout(SWT.HORIZONTAL));
 		
@@ -181,16 +184,16 @@ public class TestCaseDetails extends Shell {
 				appType = tcTypeMapping.get(appType);
 				//Add data to GSON class and send it over
 				//Create a step for the newly created testcase
-				TCStepsGSON newStep = new TCStepsGSON();
+				/*TCStepsGSON newStep = new TCStepsGSON();
 				newStep.stepNo=1;
 				newStep.stepOperation = "";
 				newStep.stepPageName = "";
 				newStep.stepObjName = "";
 				newStep.stepArgument = "";
 				newStep.stepVarName = "";
-				newStep.omName = "";
+				newStep.omName = "";*/
 				List<TCStepsGSON> step = new ArrayList<TCStepsGSON>();
-				step.add(newStep);
+				//step.add(newStep);
 				
 				TCGson tcData = new TCGson();
 				tcData.tcName = tcName;
@@ -200,8 +203,9 @@ public class TestCaseDetails extends Shell {
 				tcData.tcObjectMapLink = null;
 				tcData.tcSteps = step;
 				tcData.tcParams = null;
-				tcData.tcFlag = "PRIVATE"; //Set Private flag if first created
-				tcData.username = System.getProperty("user.name");
+				tcData.lockedBy = Utilities.AUTOMATICS_USERNAME; 
+				tcData.tcCreatedBy = Utilities.AUTOMATICS_USERNAME;
+				tcData.projectName = Utilities.DB_PROJECT_NAME;
 				
 				/*
 				 * Remove contents from
@@ -212,7 +216,7 @@ public class TestCaseDetails extends Shell {
 				TestCaseParamView.disposeTableColumns(); //#1
 				ObjectMap.disposeObjMaps(); //#2
 				
-				TC_TS_List.addTestCase(tcData);
+				TC_TS_List.addTestCase(tcData, CREATE_ONLY_TESTCASE);
 				
 				dispose();
 			}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.json.JsonObject;
+import javax.management.RuntimeErrorException;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspace;
@@ -25,12 +26,11 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
-import com.automatics.mongo.packages.AutomaticsDBConnection;
-import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
-import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
 import com.automatics.packages.Perspective;
 import com.automatics.packages.Model.TestSuiteTask;
 import com.automatics.packages.Model.TestSuiteTaskService;
+import com.automatics.packages.api.handlers.TestCaseAPIHandler;
+import com.automatics.packages.api.handlers.TestSuiteAPIHandler;
 import com.automatics.utilities.alltablestyles.TSFifthColumnEditable;
 import com.automatics.utilities.alltablestyles.TSFirstColumnEditable;
 import com.automatics.utilities.alltablestyles.TSFourthColumnEditable;
@@ -38,6 +38,9 @@ import com.automatics.utilities.alltablestyles.TSSecondColumnEditable;
 import com.automatics.utilities.alltablestyles.TSTestCaseColumnEditable;
 import com.automatics.utilities.alltablestyles.TSThirdColumnEditable;
 import com.automatics.utilities.git.GitUtilities;
+import com.automatics.utilities.gsons.objectmap.OMDetails;
+import com.automatics.utilities.gsons.testcase.TCGson;
+import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
@@ -75,6 +78,7 @@ import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.dnd.DropTargetListener;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.wb.swt.SWTResourceManager;
 
 public class TestSuiteEditor extends EditorPart {
 
@@ -86,10 +90,15 @@ public class TestSuiteEditor extends EditorPart {
 	public static ArrayList<String> testCaseList = new ArrayList<String>();
 	private DB db;
 	private boolean isDirty = false;
-	private ToolItem addBtn,delBtn, saveItem, copyItem, pasteItem, viewEditor;
+	private ToolItem addBtn,delBtn, saveItem, copyItem, pasteItem, viewEditor, lockItem;
 	private List<TSTCGson> listStepGSON;
-	private TSTCGson copiedCell;
+	private ArrayList<TSTCGson> copiedCell;
 	private GitUtilities gitUtil;
+	private Label errLabel;
+	private String user_lock_message = "Lock Username";
+	private boolean viewAllElements = true;
+	private String lock_image = "images/icons/Open_lock.png";
+	private String lock_message = "Lock for editing";
 	
 	public TestSuiteEditor() {
 		// TODO Auto-generated constructor stub
@@ -122,9 +131,37 @@ public class TestSuiteEditor extends EditorPart {
 		tsTask = TestSuiteTaskService.getInstance().getTaskByTSName(this.input.getId());
 		setPartName("TestSuite:" + tsTask.getTsName());
 		
-		//Load all the test case names in the ArrayList for drop down
-		db = Utilities.getMongoDB();
-		testCaseList = AutomaticsDBTestCaseQueries.getAllTC(db);
+		TSGson tsGson = tsTask.getTsGson();
+		
+		if(!tsGson.lockedBy.equalsIgnoreCase(""))
+		{
+			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(tsGson.lockedBy))
+	    	{
+	    		viewAllElements = false;
+	    		user_lock_message = "Locked By : " + tsGson.lockedBy;
+	    	}
+			else
+	    	{
+				viewAllElements = true;
+	    		lock_image = "images/icons/lock.png";
+	    		lock_message = "Unlock the file";
+	    		user_lock_message = "";
+	    	}
+			
+		}
+		else
+		{
+			viewAllElements = false;
+			user_lock_message = "";
+		}
+		
+		/*Load all the test case names in the ArrayList for drop down*/
+		TCGson [] allTC = TestCaseAPIHandler.getInstance().getAllTestCases();
+		testCaseList = new ArrayList<String>();
+		for(TCGson tcGson : allTC)
+		{
+			testCaseList.add(tcGson.tcName);
+		}
 		
 		//Initialize GIT properties
 		gitUtil = new GitUtilities();
@@ -153,45 +190,60 @@ public class TestSuiteEditor extends EditorPart {
 		parentComposite.setLayout(new GridLayout(1, false));
 		
 		Composite composite = new Composite(parentComposite, SWT.NONE);
+		composite.setLayout(new GridLayout(2, false));
 		GridData gd_composite = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
 		gd_composite.heightHint = 26;
 		gd_composite.widthHint = 585;
 		composite.setLayoutData(gd_composite);
 		
 		ToolBar iconsToolbar = new ToolBar(composite, SWT.FLAT | SWT.RIGHT);
-		iconsToolbar.setBounds(0, 0, 426, 23);
+		iconsToolbar.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
 		
 		addBtn = new ToolItem(iconsToolbar, SWT.NONE);
 		addBtn.setToolTipText("Add a test case detail");
 		addBtn.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
 		addBtn.setSelection(true);
+		addBtn.setEnabled(viewAllElements);
 		
 		delBtn = new ToolItem(iconsToolbar, SWT.NONE);
 		delBtn.setToolTipText("Delete a test suite detail");
 		delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
 		delBtn.setSelection(true);
-		
+		delBtn.setEnabled(viewAllElements);
 		
 		saveItem = new ToolItem(iconsToolbar, SWT.NONE);
 		saveItem.setToolTipText("Save");
 		saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
-			
+		saveItem.setEnabled(viewAllElements);
+		
 		copyItem = new ToolItem(iconsToolbar, SWT.NONE);
 		copyItem.setToolTipText("Copy");
 		copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
-			
+		copyItem.setEnabled(viewAllElements);	
+		
 		pasteItem = new ToolItem(iconsToolbar, SWT.NONE);
 		pasteItem.setToolTipText("Paste");
 		pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
-			
+		pasteItem.setEnabled(viewAllElements);	
+		
 		viewEditor = new ToolItem(iconsToolbar, SWT.NONE);
 		viewEditor.setEnabled(false);
 		viewEditor.setToolTipText("View Editor");
 		viewEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 		
-		ToolItem lockItem = new ToolItem(iconsToolbar, SWT.NONE);
-		lockItem.setToolTipText("Lock for editing");
-		lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+		
+		lockItem = new ToolItem(iconsToolbar, SWT.NONE);
+		lockItem.setToolTipText(lock_message);
+		lockItem.setData("Locked", viewAllElements);
+		lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
+		
+		errLabel = new Label(composite, SWT.NONE);
+		errLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		errLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
+		errLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		errLabel.setText(user_lock_message);
+		new Label(composite, SWT.NONE);
+		new Label(composite, SWT.NONE);
 		
 		testsuiteviewer = new TableViewer(parentComposite, SWT.BORDER | SWT.FULL_SELECTION);
 		testsuiteviewer.setContentProvider(new ArrayContentProvider());
@@ -199,8 +251,10 @@ public class TestSuiteEditor extends EditorPart {
 		testsuitetable.setLinesVisible(true);
 		testsuitetable.setHeaderVisible(true);
 		testsuitetable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		testsuitetable.setEnabled(viewAllElements);
 		
 		/*Biswabir Code - Tabbing Issue*/
+		
 		TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(testsuiteviewer,
 				new FocusCellHighlighter(testsuiteviewer){});
 		ColumnViewerEditorActivationStrategy editorActivationStrategy =
@@ -210,11 +264,12 @@ public class TestSuiteEditor extends EditorPart {
 			            protected boolean isEditorActivationEvent(
 			                ColumnViewerEditorActivationEvent event) {
 			                    ViewerCell cell = (ViewerCell) event.getSource();
-			                   return cell.getColumnIndex() == 1 || cell.getColumnIndex() == 2;
+			                   return cell.getColumnIndex() == 0 || cell.getColumnIndex() == 1||cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3||cell.getColumnIndex() == 4 || cell.getColumnIndex() == 5;
 		            }};
 
 		TableViewerEditor.create(testsuiteviewer, focusCellManager, editorActivationStrategy,
 			    TableViewerEditor.TABBING_HORIZONTAL);
+		
 		
 		TableViewerColumn testcaseColViewer = new TableViewerColumn(testsuiteviewer, SWT.NONE);
 		testcaseColViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -247,7 +302,9 @@ public class TestSuiteEditor extends EditorPart {
 				if(element==null)
 					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
-				return tctsGSON.tcParams.get(0).tcparamValue;
+				if(tctsGSON.tcParams.size()>0)
+					return tctsGSON.tcParams.get(0).tcparamValue;
+				return "";
 			}
 		});
 		TableColumn tblclmnColumn = tableViewerColumn.getColumn();
@@ -266,7 +323,9 @@ public class TestSuiteEditor extends EditorPart {
 				if(element==null)
 					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
-				return tctsGSON.tcParams.get(1).tcparamValue;
+				if(tctsGSON.tcParams.size()>0)
+					return tctsGSON.tcParams.get(1).tcparamValue;
+				return "";
 			}
 		});
 		TableColumn tblclmnColumn_1 = tableViewerColumn_1.getColumn();
@@ -285,7 +344,9 @@ public class TestSuiteEditor extends EditorPart {
 				if(element==null)
 					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
-				return tctsGSON.tcParams.get(2).tcparamValue;
+				if(tctsGSON.tcParams.size()>0)
+					return tctsGSON.tcParams.get(2).tcparamValue;
+				return "";
 			}
 		});
 		TableColumn tblclmnColumn_2 = tableViewerColumn_2.getColumn();
@@ -304,7 +365,9 @@ public class TestSuiteEditor extends EditorPart {
 				if(element==null)
 					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
-				return tctsGSON.tcParams.get(3).tcparamValue;
+				if(tctsGSON.tcParams.size()>0)
+					return tctsGSON.tcParams.get(3).tcparamValue;
+				return "";
 			}
 		});
 		TableColumn tblclmnColumn_3 = tableViewerColumn_3.getColumn();
@@ -323,7 +386,9 @@ public class TestSuiteEditor extends EditorPart {
 				if(element==null)
 					return "";
 				TSTCGson tctsGSON = (TSTCGson) element;
-				return tctsGSON.tcParams.get(4).tcparamValue;
+				if(tctsGSON.tcParams.size()>0)
+					return tctsGSON.tcParams.get(4).tcparamValue;
+				return "";
 			}
 		});
 		TableColumn tblclmnColumn_4 = tableViewerColumn_4.getColumn();
@@ -557,11 +622,17 @@ public class TestSuiteEditor extends EditorPart {
 			
 			public void handleEvent(Event event) {
 				try{
+					
 				 listStepGSON=(List<TSTCGson>) testsuiteviewer.getInput();
-				 int indexValue=testsuitetable.getSelectionIndex();
-				 copiedCell=listStepGSON.get(indexValue);
-				 isDirty = true;
-					firePropertyChange(PROP_DIRTY);
+				 if(listStepGSON!=null)
+					{
+						copiedCell = new ArrayList<TSTCGson>();
+						int [] listSelection=testsuitetable.getSelectionIndices();
+						for (int i : listSelection) 
+	                    {
+	                           copiedCell.add(listStepGSON.get(i));
+	                    }
+					}
 				}
 				catch(Exception e)
 				{
@@ -575,11 +646,27 @@ public class TestSuiteEditor extends EditorPart {
 			
 			public void handleEvent(Event event) {
 				try{
-				int indexValue=testsuitetable.getSelectionIndex();
-				listStepGSON.add(indexValue, copiedCell); 
-				testsuiteviewer.refresh();
-				isDirty = true;
-				firePropertyChange(PROP_DIRTY);
+					List<TSTCGson> list = (List<TSTCGson>) testsuiteviewer.getInput();
+					int selectedindex [] = testsuitetable.getSelectionIndices();
+					int insertAfter = 0;
+					if(selectedindex.length>0)
+					{
+						insertAfter = selectedindex[selectedindex.length-1];
+						insertAfter = insertAfter + 1;
+					}
+					for(TSTCGson copyGson  : copiedCell) 
+					{
+						TSTCGson newStep = new TSTCGson();
+						newStep.tcName = copyGson.tcName;
+						newStep.tcParams = copyGson.tcParams;
+						
+						list.add(insertAfter,newStep);
+						insertAfter++;
+					}
+					testsuiteviewer.setInput(list);
+					testsuiteviewer.refresh();
+					isDirty = true;
+					firePropertyChange(PROP_DIRTY);
 				}
 				catch(Exception e)
 				{
@@ -597,6 +684,41 @@ public class TestSuiteEditor extends EditorPart {
 				IPath location = Path.fromOSString("Automation_Suite/" + tsTask.getTsName()+ ".xml"); 
 				IFile projectFile = workspace.getRoot().getFile(location);
 				Utilities.openEditor(projectFile, null);	
+			}
+		});
+		
+		lockItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) 
+			{
+				boolean locked = new Boolean(lockItem.getData("Locked").toString());
+				if(!locked)
+				{
+					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
+					lockItem.setToolTipText("Unlock the file");
+					TSGson tsGson = tsTask.getTsGson();
+					tsGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
+					tsTask.setTsGson(tsGson);
+					viewAllElements = true;
+					saveActionPerform();
+				}
+				else
+				{
+					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
+					lockItem.setToolTipText("Lock for editing");
+					TSGson tsGson = tsTask.getTsGson();
+					tsGson.lockedBy = "";
+					tsTask.setTsGson(tsGson);
+					viewAllElements = false;
+					saveActionPerform();
+				}
+				lockItem.setData("Locked",!locked);
+				addBtn.setEnabled(viewAllElements);
+				delBtn.setEnabled(viewAllElements);
+				saveItem.setEnabled(viewAllElements);
+				copyItem.setEnabled(viewAllElements);
+				pasteItem.setEnabled(viewAllElements);
+				testsuitetable.setEnabled(viewAllElements);
+				
 			}
 		});
 	}
@@ -654,7 +776,7 @@ public class TestSuiteEditor extends EditorPart {
 					return;
 				}
 				
-				JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, tssaveGson));
+				/*JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, tssaveGson));
 				if(jsonObj!=null)
 				{
 					AutomaticsDBTestSuiteQueries.updateTS(Utilities.getMongoDB(), tsTask.getTsName(), jsonObj);
@@ -667,8 +789,20 @@ public class TestSuiteEditor extends EditorPart {
 					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
 										 "Some Unexpected Error Occured", "ERR");
 					throw new RuntimeException("Error In Test Suite Save");
-				}
+				}*/
 				
+				tssaveGson = TestSuiteAPIHandler.getInstance().updateTestSuite(tssaveGson);
+				if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE!=200)
+				{
+					MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Error", null, 
+							"Cannot Save TestCase Error : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE, MessageDialog.ERROR, 
+							new String [] {"OK"}, 0);
+							dialog.open();
+							throw new RuntimeException("Cannot Save TestCase : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE + " : " 
+														 + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
+				}
+				isDirty = false;
+				firePropertyChange(PROP_DIRTY);
 			}
 			else
 			{

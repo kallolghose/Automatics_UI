@@ -23,6 +23,12 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jdt.core.compiler.IProblem;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTParser;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorRegistry;
@@ -31,9 +37,8 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 
-import com.automatics.mongo.packages.AutomaticsDBConnection;
-import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
-import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
+import com.automatics.packages.api.handlers.OperationAPIHandler;
+import com.automatics.packages.api.handlers.TestCaseAPIHandler;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.operation.OperationGSON;
@@ -46,27 +51,32 @@ import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
 import com.automatics.utilities.runner.TestSuiteRunnerAPI;
 import com.google.gson.Gson;
-import com.mongodb.DB;
 
 public class Utilities 
 {
-	//private static DB db = AutomaticsDBConnection.getConnection("localhost", 27017, "automatics_db");
-	private static DB db = AutomaticsDBConnection.getConnection(Utilities.MONGO_DB_URL, 27017, "automatics_db");
+	//private static DB db = AutomaticsDBConnection.getConnection(Utilities.MONGO_DB_URL, 27017, "automatics_db");
+	
+	public static String DB_PROJECT_NAME = "DEMO_TEST";
+	public static String API_URL = "http://localhost:3000";
 	public static String PROJECT_NAME = "automatics1.4";
 	public final static String TESTCASE_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/testScripts/";
 	public final static String OBJECTMAP_FILE_LOCATION = "com.automatics.packages/com/automatics/packages/objectMap/";
 	public final static String TESTNG_FILE_LOCATION = "";
 	public static String MONGO_DB_URL = "localhost";
 	
-	public final static String AUTOMATICS_USERNAME = System.getProperty("user.name");
 	
-	public static DB getMongoDB()
+	public static boolean COMPILATION_ERROR = false;
+	public static String COMPILATION_ERROR_MESSAGE = "";
+	public static String AUTOMATICS_USERNAME = System.getProperty("user.name"); /*Will get populated from LoginDialog*/
+	public static String AUTOMATICS_PASSWORD = "default";
+	
+	/*public static DB getMongoDB()
 	{
 		db = AutomaticsDBConnection.getConnection(Utilities.MONGO_DB_URL, 27017, "automatics_db");
 		return db;
-	}
+	}*/
 	
-	public static void closeMongoDB()
+	/*public static void closeMongoDB()
 	{
 		try
 		{
@@ -77,7 +87,7 @@ public class Utilities
 			System.out.println("[Utilites : closeMongoDB()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
 	
 	
@@ -245,9 +255,7 @@ public class Utilities
 			String step = "";
 			for(TCStepsGSON steps : tcGson.tcSteps)
 			{
-				OperationGSON opnGson = Utilities.getGSONFromJSON(
-						AutomaticsDBOperationQueries.getOPN(Utilities.getMongoDB(), steps.stepOperation).toString(), OperationGSON.class);
-				
+				OperationGSON opnGson = OperationAPIHandler.getInstance().getSpecificOperation(steps.stepOperation);
 				step = step + "\t\t\t" + opnGson.opnStatement + "\n";
 				String tmpObjStr = steps.omName + "." + steps.stepPageName + "__" + steps.stepObjName;
 				//Replace ARG1 if any
@@ -279,6 +287,7 @@ public class Utilities
 			}
 			String javaFilePath = folderPath + "\\" + tcGson.tcName + ".java";
 			writeContentstoFile(javaFilePath, javaStmt);
+			checkCompilationError(javaFilePath);
 			return javaFilePath;
 		}
 		catch(Exception e)
@@ -324,6 +333,7 @@ public class Utilities
 			}
 			String javaFilePath = folderPath + "\\" + omGson.omName + ".java";
 			writeContentstoFile(javaFilePath, javaStmt);
+			checkCompilationError(javaFilePath);
 			return javaFilePath;
 		}
 		catch(Exception e)
@@ -372,11 +382,14 @@ public class Utilities
 			String parameter = "";
 			List<TSTCParamGson> params = tstcGson.tcParams;
 			
-			//Get the test case
+			/*
+			 * Get the test case*/
 			String tcName = tstcGson.tcName;
-			TCGson tcGson = getGSONFromJSON(AutomaticsDBTestCaseQueries.getTC(getMongoDB(), tcName).toString(), TCGson.class);
+			TCGson tcGson = TestCaseAPIHandler.getInstance().getSpecificTestCase(tcName);
+			if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
+				throw new RuntimeException("Error in Fetching TestCase : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 			
-			int itrCntr = 1, index =0 ;
+			int itrCntr = 1, index =0, loop;
 			//for(TCParams tcParams : tcGson.tcParams)
 			do
 			{
@@ -386,8 +399,14 @@ public class Utilities
 				parameter = parameter + "\t<parameter name=\"Exec_Type\" value=\""+ params.get(1).tcparamValue +"\" />\n";
 				parameter = parameter + "\t<parameter name=\"Run_on\" value=\""+ params.get(2).tcparamValue +"\" />\n";
 				
-				
-				TCParams tcParams = tcGson.tcParams.size()>0 ? tcGson.tcParams.get(index) : null;
+				TCParams tcParams = null;
+				loop = 0;
+				if(tcGson.tcParams!=null)
+				{
+					tcParams = tcGson.tcParams.size()>0 ? tcGson.tcParams.get(index) : null;
+					loop = tcGson.tcParams.size();
+				}
+					
 				//if (tcParams.toString().contains("iterParams")) {
 				if (tcParams!=null)
 				{
@@ -403,7 +422,7 @@ public class Utilities
 				parameter = parameter + "</test>\n";
 				itrCntr ++;
 				index ++;
-			}while(index<tcGson.tcParams.size());
+			}while(index<loop);
 			
 			
 			return parameter;
@@ -417,7 +436,7 @@ public class Utilities
 	}
 	
 	
-	private static String beforeafterContentPath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "\\RequiredFiles";
+	private static String beforeafterContentPath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "\\data";
 	
 	private static String readBeforeContent()
 	{
@@ -473,21 +492,69 @@ public class Utilities
 			writer.close();
 			
 			//Refresh all projects
+			/*
 			IProject [] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 			for(int i=0;i<projects.length;i++)
 			{
 				//ResourcesPlugin.getWorkspace().getRoot().getProjects()[0].refreshLocal(IResource.DEPTH_INFINITE, null);
 				projects[i].refreshLocal(IResource.DEPTH_INFINITE, null);
-				projects[i].build(IncrementalProjectBuilder.FULL_BUILD, null);
-			}
-			
-			
+				projects[i].build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+			}*/
 		}
 		catch(Exception e)
 		{
 			System.out.println("[Utilitites : writeContentstoFile()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
+	}
+	
+	private static boolean checkCompilationError(String filename)
+	{
+		try
+		{
+			COMPILATION_ERROR = false;
+			COMPILATION_ERROR_MESSAGE = "";
+			boolean isError = false;
+			String [] filepaths = filename.split("\\\\");
+			int len = filepaths.length;
+			String tmpPath = "com.automatics.packages\\com\\automatics\\packages\\" + filepaths[len-2] + "\\" + filepaths[len-1];
+			
+			//Refresh all projects
+			IProject [] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
+			for(int i=0;i<projects.length;i++)
+			{
+				projects[i].refreshLocal(IResource.DEPTH_INFINITE, null);
+				projects[i].build(IncrementalProjectBuilder.INCREMENTAL_BUILD, null);
+				
+				//Check for compilation errors
+				IFile compiledFile = projects[i].getFile(tmpPath);
+				if(compiledFile.exists())
+				{
+					ICompilationUnit unit = JavaCore.createCompilationUnitFrom(compiledFile);
+					final ASTParser parser = ASTParser.newParser(AST.JLS3); 
+					parser.setKind(ASTParser.K_COMPILATION_UNIT);
+					parser.setSource(unit);
+					parser.setResolveBindings(true); // we need bindings later on
+					CompilationUnit unit2 = (CompilationUnit) parser.createAST(null);
+					for(IProblem problem : unit2.getProblems())
+					{
+						if(problem.isError())
+						{
+							isError = true;
+							COMPILATION_ERROR = true;
+							COMPILATION_ERROR_MESSAGE = COMPILATION_ERROR_MESSAGE + problem.getMessage() + "\n";
+						}
+					}
+				}
+			}
+			return isError;
+		}
+		catch(Exception e)
+		{
+			System.out.println("[Utilities : checkCompilationError()] - Exception  : " + e.getMessage());
+			e.printStackTrace(System.out);
+		}
+		return false;
 	}
 	
 	public static void openEditor(IFile file, String editorID)

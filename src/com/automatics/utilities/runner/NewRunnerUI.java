@@ -11,6 +11,8 @@ import java.util.Map.Entry;
 
 
 
+
+
 /*
 import org.eclipse.core.databinding.DataBindingContext;
 import org.eclipse.core.databinding.observable.Realm;
@@ -47,10 +49,11 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.ResourceManager;
+import org.osgi.framework.AllServiceListener;
 
 import sun.security.krb5.Realm;
 
-import com.automatics.mongo.packages.AutomaticsDBTestSuiteQueries;
+import com.automatics.packages.api.handlers.TestSuiteAPIHandler;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
@@ -136,6 +139,8 @@ public class NewRunnerUI {
 		run.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/run_icon.png"));
 		
 		ToolItem refresh = new ToolItem(iConToolBar, SWT.NONE);
+		refresh.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Refresh.png"));
+		refresh.setToolTipText("Refresh");
 		refresh.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -144,7 +149,6 @@ public class NewRunnerUI {
 				createTestSuiteTable(localHostTable);
 			}
 		});
-		refresh.setText("Refresh");
 		
 		final TabFolder tabFolder = new TabFolder(suitedetailsComposite, SWT.NONE);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
@@ -431,32 +435,39 @@ public class NewRunnerUI {
 	 * @param table {@link Tree}
 	 */
 	private void createTestSuiteTable( final Tree table) 
-	{	
-		ArrayList<String>collList =	AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
+    {      
+           //Dispose all elements
+		TreeItem items[] = table.getItems();
+		for(int i=0;i<items.length;i++)
+		{
+		    items[0].dispose();
+		}
+		TSGson tsGsons[] = TestSuiteAPIHandler.getInstance().getAllTestSuites();
 		boolean checked=false;
-		for (String tsName : collList) 
+		for (TSGson tsGson : tsGsons) 
 		{
 			trtmNewTreeitem = new TreeItem(table, SWT.NONE|SWT.MULTI);
-			trtmNewTreeitem.setText(new String[] { "" +tsName, "", "","","","" });
-			trtmNewTreeitem.setData("EltType","TESTSUITE");
-			TSGson tsGson = Utilities.getGSONFromJSON(AutomaticsDBTestSuiteQueries.getTS(Utilities.getMongoDB(), tsName).toString(), TSGson.class);
-//			trtmNewTreeitem.setChecked(checked);
-			if(tsGson.tsTCLink==null)
-				continue;
-			for (TSTCGson tsTCGson : tsGson.tsTCLink) 
-			{
-				TreeItem trtmTestcases = new TreeItem(trtmNewTreeitem, SWT.NONE|SWT.MULTI);
-				trtmTestcases.setText(new String[] {tsTCGson.tcName, tsTCGson.tcParams.get(0)!=null ?tsTCGson.tcParams.get(0).tcparamValue:"", tsTCGson.tcParams.get(1)!=null ?tsTCGson.tcParams.get(1).tcparamValue:"",tsTCGson.tcParams.get(2)!=null ?tsTCGson.tcParams.get(2).tcparamValue:"",tsTCGson.tcParams.get(3)!=null ?tsTCGson.tcParams.get(3).tcparamValue:"",tsTCGson.tcParams.get(4)!=null ?tsTCGson.tcParams.get(4).tcparamValue:"" });
-				trtmTestcases.setData("EltType","TESTCASE");
-//				trtmTestcases.setText(new String[] { "TestCase " + tsTCGson.tcName, tsTCGson.tcParams.get(0).tcparamValue, tsTCGson.tcParams.get(1).tcparamValue,tsTCGson.tcParams.get(2).tcparamValue,tsTCGson.tcParams.get(3).tcparamValue,tsTCGson.tcParams.get(4).tcparamValue });
-				table.setSelection(trtmNewTreeitem);
-				if(checked){
-					trtmTestcases.setChecked(checked);
-				}
-			}
-			
+		    trtmNewTreeitem.setText(new String[] { "" +tsGson.tsName, "", "","","","" });
+		    trtmNewTreeitem.setData("EltType","TESTSUITE");
+		
+		    if(tsGson.tsTCLink==null)
+		            continue;
+		    for(TSTCGson tsTCGson : tsGson.tsTCLink) 
+		    {
+		    	TreeItem trtmTestcases = new TreeItem(trtmNewTreeitem, SWT.NONE|SWT.MULTI);
+		        trtmTestcases.setText(new String[] {tsTCGson.tcName, tsTCGson.tcParams.get(0)!=null ?tsTCGson.tcParams.get(0).tcparamValue:"", tsTCGson.tcParams.get(1)!=null ?tsTCGson.tcParams.get(1).tcparamValue:"",tsTCGson.tcParams.get(2)!=null ?tsTCGson.tcParams.get(2).tcparamValue:"",tsTCGson.tcParams.get(3)!=null ?tsTCGson.tcParams.get(3).tcparamValue:"",tsTCGson.tcParams.get(4)!=null ?tsTCGson.tcParams.get(4).tcparamValue:"" });
+		        trtmTestcases.setData("EltType","TESTCASE");
+
+                table.setSelection(trtmNewTreeitem);
+                if(checked)
+                {
+                      trtmTestcases.setChecked(checked);
+		        }
+		    }
+		          
 		}
-	}
+    }
+
 	
 	/**
 	 * editTreeTable.
@@ -513,8 +524,12 @@ public class NewRunnerUI {
 	{
 		try
 		{
-			allTestSuites = AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
-			
+			TSGson []tsGsons = TestSuiteAPIHandler.getInstance().getAllTestSuites();
+			allTestSuites = new ArrayList<String>();
+			for(TSGson tsGson : tsGsons)
+			{
+				allTestSuites.add(tsGson.tsName);
+			}
 		}
 		catch(Exception e)
 		{

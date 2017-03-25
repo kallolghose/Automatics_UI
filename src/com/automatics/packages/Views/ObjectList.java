@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.json.JsonObject;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IWorkbench;
@@ -21,7 +22,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 
-import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
 import com.automatics.packages.Editors.ObjectMapEditor;
 import com.automatics.packages.Editors.ObjectMapEditorInput;
 import com.automatics.packages.Editors.TCEditor;
@@ -30,6 +30,7 @@ import com.automatics.packages.Model.ObjectMapTask;
 import com.automatics.packages.Model.ObjectMapTaskService;
 import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.packages.Model.TestCaseTaskService;
+import com.automatics.packages.api.handlers.ObjectMapAPIHandler;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.helpers.MyTitleAreaDialog;
@@ -169,8 +170,23 @@ public class ObjectList extends ViewPart {
 		
 		opnObjMap.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				// TODO Auto-generated method stub
-				
+				try
+				{
+					IWorkbench workbench = PlatformUI.getWorkbench();
+					IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+					IWorkbenchPage page = window.getActivePage();
+					TreeItem selected[] = omListTree.getSelection();
+					if(selected[0].getData("eltType").toString().equalsIgnoreCase("OBJECTMAP"))
+					{
+						ObjectMapEditorInput input = new ObjectMapEditorInput(selected[0].getText());
+				        page.openEditor(input, ObjectMapEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
+					}
+				}
+				catch(Exception e)
+				{
+					System.out.println("[" + getClass().getName() + " - setListeners(opnObjMap)] - Exception  : " + e.getMessage());
+					e.printStackTrace(System.out);
+				}
 			}
 		});
 		
@@ -208,14 +224,21 @@ public class ObjectList extends ViewPart {
 							.getItem(0), SWT.NONE);
 					objectListItem.setText(omGson.omName);
 					objectListItem.setData("eltType", "OBJECTMAP");
-					objectListItem.setImage(ResourceManager.getPluginImage(
-							"Automatics", "images/icons/om_logo_new.png"));
-					JsonObject jsonObj = Utilities
-							.getJsonObjectFromString(Utilities.getJSONFomGSON(
-									OMGson.class, omGson));
-					if (jsonObj != null) {
-						AutomaticsDBObjectMapQueries.postOM(
-								Utilities.getMongoDB(), jsonObj);
+					objectListItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/om_logo_new.png"));
+					/*JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, omGson));
+					if (jsonObj != null) 
+					{
+						AutomaticsDBObjectMapQueries.postOM(Utilities.getMongoDB(), jsonObj);
+					}*/
+					omGson = ObjectMapAPIHandler.getInstance().postObjectMap(omGson);
+					if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE!=200)
+					{
+						MessageDialog edialog = new MessageDialog(getSite().getShell(), "Paste Error", null, "Copy Failed", 
+																MessageDialog.ERROR, new String[]{"OK"}, 0);
+						edialog.open();
+						throw new RuntimeException("Copy Failed In Object Map : "
+													+ ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE + "  "
+													+ ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
 					}
 				}
 			}
@@ -225,6 +248,16 @@ public class ObjectList extends ViewPart {
 			public void handleEvent(Event event) 
 			{
 				loadOMList();
+			}
+		});
+		
+		delObjMap.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) 
+			{
+				TreeItem item = omListTree.getSelection()[0];
+				MessageDialog deleteDialog = new MessageDialog(getSite().getShell(), "Delete Object Map", null,
+						"Are you sure you want to delete - " + item.getText() + " ?", 
+						MessageDialog.CONFIRM, new String[]{"Delete", "Cancel"}, 0);
 			}
 		});
 		
@@ -238,29 +271,26 @@ public class ObjectList extends ViewPart {
 				omListTree.getItem(0).dispose();
 			
 			TreeItem root = new TreeItem(omListTree, SWT.NONE);
-			root.setText("App_Name");
+			root.setText(Utilities.DB_PROJECT_NAME);
 			root.setData("eltType","APPNAME");
 			root.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
 			
-			
-			DB db = Utilities.getMongoDB();
-			ArrayList<String> omList = AutomaticsDBObjectMapQueries.getAllOM(db);
-			for(String om : omList)
+			OMGson [] omGsons = ObjectMapAPIHandler.getInstance().getAllObjectMap();
+			for(OMGson omGson : omGsons)
 			{
 				TreeItem omTree = new TreeItem(root, SWT.NONE);
-				omTree.setText(om);
+				omTree.setText(omGson.omName);
 				omTree.setData("eltType", "OBJECTMAP");
 				omTree.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/om_logo_new.png"));
 				
 				//Get Specific OMs add load the same
-				OMGson omGson = Utilities.getGSONFromJSON(AutomaticsDBObjectMapQueries.getOM(db,om).toString(), OMGson.class);
-			
-				
+				//OMGson omGson = ObjectMapAPIHandler.getInstance().getSpecificObjectMap(om.omName);
+
 				//Add | Update Editor Task
-				if(service.getTaskByOmName(om) == null)
+				if(service.getTaskByOmName(omGson.omName) == null)
 				{
 					//Add Editor task
-					ObjectMapTask omEditorTask = new ObjectMapTask(om, omGson.omDesc, omGson.omIdentifier, omGson);
+					ObjectMapTask omEditorTask = new ObjectMapTask(omGson.omName, omGson.omDesc, omGson.omIdentifier, omGson);
 					service.addTasks(omEditorTask);
 					
 					//Add Save Task
@@ -270,11 +300,11 @@ public class ObjectList extends ViewPart {
 				else
 				{
 					//Update Editor Task
-					ObjectMapTask task = service.getTaskByOmName(om);
+					ObjectMapTask task = service.getTaskByOmName(omGson.omName);
 					task.setOmGson(omGson);
 					
 					//Update Save Task
-					ObjectMapSaveTask omsaveTask = ObjectMapSaveService.getInstance().getSaveTask(om);
+					ObjectMapSaveTask omsaveTask = ObjectMapSaveService.getInstance().getSaveTask(omGson.omName);
 					omsaveTask.setOmGson(omGson);
 				}
 			}
@@ -313,11 +343,19 @@ public class ObjectList extends ViewPart {
 			page.openEditor(input, ObjectMapEditor.ID, false, IWorkbenchPage.MATCH_INPUT);
 			
 			//Save the object map in DB
-			JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, gson));
+			/*JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, gson));
 			if(jsonObj!=null)
 			{
 				AutomaticsDBObjectMapQueries.postOM(Utilities.getMongoDB(), jsonObj);
+			}*/
+			gson = ObjectMapAPIHandler.getInstance().postObjectMap(gson);
+			if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE!=200)
+			{
+				throw new RuntimeException("Error while creating : " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE + " : " 
+																	 + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
+				
 			}
+			
 		}
 		catch(Exception e)
 		{

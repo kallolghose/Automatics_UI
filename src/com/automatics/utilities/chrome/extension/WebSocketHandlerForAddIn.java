@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Vector;
 
+import javax.json.Json;
 import javax.swing.JOptionPane;
 
 import org.eclipse.jetty.websocket.api.Session;
@@ -125,18 +126,17 @@ public class WebSocketHandlerForAddIn {
 
     @OnWebSocketMessage
     public void onMessage(String message) throws ParseException, IOException {
-        
+        System.err.println(message);
 	        if(!message.equals("undefined"))
 	        {
 	        	//System.out.println("❮ Message: " + message);
-		        JSONObject obj = new JSONObject();
 		        JSONParser parser = new JSONParser();
-		        obj =(JSONObject) parser.parse(message);
+		        JSONObject obj =(JSONObject) parser.parse(message);
 		        
 		        byte[] byteText = message.getBytes("UTF-8");
 		        //To get original string from byte.
 		        String originalString= new String(byteText , "UTF-8");
-		        System.out.println(originalString);
+		        System.out.println("["+new Date()+"] From Addon - " + originalString);
 		        
 		        if((obj.get("from").toString()).equals("find"))
 		    	 {
@@ -153,13 +153,13 @@ public class WebSocketHandlerForAddIn {
 		        		pageName = pageName.replace("-", "");
 		        		
 		        		//Add regex to replace all special characters
-		        		/*Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
+		        		Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
 		        		Matcher match= pt.matcher(pageName);
 		        		while(match.find())
 		        		{
 		        			String s= match.group();
 		        			pageName = pageName.replace("\\"+s, "_");
-		        		}*/
+		        		}
 		        		
 			        	//Create Object Map Details
 			        	OMDetails omDetails = new OMDetails();
@@ -177,7 +177,8 @@ public class WebSocketHandlerForAddIn {
 			        	step.stepArgument = obj.get("val").toString(); 
 			        	step.omName = "";
 			        	
-			        	addOnUtility.addRecordedContents(step, omDetails);
+			        	addOnUtility.addRecordedContents(step, omDetails, obj);
+			        	
 		        	}
 		    	 }
 		        
@@ -219,17 +220,32 @@ public class WebSocketHandlerForAddIn {
 		        
 		        else if((obj.get("from").toString()).equals("addToRepo"))
 		        {
+		        	String objName = obj.get("dom").toString().split("(\\s|>)+")[0];
+	        		objName = objName.trim();
+	        		objName = objName.substring(1, objName.length());
+	        		objName = objName + OBJ_ELT_COUNT; OBJ_ELT_COUNT++;
+		        	
+	        		String pageName = obj.get("title").toString();
+	        		pageName = pageName.replace(" ", "");
+	        		pageName = pageName.replace("-", "");
+	        		
 		        	OMDetails details = new OMDetails();
-		        	details.pageName = ""; //GET THIS
-		        	details.objName = ""; //Parse DOM
+		        	details.pageName = pageName; 
+		        	details.objName = objName; 
 		        	details.locatorInfo = obj.get("xpath").toString();
 		        	details.locatorType  = "xpath";
+		        	
+		        	if(getRecorder())
+		        	{
+		        		addOnUtility.addRecordedContents(null, details, null);
+		        	}
 		        	
 		        	//Send acknowledgement
 		        	JSONObject reply = new JSONObject();
 		        	reply.put("from","repositoryDesktop");
 		        	reply.put("status","success");
 		        	WebSocketHandlerForAddIn.sendMsg(reply.toJSONString());
+		        	
 		        	
 		        }
 		        else if((obj.get("from").toString()).equals("highlightElementResult"))

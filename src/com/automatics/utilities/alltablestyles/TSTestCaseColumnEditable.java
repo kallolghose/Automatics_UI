@@ -9,7 +9,6 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.swt.SWT;
 
-import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.packages.Editors.TestSuiteEditor;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.helpers.Utilities;

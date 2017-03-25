@@ -57,8 +57,7 @@ public class EditorListeners implements IPartListener2
 					TestCaseTask tcTask = TestCaseTaskService.getInstance().getTaskByTcName(input.getId());
 					
 					ObjectMap.disposeObjMaps();
-					if(!tcTask.getTcGson().tcFlag.equalsIgnoreCase("PRIVATE"))
-					{
+					
 						if(tcTask.getTcGson().tcObjectMapLink!=null)
 						{
 							boolean first = true;
@@ -74,7 +73,7 @@ public class EditorListeners implements IPartListener2
 								}
 							}
 						}
-					}
+					
 					/*Set the test case parameter if any*/
 					/*Try to use the object to access the value*/
 					TestCaseParamView.currentTask = tcTask;

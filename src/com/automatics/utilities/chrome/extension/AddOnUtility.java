@@ -12,8 +12,6 @@ import com.automatics.packages.Editors.ObjectMapEditor;
 import com.automatics.packages.Editors.ObjectMapEditorInput;
 import com.automatics.packages.Editors.TCEditor;
 import com.automatics.packages.Editors.TestCaseEditorInput;
-import com.automatics.packages.Views.ObjectList;
-import com.automatics.packages.Views.ObjectMap;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 
@@ -140,10 +138,14 @@ public class AddOnUtility
 			if(start_rec)
 			{
 				WebSocketHandlerForAddIn.initializeEntities();
-				WebSocketHandlerForAddIn.setRecorder(start_rec);
+				WebSocketHandlerForAddIn.setRecorder(true);
 				JSONObject jsonObj = new JSONObject();
 				jsonObj.put("❮ from","iamrecording");
 				WebSocketHandlerForAddIn.sendMsg(jsonObj.toJSONString());
+			}
+			else
+			{
+				WebSocketHandlerForAddIn.setRecorder(false);
 			}
 		}
 		catch(Exception e)
@@ -218,7 +220,7 @@ public class AddOnUtility
 		verifyStandAlone = new VerifyElementsClass();
 	}
 	
-	public void addRecordedContents(final TCStepsGSON step, final OMDetails details)
+	public void addRecordedContents(final TCStepsGSON step, final OMDetails details, final JSONObject obj)
 	{
 		try
 		{
@@ -229,12 +231,14 @@ public class AddOnUtility
 				/*Call Test Case Editor Method to add contents to editor*/
 				display.asyncExec(new Runnable() {	
 					public void run() {
-						testcaseEditor.addContentsToTableGrid(step, details);
+						testcaseEditor.addContentsToTableGrid(step, details, obj);
 					}
 				});
 			}
-			steps.add(step);
-			omDetails.add(details);
+			if(step!=null)
+				steps.add(step);
+			if(details!=null)
+				omDetails.add(details);
 		}
 		catch(Exception e)
 		{

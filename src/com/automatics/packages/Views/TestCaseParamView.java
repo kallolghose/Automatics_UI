@@ -514,7 +514,7 @@ public class TestCaseParamView extends ViewPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[TestCaseParamView : removeTableColumns()] - Exception : " + e.getMessage());
+			System.out.println("[TestCaseParamView : disposeTableColumns()] - Exception : " + e.getMessage());
 			e.printStackTrace();
 		}
 	}

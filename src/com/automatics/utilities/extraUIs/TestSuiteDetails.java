@@ -152,6 +152,9 @@ public class TestSuiteDetails extends Shell {
 					gson.tsName = tsName;
 					gson.tsDesc = tsDesc;
 					gson.tsIdentifier = tsName;
+					gson.lockedBy = Utilities.AUTOMATICS_USERNAME;
+					gson.tsCreatedBy = Utilities.AUTOMATICS_USERNAME;
+					gson.projectName = Utilities.DB_PROJECT_NAME;
 					gson.tsTCLink = null;
 					TC_TS_List.addTestSuite(gson);
 					dispose();

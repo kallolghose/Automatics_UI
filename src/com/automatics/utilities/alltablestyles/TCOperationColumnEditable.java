@@ -10,7 +10,7 @@ import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
 import org.eclipse.swt.SWT;
 
-import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
+import com.automatics.packages.api.handlers.OperationAPIHandler;
 import com.automatics.utilities.gsons.operation.AllOperationGSON;
 import com.automatics.utilities.gsons.operation.OperationGSON;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
@@ -30,12 +30,11 @@ public class TCOperationColumnEditable extends EditingSupport
 			this.viewer = viewer;
 			//this.editor = new TextCellEditor(this.viewer.getTable());
 			
-			AllOperationGSON allOPN = Utilities.getGSONFromJSON(AutomaticsDBOperationQueries.getAllOPN(Utilities.getMongoDB()).toString(),
-																AllOperationGSON.class);
+			OperationGSON[] allOperations = OperationAPIHandler.getInstance().getAllOperations();
 			
 			ArrayList<String> opnName = new ArrayList<String>();
 	
-			for(OperationGSON opn : allOPN.Records)
+			for(OperationGSON opn : allOperations)
 			{
 				opnName.add(opn.opnName);
 			}
@@ -79,9 +78,12 @@ public class TCOperationColumnEditable extends EditingSupport
 		else
 		{
 			updateVal = value.toString();
+			OperationGSON opnGson = OperationAPIHandler.getInstance().getSpecificOperation(updateVal);
+
+			/*
+			 * Add field to PageName and ObjectName based on the operation selected
+			 * */
 			//Check if the operation contains OBJLOC, if does not contains then add NA
-			OperationGSON opnGson = Utilities.getGSONFromJSON(
-					AutomaticsDBOperationQueries.getOPN(Utilities.getMongoDB(), updateVal).toString(), OperationGSON.class);
 			if(!opnGson.opnStatement.contains("OBJLOC")) 
 			{
 				((TCStepsGSON) element).stepPageName = "NA";

@@ -13,6 +13,8 @@ import com.automatics.utilities.git.GitUtilities;
 
 public class NewTestCase extends AbstractHandler {
 
+	public static boolean CREATE_TCONLY_FLAG = false;
+	
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		// TODO Auto-generated method stub
 		GitUtilities gitUtil = new GitUtilities();
@@ -21,7 +23,7 @@ public class NewTestCase extends AbstractHandler {
 		gitUtil.performPull();
 		
 		IWorkbenchWindow window = HandlerUtil.getActiveWorkbenchWindow(event);
-		TestCaseDetails testcasePop = new TestCaseDetails(window.getShell());
+		TestCaseDetails testcasePop = new TestCaseDetails(window.getShell(), CREATE_TCONLY_FLAG);
         testcasePop.open();
 		return null;
 	}

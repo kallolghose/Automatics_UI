@@ -19,11 +19,11 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.Saveable;
 import org.eclipse.ui.part.EditorPart;
 
-import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
-import com.automatics.mongo.packages.AutomaticsDBOperationQueries;
 import com.automatics.packages.Perspective;
 import com.automatics.packages.Model.ObjectMapTask;
 import com.automatics.packages.Model.ObjectMapTaskService;
+import com.automatics.packages.api.handlers.ObjectMapAPIHandler;
+import com.automatics.packages.api.handlers.TestCaseAPIHandler;
 import com.automatics.utilities.alltablestyles.OMLocatorInfoColumnEditable;
 import com.automatics.utilities.alltablestyles.OMLocatorTypeColumnEditable;
 import com.automatics.utilities.alltablestyles.OMObjectNameColumnEditable;
@@ -35,6 +35,7 @@ import com.automatics.utilities.chrome.extension.WebSocketHandlerForAddIn;
 import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
+import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
 import com.automatics.utilities.save.model.ObjectMapSaveService;
 import com.automatics.utilities.save.model.ObjectMapSaveTask;
@@ -75,6 +76,8 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.wb.swt.ResourceManager;
 import org.eclipse.swt.custom.CCombo;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 
 public class ObjectMapEditor extends EditorPart {
 
@@ -86,13 +89,12 @@ public class ObjectMapEditor extends EditorPart {
 	private TableViewer objectMapTableViewer;
 	private ToolItem btnAdd,btnDelete, pasteItem, copyItem, openEditor, saveItem,lockItem;
 	private List<OMDetails> list;
-	private int index;
 	private ToolItem findSpecificElt;
 	private ToolItem validateallOM;
 	private ToolItem refresh;
 	private Label lockLabel;
 
-	private AddOnUtility addOmUtility = AddOnUtility.getInstance();
+	private AddOnUtility addOnUtility = AddOnUtility.getInstance();
 	private GitUtilities gitUtil;
 	private boolean viewAllElements = true;
 	private String lock_image = "images/icons/Open_lock.png";
@@ -100,6 +102,7 @@ public class ObjectMapEditor extends EditorPart {
 	private boolean public_view = false, private_view = false;
 	private String lock_message = "Lock for editing";
 	private String user_lock_message = "";
+	private ArrayList<OMDetails> copiedCells = null;
 	
 	public ObjectMapEditor() {
 		// TODO Auto-generated constructor stub
@@ -193,27 +196,13 @@ public class ObjectMapEditor extends EditorPart {
 		
 		//Check if the object map is private or not
 		OMGson omGson = omTask.getOmGson();
-		if(omGson.omFlag.equalsIgnoreCase("PRIVATE"))
+				
+		if(!omGson.lockedBy.equalsIgnoreCase(""))
 		{
-			private_view = true;
-			public_view = private_view; 
-			viewAllElements = true;
-			user_lock_message = "";
-			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.username))
-			{
-				MessageDialog privateChk = new MessageDialog(site.getShell(), "Error", null, "Cannot Open Private Object Map", 
-	    				MessageDialog.ERROR, 
-	    				new String[]{"OK"}, 0);
-	    		privateChk.open();
-	    		throw new RuntimeException("Cannot open private object map");
-			}
-		}
-		else if(omGson.omFlag.equalsIgnoreCase("EDIT"))
-		{
-			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.username))
+			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.lockedBy))
 			{
 				viewAllElements = false; //Add this flag to disable all operations
-				user_lock_message = "Locked By : " + omGson.username;
+				user_lock_message = "Locked By : " + omGson.lockedBy;
 			}
 			else
 	    	{
@@ -373,6 +362,7 @@ public class ObjectMapEditor extends EditorPart {
 		objectMapDataTable.setEnabled(viewAllElements && public_view);
 		
 		/*Biswabir - Tabbing Issue*/
+		
 		TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(objectMapTableViewer,
 				new FocusCellHighlighter(objectMapTableViewer){});
 		ColumnViewerEditorActivationStrategy editorActivationStrategy =
@@ -382,11 +372,12 @@ public class ObjectMapEditor extends EditorPart {
 			            protected boolean isEditorActivationEvent(
 			                ColumnViewerEditorActivationEvent event) {
 			                    ViewerCell cell = (ViewerCell) event.getSource();
-			                   return cell.getColumnIndex() == 1 || cell.getColumnIndex() == 2;
+			                   return cell.getColumnIndex() == 0 || cell.getColumnIndex() == 1||cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3;
 		            }};
 
 		TableViewerEditor.create(objectMapTableViewer, focusCellManager, editorActivationStrategy,
 			    TableViewerEditor.TABBING_HORIZONTAL);
+		
 		
 		TableViewerColumn pagaNameColViewer = new TableViewerColumn(objectMapTableViewer, SWT.NONE);
 		pagaNameColViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -521,10 +512,15 @@ public class ObjectMapEditor extends EditorPart {
 				try
 					{
 						list=(List<OMDetails>) objectMapTableViewer.getInput();
-						index=objectMapDataTable.getSelectionIndex();
-						list.get(index);
-						isDirty = true;
-						firePropertyChange(PROP_DIRTY);
+						if(list!=null)
+						{
+							int selections[] = objectMapDataTable.getSelectionIndices();
+							copiedCells = new ArrayList<OMDetails>();
+							for(int i=0;i<selections.length;i++)
+							{
+							copiedCells.add(list.get(selections[i]));	
+							}
+						}
 					}
 					catch(Exception e)
 					{
@@ -539,8 +535,28 @@ public class ObjectMapEditor extends EditorPart {
 				public void handleEvent(Event event) {
 					try
 					{	
-						final int pasteIndex=objectMapDataTable.getSelectionIndex();
-						list.add(pasteIndex, list.get(index));
+						List<OMDetails> list = (List<OMDetails>)objectMapTableViewer.getInput();
+						int selectedindex [] = objectMapDataTable.getSelectionIndices();
+						int insertAfter = 0;
+						if(selectedindex.length>0)
+						{
+							insertAfter = selectedindex[selectedindex.length-1];
+							insertAfter = insertAfter + 1;
+						}
+						for(OMDetails copyGson  : copiedCells) 
+						{
+							OMDetails newStep = new OMDetails();
+							newStep.pageName = copyGson.pageName;
+							newStep.objName = copyGson.objName;
+							newStep.locatorInfo = copyGson.locatorInfo;
+							newStep.locatorType = copyGson.locatorType;
+							
+							list.add(insertAfter,newStep);
+							insertAfter++;
+						}
+						
+						
+						objectMapTableViewer.setInput(list);
 						objectMapTableViewer.refresh();
 						isDirty = true;
 						firePropertyChange(PROP_DIRTY);
@@ -587,8 +603,7 @@ public class ObjectMapEditor extends EditorPart {
 						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
 						lockItem.setToolTipText("Unlock the file");
 						OMGson omGson = omTask.getOmGson();
-						omGson.omFlag = "EDIT";
-						omGson.username = Utilities.AUTOMATICS_USERNAME;
+						omGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
 						omTask.setOmGson(omGson);						
 						public_view = true;
 						saveActionPerform();
@@ -599,8 +614,7 @@ public class ObjectMapEditor extends EditorPart {
 						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
 						lockItem.setToolTipText("Lock for editing");
 						OMGson omGson = omTask.getOmGson();
-						omGson.omFlag = "PUBLIC";
-						omGson.username = Utilities.AUTOMATICS_USERNAME;
+						omGson.lockedBy = "";
 						omTask.setOmGson(omGson);
 						public_view = false;
 						saveActionPerform();
@@ -634,8 +648,8 @@ public class ObjectMapEditor extends EditorPart {
 							{
 								boolean found_status = false;
 								WebSocketHandlerForAddIn.setVerifyElementsClass();
-								addOmUtility.openCloseServer(true);
-								addOmUtility.findElement(omDetail.locatorInfo);
+								addOnUtility.openCloseServer(true);
+								addOnUtility.findElement(omDetail.locatorInfo);
 								int waitMaxCount = 50;
 								while(--waitMaxCount>0)
 								{
@@ -667,13 +681,13 @@ public class ObjectMapEditor extends EditorPart {
 			{				
 				public void handleEvent(Event event) 
 				{
-					addOmUtility.openCloseServer(true);
-					addOmUtility.setEditorInput(getEditorInput());
+					addOnUtility.openCloseServer(true);
+					addOnUtility.setEditorInput(getEditorInput());
 					List<OMDetails> omDetails = (ArrayList<OMDetails>)objectMapTableViewer.getInput();
 					AddInProgressBar progressBar = new AddInProgressBar(getSite().getShell().getDisplay());
 					progressBar.initializeProgressBar(omDetails.size());
 					progressBar.open();
-					addOmUtility.verifyAllElements(omDetails);
+					addOnUtility.verifyAllElements(omDetails);
 					/*ArrayList<VerifyElementsClass> elt = WebSocketHandlerForAddIn.getVerifyEltList();
 					for(int i=0;i<elt.size();i++)
 					{
@@ -795,10 +809,11 @@ public class ObjectMapEditor extends EditorPart {
 						return;
 					}
 					
-					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, saveGSON));
+					/*JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, saveGSON));
 					if(jsonObj !=null)
 					{
 						AutomaticsDBObjectMapQueries.updateOM(Utilities.getMongoDB(), saveGSON.omName, jsonObj);
+						ObjectMapAPIHandler.getInstance().updateObjectMap(saveGSON);
 						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
 						isDirty = false;
 						firePropertyChange(PROP_DIRTY);
@@ -808,7 +823,19 @@ public class ObjectMapEditor extends EditorPart {
 						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
 											 "Some Unexpected Error Occured", "ERR");
 						throw new RuntimeException("Error In Object Map Save");
+					}*/
+					saveGSON = ObjectMapAPIHandler.getInstance().updateObjectMap(saveGSON);
+					if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE!=200)
+					{
+						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Error", null, 
+								"Cannot Save ObjectMap Error : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE, MessageDialog.ERROR, 
+								new String [] {"OK"}, 0);
+						dialog.open();
+						throw new RuntimeException("Error In Object Map Save : " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
 					}
+					ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
+					isDirty = false;
+					firePropertyChange(PROP_DIRTY);
 				}
 				else
 				{

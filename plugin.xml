@@ -309,6 +309,14 @@
             sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
             sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
       </launchConfigurationType>
+      <launchConfigurationType
+            delegate="org.eclipse.jdt.launching.JavaLaunchDelegate"
+            id="org.testng.eclipse.launchconfig"
+            modes="run, debug"
+            name="TestNG"
+            sourceLocatorId="org.eclipse.jdt.launching.sourceLocator.JavaSourceLookupDirector"
+            sourcePathComputerId="org.eclipse.jdt.launching.sourceLookup.javaSourcePathComputer">
+      </launchConfigurationType>
    </extension>
    <extension
          point="org.eclipse.debug.core.launchModes">
@@ -328,6 +336,11 @@
             id="com.automatics.configuration.TabGroups"
             type="org.eclipse.jdt.launching.localJavaApplication">
       </launchConfigurationTabGroup>
+      <launchConfigurationTabGroup
+            class="com.automatics.packages.testNGRunner.TestNGPluginTabGroup"
+            id="com.automatics.configuration.TestNGTabGroups"
+            type="org.testng.eclipse.launchconfig">
+      </launchConfigurationTabGroup>
    </extension>
    <extension
          id="automaticsProduct"
@@ -338,6 +351,26 @@
          <property
                name="appName"
                value="AutoMaTics">
+         </property>
+         <property
+               name="lifeCycleURI"
+               value="bundleclass://Automatics/com.automatics.packages.lifecycle.Manager">
+         </property>
+         <property
+               name="startupForegroundColor"
+               value="000000">
+         </property>
+         <property
+               name="startupMessageRect"
+               value="7,252,445,20">
+         </property>
+         <property
+               name="startupProgressRect"
+               value="5,275,445,15">
+         </property>
+         <property
+               name="preferenceCustomization"
+               value="plugin_customization.ini">
          </property>
         
       </product>

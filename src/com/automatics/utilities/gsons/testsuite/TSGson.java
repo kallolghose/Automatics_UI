@@ -8,5 +8,10 @@ public class TSGson
 	public String tsDesc;
 	public String tsIdentifier;
 	public String projectName;
+	public String tsCreatedBy;
+	public String tsCreatedOn; 
+	public String lockedBy;
+	public String tsPrivilege; 
+	public String updateInfo;
 	public List<TSTCGson> tsTCLink;
 }

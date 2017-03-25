@@ -7,7 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.json.JsonObject;
+
+
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspace;
@@ -23,8 +24,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.EditorPart;
 
-import com.automatics.mongo.packages.AutomaticsDBObjectMapQueries;
-import com.automatics.mongo.packages.AutomaticsDBTestCaseQueries;
 import com.automatics.packages.Model.ObjectMapTask;
 import com.automatics.packages.Model.ObjectMapTaskService;
 import com.automatics.packages.Model.TestCaseTask;
@@ -32,6 +31,8 @@ import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.packages.Views.ObjectList;
 import com.automatics.packages.Views.ObjectMap;
 import com.automatics.packages.Views.TestCaseParamView;
+import com.automatics.packages.api.handlers.ObjectMapAPIHandler;
+import com.automatics.packages.api.handlers.TestCaseAPIHandler;
 import com.automatics.utilities.alltablestyles.TCArgumentsColumnEditable;
 import com.automatics.utilities.alltablestyles.TCObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.TCOperationColumnEditable;
@@ -60,6 +61,7 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.jdt.internal.core.search.indexing.IndexAllProject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
@@ -71,6 +73,7 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewerEditor;
 import org.eclipse.jface.viewers.TableViewerFocusCellManager;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.dnd.DropTarget;
@@ -85,6 +88,8 @@ import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.wb.swt.SWTResourceManager;
 import org.eclipse.swt.layout.RowLayout;
+import org.json.simple.JSONObject;
+
 
 
 public class TCEditor extends EditorPart {
@@ -103,11 +108,12 @@ public class TCEditor extends EditorPart {
 	private boolean isFocus = false;
 	private boolean viewAllElements = true;
 	private List<TCStepsGSON> listOfTestCaseSteps;
-	private TCStepsGSON copiedGson;
+	private ArrayList<TCStepsGSON> copiedGson;
 	private String lock_image = "images/icons/Open_lock.png";
 	private boolean public_view = false, private_view = false;
 	private String lock_message = "Lock for editing";
 	private String user_lock_message = "";
+	
 	
 	/*
 	 * Variables for recording
@@ -154,27 +160,13 @@ public class TCEditor extends EditorPart {
 	    
 	    //Check if the test case is private or not
 	    TCGson tcGson = tcTask.getTcGson();
-	    if(tcGson.tcFlag.equalsIgnoreCase("PRIVATE"))
+	   
+	    if(!tcGson.lockedBy.equalsIgnoreCase(""))
 	    {
-	    	private_view = true;
-	    	public_view = private_view;
-	    	viewAllElements = true;
-	    	user_lock_message = "";
-	    	if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(tcGson.username))
-	    	{
-	    		MessageDialog privateChk = new MessageDialog(site.getShell(), "Error", null, "Cannot Open Private Test Case", 
-	    				MessageDialog.ERROR, 
-	    				new String[]{"OK"}, 0);
-	    		privateChk.open();
-	    		throw new RuntimeException("Cannot open private test case");	
-	    	}
-	    }
-	    else if(tcGson.tcFlag.equalsIgnoreCase("EDIT"))
-	    {
-	    	if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(tcGson.username))
+	    	if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(tcGson.lockedBy))
 	    	{
 	    		viewAllElements = false;
-	    		user_lock_message = "Locked By : " + tcGson.username;
+	    		user_lock_message = "Locked By : " + tcGson.lockedBy;
 	    	}
 	    	else
 	    	{
@@ -189,6 +181,7 @@ public class TCEditor extends EditorPart {
 	    	public_view = false;
 	    	user_lock_message = "";
 		    String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
+		    
 		    boolean syncStatus = this.gitUtil.getSync(currentFileName);
 		    if(syncStatus)
 		    {
@@ -298,8 +291,8 @@ public class TCEditor extends EditorPart {
 			lockItem.setSelection(true);
 			lockItem.setToolTipText(lock_message);
 			lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
-			lockItem.setData("Locked", false);
-			lockItem.setEnabled(viewAllElements && !private_view); //If private view then do not show lock
+			lockItem.setData("Locked", !viewAllElements);
+			lockItem.setEnabled(viewAllElements); 
 			
 			lockLabel = new Label(composite, SWT.HORIZONTAL | SWT.RIGHT);
 			lockLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
@@ -317,15 +310,17 @@ public class TCEditor extends EditorPart {
 			}
 			
 			//Implementation of table using TableViewer
-			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION);
+			testscriptsViewer = new TableViewer(script_composite, SWT.BORDER | SWT.FULL_SELECTION | SWT.MULTI);
 			testscriptsViewer.setContentProvider(new ArrayContentProvider());
 			testscriptTable = testscriptsViewer.getTable();
+			testscriptTable.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 			testscriptTable.setLinesVisible(true);
 			testscriptTable.setHeaderVisible(true);
 			testscriptTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 			testscriptTable.setEnabled(viewAllElements && public_view);
 			
 			/*Biswabir Code - Tabbing*/
+			
 			TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(testscriptsViewer,new FocusCellHighlighter(testscriptsViewer) {});
 			ColumnViewerEditorActivationStrategy editorActivationStrategy =
 						new ColumnViewerEditorActivationStrategy(testscriptsViewer) 
@@ -334,11 +329,12 @@ public class TCEditor extends EditorPart {
 				            protected boolean isEditorActivationEvent(
 				                ColumnViewerEditorActivationEvent event) {
 				                    ViewerCell cell = (ViewerCell) event.getSource();
-				                   return cell.getColumnIndex() == 1 || cell.getColumnIndex() == 2;
+				                   return cell.getColumnIndex() == 0 || cell.getColumnIndex() == 1||cell.getColumnIndex() == 2 || cell.getColumnIndex() == 3||cell.getColumnIndex() == 4 || cell.getColumnIndex() == 5;
 			            }};
 
 			TableViewerEditor.create(testscriptsViewer, focusCellManager, editorActivationStrategy,
 				    TableViewerEditor.TABBING_HORIZONTAL);
+			
 			
 			TableViewerColumn snoViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
 			snoViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -421,6 +417,12 @@ public class TCEditor extends EditorPart {
 					TCStepsGSON step = (TCStepsGSON)element;
 					return step.stepArgument;
 				}
+				/*//Color Code
+				public Color getBackground(Object element) {
+					if(element instanceof TCStepsGSON)
+						new Color(getSite().getShell().getDisplay(), 0xFF, 0xDD, 0xDD);
+					return new Color(getSite().getShell().getDisplay(), 0xFF, 0xDD, 0xDD);
+				}*/
 			});
 			TableColumn argCol = argColViewer.getColumn();
 			argCol.setWidth(100);
@@ -629,10 +631,15 @@ public class TCEditor extends EditorPart {
 				try
 				{
 					listOfTestCaseSteps = (List<TCStepsGSON>)testscriptsViewer.getInput();
-					copiedGson = listOfTestCaseSteps.get(testscriptTable.getSelectionIndex());
-					isDirty = true;
-					firePropertyChange(PROP_DIRTY);
-					
+					if(listOfTestCaseSteps!=null)
+					{
+						copiedGson = new ArrayList<TCStepsGSON>();
+						int [] listSelection=testscriptTable.getSelectionIndices();
+						for (int i : listSelection) 
+	                    {
+	                           copiedGson.add(listOfTestCaseSteps.get(i));
+	                    }
+					}
 				}
 				catch(Exception e)
 				{
@@ -647,15 +654,27 @@ public class TCEditor extends EditorPart {
 				try
 				{
 					listOfTestCaseSteps = (List<TCStepsGSON>)testscriptsViewer.getInput();
-					TCStepsGSON newStep = new TCStepsGSON();
-					newStep.stepNo = testscriptTable.getSelectionIndex()+1;
-					newStep.stepOperation = copiedGson.stepOperation;
-					newStep.stepPageName = copiedGson.stepPageName;
-					newStep.stepObjName = copiedGson.stepObjName;
-					newStep.stepArgument = copiedGson.stepArgument;
-					newStep.stepVarName = copiedGson.stepVarName;
 					
-					listOfTestCaseSteps.add(testscriptTable.getSelectionIndex(),newStep);
+					int selectedindex [] = testscriptTable.getSelectionIndices();
+					int insertAfter = 0;
+					if(selectedindex.length>0)
+					{
+						insertAfter = selectedindex[selectedindex.length-1];
+						insertAfter = insertAfter + 1;
+					}
+					for(TCStepsGSON copyGson  : copiedGson) 
+					{
+						TCStepsGSON newStep = new TCStepsGSON();
+						newStep.stepNo = testscriptTable.getSelectionIndex()+1;
+						newStep.stepOperation = copyGson.stepOperation;
+						newStep.stepPageName = copyGson.stepPageName;
+						newStep.stepObjName = copyGson.stepObjName;
+						newStep.stepArgument = copyGson.stepArgument;
+						newStep.stepVarName = copyGson.stepVarName;
+						
+						listOfTestCaseSteps.add(insertAfter,newStep);
+						insertAfter++;
+					}
 					
 					//Update the count of the steps
 					List<TCStepsGSON> updatedList = new ArrayList<TCStepsGSON>();
@@ -668,6 +687,7 @@ public class TCEditor extends EditorPart {
 					}
 					testscriptsViewer.setInput(updatedList);
 					testscriptsViewer.refresh();
+					
 					isDirty = true;
 					firePropertyChange(PROP_DIRTY);
 				}
@@ -718,11 +738,9 @@ public class TCEditor extends EditorPart {
 					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
 					lockItem.setToolTipText("Unlock the file");
 					TCGson tcGson = tcTask.getTcGson();
-					tcGson.tcFlag = "EDIT";
-					tcGson.username = Utilities.AUTOMATICS_USERNAME;
+					tcGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
 					tcTask.setTcGson(tcGson);
 					public_view = true;
-					
 					saveActionPerform();
 				}
 				else
@@ -730,8 +748,7 @@ public class TCEditor extends EditorPart {
 					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Open_lock.png"));
 					lockItem.setToolTipText("Lock for editing");
 					TCGson tcGson = tcTask.getTcGson();
-					tcGson.tcFlag = "PUBLIC";
-					tcGson.username = Utilities.AUTOMATICS_USERNAME;
+					tcGson.lockedBy = "";
 					tcTask.setTcGson(tcGson);
 					saveActionPerform();
 					
@@ -783,9 +800,9 @@ public class TCEditor extends EditorPart {
 						OMGson omGson = new OMGson();
 						omGson.omName = OBJECTMAP_FOR_RECORDING;
 						omGson.omDesc = "Recorded Object For TestCase : " + tcTask.getTcName();
-						omGson.omFlag = "PRIVATE";
+						omGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
 						omGson.omIdentifier = OBJECTMAP_FOR_RECORDING;
-						omGson.username = System.getProperty("user.name");
+						omGson.omCreatedBy = Utilities.AUTOMATICS_USERNAME;
 						
 						omGson.omDetails = new ArrayList<OMDetails>();
 						
@@ -793,11 +810,10 @@ public class TCEditor extends EditorPart {
 						omSaveTask = new ObjectMapSaveTask(OBJECTMAP_FOR_RECORDING, omGson);
 						ObjectMapTaskService.getInstance().addTasks(omTask);
 						ObjectMapSaveService.getInstance().addSaveTask(omSaveTask);
-						JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, omGson));
-						if(jsonObj!=null)
-						{
-							AutomaticsDBObjectMapQueries.postOM(Utilities.getMongoDB(), jsonObj);
-						}
+						
+						omGson = ObjectMapAPIHandler.getInstance().postObjectMap(omGson);
+						if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE!=200)
+							throw new RuntimeException("Cannot post object map while recording : " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
 					}
 					
 					//Add ObjectMap
@@ -830,6 +846,7 @@ public class TCEditor extends EditorPart {
 					start_stop_recording.setToolTipText("Start Recording");
 					start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/start_rec_2.png"));
 					start_stop_recording.setData("isRecorded", !isRecording);
+					addOnUtility.start_stop_Recording(false);
 					addOnUtility.openCloseServer(false); /*Close the server*/
 				}
 			}
@@ -956,8 +973,8 @@ public class TCEditor extends EditorPart {
 		try
 		{
 			TCGson tcGson = tcTask.getTcGson();
-			parent.setInput(tcGson.tcSteps);
-			
+			if(tcGson.tcSteps!=null)
+				parent.setInput(tcGson.tcSteps);
 		}
 		catch(Exception e)
 		{
@@ -1006,6 +1023,15 @@ public class TCEditor extends EditorPart {
 					
 					//Perform git operations
 					Utilities.createJavaFiles(tcTask.getTcGson());
+					if(Utilities.COMPILATION_ERROR) //CHECK IF THE FLAG IS SET
+					{
+						MessageDialog errDialog = new MessageDialog(getSite().getShell(),"Compilation Errors", 
+								null, "One or more compilation errors.\nView in editor to check errors.", MessageDialog.ERROR, 
+								new String[]{"Continue ", "Cancel"}, 0);
+						int selected = errDialog.open();
+						if(selected == 1)
+							return;
+					}
 					boolean gitPassed = this.gitUtil.performGITSyncOperation();
 					if(!gitPassed)
 					{
@@ -1016,6 +1042,7 @@ public class TCEditor extends EditorPart {
 						return;
 					}
 					
+					/*
 					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TCGson.class, tcSaveGson));
 					System.out.println(jsonObj.toString());
 					if(jsonObj !=null)
@@ -1029,7 +1056,20 @@ public class TCEditor extends EditorPart {
 						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
 											 "Some Unexpected Error Occured", "ERR").open();
 						throw new RuntimeException("Error In Test Case Save");
+					}*/
+					
+					tcSaveGson = TestCaseAPIHandler.getInstance().updateTestCase(tcSaveGson);
+					if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
+					{
+						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Error", null, 
+												"Cannot Save TestCase Error : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE, MessageDialog.ERROR, 
+												new String [] {"OK"}, 0);
+						dialog.open();
+						throw new RuntimeException("Cannot Save TestCase : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE + " : " 
+																			 + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 					}
+					isDirty = false;
+					firePropertyChange(PROP_DIRTY);
 				}
 				else
 				{
@@ -1128,60 +1168,80 @@ public class TCEditor extends EditorPart {
 	/*
 	 * Add Contents to table (Particularly for recording)
 	 * */
-	public void addContentsToTableGrid(TCStepsGSON step, OMDetails details)
+	public void addContentsToTableGrid(TCStepsGSON step, OMDetails details, JSONObject jsonObject)
 	{
 		try
 		{
-			/*
-			 * Add Object Map Values
-			 * 1. Update the page name and object map name values
-			 * 2. Update the task
-			 * */
-			HashMap<String,String> pgName_ObjMapName = ObjectMap.getPageNameObjectMapMapping();
-			HashMap<String, ArrayList<String>> pgName_ObjName = ObjectMap.getPageNameObjectMapping();
-			
-			//Add object map array to the page name
-			pgName_ObjMapName.put(step.stepPageName, OBJECTMAP_FOR_RECORDING);
-			ArrayList<String> objmap_name = pgName_ObjName.get(step.stepPageName);
-			
-			if(objmap_name == null)
-				objmap_name = new ArrayList<String>();
-			objmap_name.add(step.stepObjName);
-			pgName_ObjName.put(step.stepPageName, objmap_name);
-			
-			/*
-			 * Update task
-			 * 1. Editor Task
-			 * 2. Object Map Save task
-			 */
-			
-			//#1
-			ObjectMapTask omTask = ObjectMapTaskService.getInstance().getTaskByOmName(OBJECTMAP_FOR_RECORDING);
-			OMGson omGson = omTask.getOmGson();
-			ArrayList<OMDetails> omDetails = (ArrayList<OMDetails>) omGson.omDetails;
-			if(omDetails == null)
+			/*Update object map details*/
+			if(details!=null)
 			{
-				omDetails = new ArrayList<OMDetails>(); 
+				/*
+				 * Add Object Map Values
+				 * 1. Update the page name and object map name values
+				 * 2. Update the task
+				 * */
+				HashMap<String,String> pgName_ObjMapName = ObjectMap.getPageNameObjectMapMapping();
+				HashMap<String, ArrayList<String>> pgName_ObjName = ObjectMap.getPageNameObjectMapping();
+				
+				//Add object map array to the page name
+				pgName_ObjMapName.put(step.stepPageName, OBJECTMAP_FOR_RECORDING);
+				ArrayList<String> objmap_name = pgName_ObjName.get(step.stepPageName);
+				
+				if(objmap_name == null)
+					objmap_name = new ArrayList<String>();
+				objmap_name.add(step.stepObjName);
+				pgName_ObjName.put(step.stepPageName, objmap_name);
+				
+				/*
+				 * Update task (Object Map)
+				 * 1. Editor Task
+				 * 2. Object Map Save task
+				 */
+				
+				//#1
+				ObjectMapTask omTask = ObjectMapTaskService.getInstance().getTaskByOmName(OBJECTMAP_FOR_RECORDING);
+				OMGson omGson = omTask.getOmGson();
+				ArrayList<OMDetails> omDetails = (ArrayList<OMDetails>) omGson.omDetails;
+				if(omDetails == null)
+				{
+					omDetails = new ArrayList<OMDetails>(); 
+				}
+				omDetails.add(details);
+				omGson.omDetails = omDetails;
+				omTask.setOmGson(omGson);
+				
+				//#2
+				ObjectMapSaveTask omSaveTask = ObjectMapSaveService.getInstance().getSaveTask(OBJECTMAP_FOR_RECORDING);
+				omSaveTask.setOmGson(omGson);
 			}
-			omDetails.add(details);
-			omGson.omDetails = omDetails;
-			omTask.setOmGson(omGson);
-			
-			//#2
-			ObjectMapSaveTask omSaveTask = ObjectMapSaveService.getInstance().getSaveTask(OBJECTMAP_FOR_RECORDING);
-			omSaveTask.setOmGson(omGson);
 			
 			/*Update the test case steps*/
-			List<TCStepsGSON> list_of_steps = (List<TCStepsGSON>)testscriptsViewer.getInput();
-			if(list_of_steps == null)
+			if(step!=null)
 			{
-				list_of_steps = new ArrayList<TCStepsGSON>();
+				List<TCStepsGSON> list_of_steps = (List<TCStepsGSON>)testscriptsViewer.getInput();
+				if(list_of_steps == null || list_of_steps.size()==0)
+				{
+					list_of_steps = new ArrayList<TCStepsGSON>();
+					/*
+					 * Add the first step as Launch Browser whenever recording with new testcase is done
+					 * */
+					TCStepsGSON launchBrowserStep = new TCStepsGSON();
+					launchBrowserStep.stepNo = 1;
+					launchBrowserStep.stepOperation = "LaunchBrowser";
+					launchBrowserStep.stepPageName = "NA";
+					launchBrowserStep.stepObjName = "NA";
+					launchBrowserStep.stepArgument = jsonObject.get("url").toString();
+					launchBrowserStep.stepVarName = "";
+					launchBrowserStep.omName = "";
+					list_of_steps.add(launchBrowserStep);
+				}
+				step.stepNo = list_of_steps.size()+1;
+				step.omName = OBJECTMAP_FOR_RECORDING;
+				list_of_steps.add(step);
+				
+				testscriptsViewer.setInput(list_of_steps);
+				testscriptsViewer.refresh();
 			}
-			step.stepNo = list_of_steps.size()+1;
-			step.omName = OBJECTMAP_FOR_RECORDING;
-			list_of_steps.add(step);
-			testscriptsViewer.setInput(list_of_steps);
-			testscriptsViewer.refresh();
 			
 		}
 		catch(Exception e)

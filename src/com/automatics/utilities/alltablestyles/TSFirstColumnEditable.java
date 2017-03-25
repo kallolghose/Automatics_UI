@@ -51,7 +51,10 @@ public class TSFirstColumnEditable extends EditingSupport
 	@Override
 	protected void setValue(Object element, Object value) {
 		// TODO Auto-generated method stub
-		((TSTCGson) element).tcParams.get(0).tcparamValue = value.toString(); 
+		String updateValue = "";
+		if(value!=null)
+			updateValue = value.toString();
+		((TSTCGson) element).tcParams.get(0).tcparamValue = updateValue; 
 		viewer.update(element, null);
 	}
 	

@@ -14,7 +14,10 @@
    <windowImages/>
 
    <splash
-      location="Automatics" />
+      location="Automatics"
+      startupProgressRect="5,275,445,15"
+      startupMessageRect="7,252,445,20"
+      startupForegroundColor="000000" />
    <launcher name="Automatics">
       <solaris/>
       <win useIco="false">
@@ -147,7 +150,7 @@
       <plugin id="org.eclipse.equinox.common" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.ds" autoStart="true" startLevel="2" />
       <plugin id="org.eclipse.equinox.event" autoStart="true" startLevel="2" />
-      <property name="osgi.instance.area.default" value="@user.dir/com.automatics" />
+      <property name="osgi.instance.area.default" value="@user.dir/../com.automatics" />
    </configurations>
 
 </product>

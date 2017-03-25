@@ -39,7 +39,9 @@ import com.jcraft.jsch.Session;
 
 public class GitUtilities 
 {
+	public static String GIT_PASSWORD = "gitadmin@1234";
 	public static String GIT_PROPERTY_PATH = "git_config.properties";
+	
 	private Repository localRepo;
 	private static Git git = null;
 	private Properties gitProperties;
@@ -55,6 +57,10 @@ public class GitUtilities
 			Properties properties = new Properties();
 			properties.load(fileInput);
 			setGitProperties(properties);
+			if(properties.getProperty("REMOTE_PASSWORD")!=null)
+			{
+				GIT_PASSWORD = properties.getProperty("REMOTE_PASSWORD"); 
+			}
 			return properties;
 		}
 		catch(Exception e)
@@ -137,7 +143,7 @@ public class GitUtilities
 				@Override
 				protected void configure(Host host, Session session) {
 					session.setConfig("StrictHostKeyChecking","no");
-					session.setPassword("admin");
+					session.setPassword(GIT_PASSWORD);
 				}
 			});
 			String remotePath = this.gitProperties.getProperty("REMOTE_PATH");
@@ -210,7 +216,7 @@ public class GitUtilities
 				@Override
 				protected void configure(Host host, Session session) {
 					session.setConfig("StrictHostKeyChecking","no");
-					session.setPassword("admin");
+					session.setPassword(GIT_PASSWORD);
 				}
 			});
 			this.git.push().call();
@@ -231,7 +237,7 @@ public class GitUtilities
 				@Override
 				protected void configure(Host host, Session session) {
 					session.setConfig("StrictHostKeyChecking","no");
-					session.setPassword("admin");
+					session.setPassword(GIT_PASSWORD);
 				}
 			});
 			this.git.fetch().call();
@@ -254,7 +260,7 @@ public class GitUtilities
 				@Override
 				protected void configure(Host host, Session session) {
 					session.setConfig("StrictHostKeyChecking","no");
-					session.setPassword("admin");
+					session.setPassword(GIT_PASSWORD);
 				}
 			});
 			this.git.pull().call();
@@ -278,7 +284,7 @@ public class GitUtilities
 				@Override
 				protected void configure(Host host, Session session) {
 					session.setConfig("StrictHostKeyChecking","no");
-					session.setPassword("admin");
+					session.setPassword(GIT_PASSWORD);
 				}
 			});
 			this.git.pull().call();
@@ -327,7 +333,7 @@ public class GitUtilities
 				@Override
 				protected void configure(Host host, Session session) {
 					session.setConfig("StrictHostKeyChecking","no");
-					session.setPassword("admin");
+					session.setPassword(GIT_PASSWORD);
 				}
 			});
 			FetchCommand fetchCommand = this.git.fetch();
