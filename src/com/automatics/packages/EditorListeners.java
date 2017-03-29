@@ -133,11 +133,27 @@ public class EditorListeners implements IPartListener2
 				IEditorReference editor = (IEditorReference)partRef;
 				if(editor.getEditorInput() instanceof TestCaseEditorInput)
 				{
+					/*Remove Object*/
 					ObjectList viewPart = (ObjectList)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(ObjectList.ID);
 					viewPart.visibilityOfAddToTestCaseItem(false);
 					ObjectMap viewPartOM = (ObjectMap)PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(ObjectMap.ID);
 					viewPartOM.visibilityOfRemovefromTC(false);
 					ObjectMap.disposeObjMaps();
+					
+					/*Remove Parameters as well*/
+					boolean canDelete = true;
+					IEditorReference refs [] = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
+					for(IEditorReference ref : refs)
+					{
+						if(editor.getEditorInput() instanceof TestCaseEditorInput)
+						{
+							canDelete = false;
+							break;
+						}
+					}
+					if(canDelete)
+						TestCaseParamView.removeAllColumns();
+					
 				}
 			}
 		}

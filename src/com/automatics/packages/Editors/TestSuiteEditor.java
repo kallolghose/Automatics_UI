@@ -1,6 +1,7 @@
 package com.automatics.packages.Editors;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.json.JsonObject;
@@ -82,13 +83,15 @@ import org.eclipse.wb.swt.SWTResourceManager;
 
 public class TestSuiteEditor extends EditorPart {
 
-	public static String ID = "com.automatics.packages.Editors.tsEditor"; 
+	public static String ID = "com.automatics.packages.Editors.tsEditor"; /*ID of the TestSuite Editor*/
+	/*All Column name of the Test Suite*/
+	public static ArrayList<String> all_col_name = new ArrayList<>(Arrays.asList("exe_Platfrom","Exe_Type","Run_On","Column4","Column5"));
+	
 	private TestSuiteTask tsTask;
 	private TestSuiteEditorInput input;
 	private Table testsuitetable;
 	private TableViewer testsuiteviewer;
 	public static ArrayList<String> testCaseList = new ArrayList<String>();
-	private DB db;
 	private boolean isDirty = false;
 	private ToolItem addBtn,delBtn, saveItem, copyItem, pasteItem, viewEditor, lockItem;
 	private List<TSTCGson> listStepGSON;
@@ -234,8 +237,9 @@ public class TestSuiteEditor extends EditorPart {
 		
 		lockItem = new ToolItem(iconsToolbar, SWT.NONE);
 		lockItem.setToolTipText(lock_message);
-		lockItem.setData("Locked", viewAllElements);
+		lockItem.setData("Locked", !viewAllElements);
 		lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
+		lockItem.setEnabled(viewAllElements);
 		
 		errLabel = new Label(composite, SWT.NONE);
 		errLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
@@ -606,7 +610,8 @@ public class TestSuiteEditor extends EditorPart {
 		saveItem.addListener(SWT.Selection, new Listener() {
 			
 			public void handleEvent(Event event) {
-            try{    		     
+            try
+            {    		     
 				saveActionPerform();
             }
             catch(Exception e)
@@ -750,6 +755,12 @@ public class TestSuiteEditor extends EditorPart {
 					warning = true;
 					break;
 				}
+				if(tstcGson.tcParams.get(0).tcparamValue.equals("") || tstcGson.tcParams.get(1).tcparamValue.equals("")
+				   || tstcGson.tcParams.get(2).tcparamValue.equals(""))
+				{
+					warning = true;
+					break;
+				}
 			}
 			if(!warning)
 			{
@@ -764,7 +775,9 @@ public class TestSuiteEditor extends EditorPart {
 				runnerAPI.threadCount = tssaveGson.tsName;
 				runnerAPI.testsuiteName = tssaveGson.tsName;
 				runnerAPI.status = "Running";
-				//Create Testng File
+				runnerAPI.type = "SAVED";
+				/*
+				 * Create TestNG File*/
 				Utilities.createTestng(tssaveGson, runnerAPI);
 				boolean gitPassed = this.gitUtil.performGITSyncOperation();
 				if(!gitPassed)
@@ -775,21 +788,6 @@ public class TestSuiteEditor extends EditorPart {
 					errDialog.open();
 					return;
 				}
-				
-				/*JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, tssaveGson));
-				if(jsonObj!=null)
-				{
-					AutomaticsDBTestSuiteQueries.updateTS(Utilities.getMongoDB(), tsTask.getTsName(), jsonObj);
-					isDirty = false;
-					firePropertyChange(PROP_DIRTY);
-					
-				}
-				else 
-				{
-					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
-										 "Some Unexpected Error Occured", "ERR");
-					throw new RuntimeException("Error In Test Suite Save");
-				}*/
 				
 				tssaveGson = TestSuiteAPIHandler.getInstance().updateTestSuite(tssaveGson);
 				if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE!=200)

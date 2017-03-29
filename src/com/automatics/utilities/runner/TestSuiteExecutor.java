@@ -1,17 +1,7 @@
 package com.automatics.utilities.runner;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
-
-import javax.swing.JFrame;
-import javax.swing.JTextArea;
-
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -22,8 +12,6 @@ import org.apache.commons.exec.PumpStreamHandler;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.PlatformUI;
-import org.testng.TestNG;
 
 import com.automatics.utilities.helpers.Utilities;
 
@@ -33,6 +21,10 @@ public class TestSuiteExecutor
 	private static String PROJECT_NAME = Utilities.PROJECT_NAME;
 	private ConsoleOutputStream consoleOP = null;
 	private Text text;
+	private DefaultExecuteResultHandler resultHandler;
+	private ExecuteWatchdog watchdog;
+	private Executor executor;
+	
 	public TestSuiteExecutor(List<String> listofTestSuites, ConsoleOutputStream consoleOP, Text text)
 	{
 		this.listofTestSuites = listofTestSuites;
@@ -63,9 +55,9 @@ public class TestSuiteExecutor
 		
 			CommandLine cl = CommandLine.parse("cmd.exe /k" + dir +" && cd \"" + location + "\" && " + cmd_for_testng);
 			
-	    	DefaultExecuteResultHandler resultHandler = new DefaultExecuteResultHandler();
-	    	ExecuteWatchdog watchdog = new ExecuteWatchdog(-1L);
-	    	Executor executor = new DefaultExecutor();
+	    	resultHandler = new DefaultExecuteResultHandler();
+	    	watchdog = new ExecuteWatchdog(-1L);
+	    	executor = new DefaultExecutor();
 	    	executor.setStreamHandler(new PumpStreamHandler(new LogOutputStream() {
 	       	
 		        @Override
@@ -90,6 +82,17 @@ public class TestSuiteExecutor
 	    	executor.setWatchdog(watchdog);
 	    	executor.execute(cl, resultHandler);
 	    	
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace(System.out);
+		}
+	}
+	public void stopExecution()
+	{
+		try
+		{
+			watchdog.destroyProcess();	
 		}
 		catch(Exception e)
 		{

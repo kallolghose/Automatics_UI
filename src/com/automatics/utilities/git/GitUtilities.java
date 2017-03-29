@@ -39,7 +39,7 @@ import com.jcraft.jsch.Session;
 
 public class GitUtilities 
 {
-	public static String GIT_PASSWORD = "gitadmin@1234";
+	public static String GIT_PASSWORD = "admin";
 	public static String GIT_PROPERTY_PATH = "git_config.properties";
 	
 	private Repository localRepo;

@@ -8,13 +8,18 @@ import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.EditingSupport;
 import org.eclipse.jface.viewers.TextCellEditor;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 
+import sun.nio.ch.WindowsAsynchronousChannelProvider;
+
 import com.automatics.packages.api.handlers.OperationAPIHandler;
+import com.automatics.utilities.extraUIs.RunScriptTCPopUp;
 import com.automatics.utilities.gsons.operation.AllOperationGSON;
 import com.automatics.utilities.gsons.operation.OperationGSON;
 import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
+import com.sun.java.swing.plaf.windows.resources.windows;
 
 public class TCOperationColumnEditable extends EditingSupport
 {
@@ -41,6 +46,7 @@ public class TCOperationColumnEditable extends EditingSupport
 			this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
 			this.editor.setContentProvider(new ArrayContentProvider());
 			this.editor.setInput(opnName);
+			
 		}
 		catch(Exception e)
 		{
@@ -77,9 +83,20 @@ public class TCOperationColumnEditable extends EditingSupport
 			updateVal = "";
 		else
 		{
+			
 			updateVal = value.toString();
 			OperationGSON opnGson = OperationAPIHandler.getInstance().getSpecificOperation(updateVal);
-
+			/*
+			 * Check if the operation is run script and display pop-up*/
+			if(updateVal.equals("RunScript"))
+			{
+				RunScriptTCPopUp rspopUp = new RunScriptTCPopUp(viewer.getTable().getShell());
+				if(rspopUp.open() == Window.OK)
+				{
+					((TCStepsGSON) element).stepArgument = rspopUp.getSelectedTestCase();
+				}
+			}
+		
 			/*
 			 * Add field to PageName and ObjectName based on the operation selected
 			 * */
@@ -108,7 +125,10 @@ public class TCOperationColumnEditable extends EditingSupport
 				if(((TCStepsGSON) element).stepArgument.equals("NA"))
 					((TCStepsGSON) element).stepArgument = "";
 			}
+			if(((TCStepsGSON) element).stepArgument.equals(""))
+				((TCStepsGSON) element).stepArgument = opnGson.opnArgument;
 		}
+		
 		((TCStepsGSON) element).stepOperation = updateVal; 
 		
 		viewer.update(element, null);

@@ -11,9 +11,7 @@ public class TCGson
 	public String projectName;
 	public String tcCreatedBy;
 	public String tcCreatedOn;
-	public String tcPrivilege;
 	public String lockedBy;
-	public String updateInfo;
 	public List<String> tcObjectMapLink;
 	public List<TCStepsGSON> tcSteps;
 	public List<TCParams> tcParams;

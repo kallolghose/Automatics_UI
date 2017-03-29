@@ -11,7 +11,5 @@ public class OMGson
 	public String omCreatedBy;
 	public String omCreatedOn;
 	public String lockedBy;
-	public String omPrivilege;
-	public String updateInfo;
 	public List<OMDetails> omDetails;
 }

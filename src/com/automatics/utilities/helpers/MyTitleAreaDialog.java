@@ -23,7 +23,7 @@ public class MyTitleAreaDialog extends TitleAreaDialog {
         @Override
         public void create() {
                 super.create();
-                setTitle("Rename");
+                setTitle("New File Name");
                 setMessage("Add a new name", IMessageProvider.INFORMATION);
         }
 
@@ -40,7 +40,7 @@ public class MyTitleAreaDialog extends TitleAreaDialog {
 
         private void createFirstName(Composite container) {
                 Label lbtFirstName = new Label(container, SWT.NONE);
-                lbtFirstName.setText("File Name");
+                lbtFirstName.setText("File Name : ");
 
                 GridData dataFirstName = new GridData();
                 dataFirstName.grabExcessHorizontalSpace = true;

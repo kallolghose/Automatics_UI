@@ -334,8 +334,8 @@ public class ObjectMapEditor extends EditorPart {
 		lockItem.setToolTipText(lock_message);
 		lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
 		lockItem.setSelection(true);
-		lockItem.setData("Locked", false);
-		lockItem.setEnabled(viewAllElements && !private_view); //If Private View then do not show lock;
+		lockItem.setData("Locked", !viewAllElements);
+		lockItem.setEnabled(viewAllElements); 
 		
 		lockLabel = new Label(composite, SWT.NONE);
 		lockLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));

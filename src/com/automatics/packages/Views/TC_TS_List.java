@@ -79,7 +79,8 @@ public class TC_TS_List extends ViewPart {
 	private static Tree testCaseList;
 	private TestCaseTaskService tcService = TestCaseTaskService.getInstance();
 	private TestSuiteTaskService tsService = TestSuiteTaskService.getInstance();
-	private MenuItem copyItem, pasteItemForTS, deleteItem, refreshItem, refreshForTC, newForTC, openItem, delete_from_tc;
+	private MenuItem copyItem, pasteItemForTS, deleteItem, refreshItem, refreshForTC, newForTC, openItem,
+					delete_from_tc, renameTC;
 	
 	private MenuItem copyItemforTC, pasteItemforTC;
 	private TestSuiteTask copyTask;
@@ -205,6 +206,29 @@ public class TC_TS_List extends ViewPart {
 		testcaseListComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		testCaseList = new Tree(testcaseListComposite, SWT.BORDER);
+		
+		org.eclipse.swt.widgets.Menu testcasePopUp = new org.eclipse.swt.widgets.Menu(testCaseList);
+		testCaseList.setMenu(testcasePopUp);
+		
+		newForTC = new MenuItem(testcasePopUp, SWT.NONE);
+		newForTC.setText("New");
+		
+		copyItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
+		copyItemforTC.setText("Copy");
+		
+		pasteItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
+		pasteItemforTC.setText("Paste");
+		
+		delete_from_tc = new MenuItem(testcasePopUp, SWT.NONE);
+		delete_from_tc.setText("Delete");
+		
+		renameTC = new MenuItem(testcasePopUp, SWT.NONE);
+		renameTC.setText("Rename");
+		
+		new MenuItem(testcasePopUp, SWT.SEPARATOR);
+		
+		refreshForTC = new MenuItem(testcasePopUp, SWT.NONE);
+		refreshForTC.setText("Refresh");
 
 		DragSource dragSource = new DragSource(testCaseList, DND.DROP_MOVE);
 		setDragListener(dragSource);
@@ -291,26 +315,6 @@ public class TC_TS_List extends ViewPart {
 			appName.setData("eltType","APPNAME");
 			appName.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/project.png"));
 			
-			
-			org.eclipse.swt.widgets.Menu testcasePopUp = new org.eclipse.swt.widgets.Menu(testCaseList);
-			testCaseList.setMenu(testcasePopUp);
-			
-			newForTC = new MenuItem(testcasePopUp, SWT.NONE);
-			newForTC.setText("New");
-			
-			copyItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
-			copyItemforTC.setText("Copy");
-			
-			pasteItemforTC = new MenuItem(testcasePopUp, SWT.NONE);
-			pasteItemforTC.setText("Paste");
-			
-			delete_from_tc = new MenuItem(testcasePopUp, SWT.NONE);
-			delete_from_tc.setText("Delete");
-			
-			new MenuItem(testcasePopUp, SWT.SEPARATOR);
-			
-			refreshForTC = new MenuItem(testcasePopUp, SWT.NONE);
-			refreshForTC.setText("Refresh");
 			
 			TCGson [] allTCList = TestCaseAPIHandler.getInstance().getAllTestCases();
 			
@@ -451,22 +455,25 @@ public class TC_TS_List extends ViewPart {
 
 					dialog.create();
 					if (dialog.open() == Window.OK) {
-						copyTask.setTsName(dialog.getFirstName());
+						String pasteTSName = dialog.getFirstName();
+						
 						TSGson tsGson = copyTask.getTsGson();
-						tsGson.tsName = dialog.getFirstName();
+						tsGson.tsName = pasteTSName;
+						tsGson.lockedBy = Utilities.AUTOMATICS_PASSWORD;
 
 						TreeItem testSuiteItem = new TreeItem(testSuiteList
 								.getItem(0), SWT.NONE);
 						testSuiteItem.setText(tsGson.tsName);
 						testSuiteItem.setData("eltType", "TESTSUITE");
-						testSuiteItem.setImage(ResourceManager.getPluginImage(
-								"Automatics", "images/icons/ts_logo.png"));
+						testSuiteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/ts_logo.png"));
 
 						String name = tsGson.tsName;
 						Iterator<TSTCGson> itr = tsGson.tsTCLink.iterator();
 
+						
+						TestSuiteTask pasteTSTask = new TestSuiteTask(pasteTSName, tsGson.tsDesc, pasteTSName, tsGson);
 						if (tsService.getTaskByTSName(name) == null) {
-							tsService.addTasks(copyTask);
+							tsService.addTasks(pasteTSTask);
 						}
 
 						while (itr.hasNext()) {
@@ -532,20 +539,24 @@ public class TC_TS_List extends ViewPart {
 						
 						if (dialog.open() == Window.OK) 
 						{
-							copyTaskForTC.setTcName(dialog.getFirstName());
+							String pasteTCName = dialog.getFirstName();
+							
 							TCGson tcGson = copyTaskForTC.getTcGson();
-							tcGson.tcName = dialog.getFirstName();
+							tcGson.tcName = pasteTCName;
+							tcGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
+							
 							TreeItem testsuite_testcaseItem = new TreeItem(testCaseList.getItem(0), SWT.NONE);
 							testsuite_testcaseItem.setText(tcGson.tcName);
 							testsuite_testcaseItem.setData("eltType", "TESTCASE");
 							testsuite_testcaseItem.setImage(ResourceManager.getPluginImage("Automatics","images/icons/tc_logo.png"));
 							
-							// Save the TCGson to DB
-							/*JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(TSGson.class, tcGson));
-							if (jsonObj != null) 
+							TestCaseTask pasteTCTask = new TestCaseTask(pasteTCName, tcGson.tcDesc, tcGson.tcType,tcGson.tcIdentifier, tcGson);
+							if(tcService.getTaskByTcName(pasteTCName)==null)
 							{
-								AutomaticsDBTestCaseQueries.postTC(Utilities.getMongoDB(), jsonObj);
-							}*/
+								tcService.addTasks(pasteTCTask);
+							}
+							
+							
 							tcGson = TestCaseAPIHandler.getInstance().postTestCase(tcGson);
 							if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
 							{
@@ -648,7 +659,7 @@ public class TC_TS_List extends ViewPart {
 				}
 			});
 			
-deleteItem.addListener(SWT.Selection, new Listener() {
+			deleteItem.addListener(SWT.Selection, new Listener() {
 				
 				public void handleEvent(Event event) {
 				
@@ -664,7 +675,10 @@ deleteItem.addListener(SWT.Selection, new Listener() {
 						{
 							TestSuiteAPIHandler.getInstance().deleteTestSuite(item.getText());
 							if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE==200)
+							{
+								tsService.removeTaskByTSName(item.getText());
 								item.dispose();
+							}
 							else
 							{
 								MessageDialog edialog = new MessageDialog(getSite().getShell(), "Deletion Error", null, 
@@ -693,7 +707,10 @@ deleteItem.addListener(SWT.Selection, new Listener() {
 								//AutomaticsDBTestCaseQueries.deleteTC(Utilities.getMongoDB(), item.getText());
 								TestCaseAPIHandler.getInstance().deleteTestCase(item.getText());
 								if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE==200)
+								{
+									tcService.removeTaskByTCName(item.getText());
 									item.dispose();
+								}
 								else
 								{
 									MessageDialog edialog = new MessageDialog(getSite().getShell(), "Deletion Error", null, 
@@ -720,7 +737,10 @@ deleteItem.addListener(SWT.Selection, new Listener() {
 					{
 						TestCaseAPIHandler.getInstance().deleteTestCase(item.getText());
 						if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE==200)
+						{
+							tcService.removeTaskByTCName(item.getText());
 							item.dispose();
+						}
 						else
 						{
 							MessageDialog edialog = new MessageDialog(getSite().getShell(), "Deletion Error", null, 
@@ -729,6 +749,51 @@ deleteItem.addListener(SWT.Selection, new Listener() {
 							edialog.open();
 							throw new RuntimeException("Error while deleting case :" + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 						}
+					}
+				}
+			});
+			
+			renameTC.addListener(SWT.Selection, new Listener() 
+			{
+				@Override
+				public void handleEvent(Event event) 
+				{
+					TreeItem selected[] = testCaseList.getSelection();
+					String oldName = selected[0].getText();
+					TestCaseTask renameTask = tcService.getTaskByTcName(oldName);
+					TCGson renameGSON = renameTask.getTcGson();
+					boolean canRename = true;
+					if(!renameGSON.lockedBy.equals(""))
+					{
+						if(!renameGSON.lockedBy.equals(Utilities.AUTOMATICS_USERNAME))
+							canRename = false;
+					}
+					if(canRename)
+					{
+						MyTitleAreaDialog dialog = new MyTitleAreaDialog(testCaseList.getShell());
+                        dialog.create();
+                        if(dialog.open() == Window.OK)
+                        {
+                        	selected[0].setText(dialog.getFirstName());
+                        	renameGSON.tcName = dialog.getFirstName();
+                        	renameTask.setTcName(dialog.getFirstName());
+                        	renameGSON = TestCaseAPIHandler.getInstance().updateTestCase(oldName, renameGSON);
+                        	if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
+                            {
+                                   new MessageDialog(getSite().getShell(), "Rename Error", null, 
+                                                                                   "Cannot Rename Test Case : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE,
+                                                                                   MessageDialog.ERROR, new String[]{"OK"}, 0);
+                                   throw new RuntimeException("Rename Error TestCase : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE
+                                                                                   +" : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
+                            }
+                        }
+					}
+					else
+					{
+						MessageDialog popup = new MessageDialog(getSite().getShell(), "Information", null,
+								"Cannot rename file. File used by " + renameGSON.lockedBy, MessageDialog.INFORMATION, 
+								new String[]{"OK"}, 0);
+						popup.open();
 					}
 				}
 			});
@@ -899,24 +964,27 @@ deleteItem.addListener(SWT.Selection, new Listener() {
 							list = new ArrayList<TSTCGson>();
 						}
 						
-						//Add the test suite details
+						/*
+						 * Add the test suite details
+						 * Using TestSuiteEditor.all_col_name(ArrayList<String>()) to get all the column names*/
+						
 						TSTCGson details = new TSTCGson();
 						details.tcName = gson.tcName;
 						List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
 						TSTCParamGson param1 = new TSTCParamGson();
-						param1.tcparamName = "Column1";
+						param1.tcparamName = TestSuiteEditor.all_col_name.get(0); 
 						param1.tcparamValue = "";
 						TSTCParamGson param2 = new TSTCParamGson();
-						param2.tcparamName = "Column2";
+						param2.tcparamName = TestSuiteEditor.all_col_name.get(1);
 						param2.tcparamValue = "";
 						TSTCParamGson param3 = new TSTCParamGson();
-						param3.tcparamName = "Column3";
+						param3.tcparamName = TestSuiteEditor.all_col_name.get(2);
 						param3.tcparamValue = "";
 						TSTCParamGson param4 = new TSTCParamGson();
-						param4.tcparamName = "Column4";
+						param4.tcparamName =TestSuiteEditor.all_col_name.get(3);
 						param4.tcparamValue = "";
 						TSTCParamGson param5 = new TSTCParamGson();
-						param5.tcparamName = "Column5";
+						param5.tcparamName = TestSuiteEditor.all_col_name.get(4);
 						param5.tcparamValue = "";
 						paramList.add(param1);
 						paramList.add(param2);
@@ -954,19 +1022,19 @@ deleteItem.addListener(SWT.Selection, new Listener() {
 						details.tcName = gson.tcName;
 						List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
 						TSTCParamGson param1 = new TSTCParamGson();
-						param1.tcparamName = "Column1";
+						param1.tcparamName = TestSuiteEditor.all_col_name.get(0);
 						param1.tcparamValue = "";
 						TSTCParamGson param2 = new TSTCParamGson();
-						param2.tcparamName = "Column2";
+						param2.tcparamName = TestSuiteEditor.all_col_name.get(1);
 						param2.tcparamValue = "";
 						TSTCParamGson param3 = new TSTCParamGson();
-						param3.tcparamName = "Column3";
+						param3.tcparamName = TestSuiteEditor.all_col_name.get(2);
 						param3.tcparamValue = "";
 						TSTCParamGson param4 = new TSTCParamGson();
-						param4.tcparamName = "Column4";
+						param4.tcparamName = TestSuiteEditor.all_col_name.get(3);
 						param4.tcparamValue = "";
 						TSTCParamGson param5 = new TSTCParamGson();
-						param5.tcparamName = "Column5";
+						param5.tcparamName = TestSuiteEditor.all_col_name.get(4);
 						param5.tcparamValue = "";
 						paramList.add(param1);
 						paramList.add(param2);
@@ -1004,19 +1072,19 @@ deleteItem.addListener(SWT.Selection, new Listener() {
 						details.tcName = gson.tcName;
 						List<TSTCParamGson> paramList = new ArrayList<TSTCParamGson>();
 						TSTCParamGson param1 = new TSTCParamGson();
-						param1.tcparamName = "Column1";
+						param1.tcparamName = TestSuiteEditor.all_col_name.get(0);
 						param1.tcparamValue = "";
 						TSTCParamGson param2 = new TSTCParamGson();
-						param2.tcparamName = "Column2";
+						param2.tcparamName = TestSuiteEditor.all_col_name.get(1);
 						param2.tcparamValue = "";
 						TSTCParamGson param3 = new TSTCParamGson();
-						param3.tcparamName = "Column3";
+						param3.tcparamName = TestSuiteEditor.all_col_name.get(2);
 						param3.tcparamValue = "";
 						TSTCParamGson param4 = new TSTCParamGson();
-						param4.tcparamName = "Column4";
+						param4.tcparamName = TestSuiteEditor.all_col_name.get(3);
 						param4.tcparamValue = "";
 						TSTCParamGson param5 = new TSTCParamGson();
-						param5.tcparamName = "Column5";
+						param5.tcparamName = TestSuiteEditor.all_col_name.get(4);
 						param5.tcparamValue = "";
 						paramList.add(param1);
 						paramList.add(param2);

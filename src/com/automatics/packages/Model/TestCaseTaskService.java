@@ -31,4 +31,17 @@ public class TestCaseTaskService
         }
         return null;
     }
+    
+    public boolean removeTaskByTCName(String tcName)
+    {
+    	for (TestCaseTask todo : tasks) 
+    	{
+            if (todo.getTcName().equals(tcName)) 
+            {
+            	tasks.remove(todo);
+                return true;
+            }
+    	}
+    	return false;
+    }
 }

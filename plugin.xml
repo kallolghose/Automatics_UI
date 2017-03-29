@@ -161,7 +161,7 @@
             </command>
          </menu>
          <menu
-               label="Run">
+               label="Runner">
             <command
                   commandId="com.automatics.packages.run.openRunUI"
                   label="Open Runner"

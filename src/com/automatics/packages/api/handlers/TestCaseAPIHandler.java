@@ -98,13 +98,13 @@ public class TestCaseAPIHandler
 		return null;
 	}
 	
-	public TCGson updateTestCase(TCGson tcGson)
+	public TCGson updateTestCase(String tcName, TCGson tcGson)
 	{
 		try
 		{
 			String jsonStr = Utilities.getJSONFomGSON(TCGson.class, tcGson);
 			JsonObject updateObj = Json.createReader(new StringReader(jsonStr)).readObject();
-			JsonObject responseObj = TestcaseAPI.putTestCase(tcGson.tcName, updateObj);
+			JsonObject responseObj = TestcaseAPI.putTestCase(tcName, updateObj);
 			TESTCASE_RESPONSE_CODE = TestcaseAPI.RESPONSE_CODE;
 			TESTCASE_RESPONSE_MESSAGE = TestcaseAPI.RESPONSE_MESSAGE;
 			if(TESTCASE_RESPONSE_CODE==200)

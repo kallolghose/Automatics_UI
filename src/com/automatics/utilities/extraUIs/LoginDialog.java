@@ -46,8 +46,8 @@ public class LoginDialog extends Dialog {
 		try
 		{
 			/*Load properties file*/
-			String configFile = "D:/KG00360770/ATT/Automatic_DC/Automatics/conf.ini"; //For Desktop use this
-			//String configFile = System.getProperty("user.dir")+ "/../conf.ini"; //For Exe Use this
+			//String configFile = "D:/KG00360770/ATT/Automatic_DC/Automatics/conf.ini"; //For Desktop use this
+			String configFile = System.getProperty("user.dir")+ "/../conf.ini"; //For Exe Use this
 			File file = new File(configFile);
 			FileInputStream fileInput = new FileInputStream(file);
 			Properties properties = new Properties();

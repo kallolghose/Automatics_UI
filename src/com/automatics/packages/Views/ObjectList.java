@@ -216,20 +216,33 @@ public class ObjectList extends ViewPart {
 				MyTitleAreaDialog dialog = new MyTitleAreaDialog(omListTree
 						.getShell());
 				dialog.create();
-				if (dialog.open() == Window.OK) {
-					copyTask.setOmName(dialog.getFirstName());
+				if (dialog.open() == Window.OK) 
+				{
+					String pasteOMName = dialog.getFirstName();
+					
 					OMGson omGson = copyTask.getOmGson();
-					omGson.omName = dialog.getFirstName();
+					omGson.omName = pasteOMName;
+					omGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
+					
 					TreeItem objectListItem = new TreeItem(omListTree
 							.getItem(0), SWT.NONE);
 					objectListItem.setText(omGson.omName);
 					objectListItem.setData("eltType", "OBJECTMAP");
 					objectListItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/om_logo_new.png"));
-					/*JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, omGson));
-					if (jsonObj != null) 
+					
+					//Create new task
+					ObjectMapTask newPasteTask = new ObjectMapTask(pasteOMName, copyTask.getOmDesc(), pasteOMName,omGson);
+					if(service.getTaskByOmName(pasteOMName)==null)
 					{
-						AutomaticsDBObjectMapQueries.postOM(Utilities.getMongoDB(), jsonObj);
-					}*/
+						service.addTasks(newPasteTask);
+					}
+					
+					ObjectMapSaveTask saveTask = new ObjectMapSaveTask(pasteOMName, omGson);
+					if(ObjectMapSaveService.getInstance().getSaveTask(pasteOMName)==null)
+					{
+						ObjectMapSaveService.getInstance().addSaveTask(saveTask);
+					}
+					
 					omGson = ObjectMapAPIHandler.getInstance().postObjectMap(omGson);
 					if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE!=200)
 					{

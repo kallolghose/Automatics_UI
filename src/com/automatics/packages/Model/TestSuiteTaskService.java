@@ -31,4 +31,17 @@ public class TestSuiteTaskService
 		}
 		return null;
 	}
+	
+	public boolean removeTaskByTSName(String tsName)
+	{
+		for(TestSuiteTask todo : tasks)
+		{
+			if(todo.getTsName().equals(tsName))
+			{
+				tasks.remove(todo);
+				return true;
+			}
+		}
+		return false;
+	}
 }

@@ -359,10 +359,18 @@ public class Utilities
 			}
 			
 			suiteFile = suiteFile + "</suite>";
-			
-			//Write Content to file
+			/*
+			 * Write contents to file*/
+			//By default kee the location as temp for the runner API
 			String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 			String filepath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.data\\com\\automatics\\data\\temp\\" + tsGson.tsName + ".xml";
+			
+			if(runner.type!=null && runner.type.equalsIgnoreCase("SAVED")) //Change the location in case writing file while saving
+			{
+				workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
+				filepath = workspacePath + "\\" + PROJECT_NAME + "\\com.automatics.packages\\com\\automatics\\packages\\testsuites\\" + tsGson.tsName + ".xml";
+			}
+			
 			PrintWriter writer = new PrintWriter(filepath);
 			writer.println(suiteFile);
 			writer.close();
@@ -615,15 +623,15 @@ public class Utilities
 		//Pattern blankCheck2 = Pattern.compile("(?=.*[~!@#$%^&*-[[:blank:]]])");
 		Pattern blankCheck2 = Pattern.compile("[^A-Za-z0-9_]+");
 		/*Biswabir Code*/
-		Pattern keywordCheck= Pattern.compile("(final|abstract|assert|booean|break|byte|switch|case|try|catch|finally|char|class|continue|"
+		/*Pattern keywordCheck= Pattern.compile("^[final|abstract|assert|booean|break|byte|switch|case|try|catch|finally|char|class|continue|"
 				+ "default|do|double|if|else|enum|extends|float|for|implements|import|instanceOf|int|interface|long|native|new|package|"
 				+ "private|protected|public|return|short|static|strictfp|super|synchronized|this|throw|throws|transient|void|volatile|"
-				+ "while|goto|const)");
+				+ "while|goto|const]$");*/
 		
 		final Matcher  blankCheckForTsName = blankCheck.matcher(str); 
 	    final Matcher  blankCheckForTsNameForNumberCheck = blankCheck1.matcher(str);
 	    final Matcher  blankCheckForTsNameForSpecialCherecterCheck = blankCheck2.matcher(str);
-	    final Matcher  blankCheckForTsNameForJavaKeywordCheck = keywordCheck.matcher(str);
+	    //final Matcher  blankCheckForTsNameForJavaKeywordCheck = keywordCheck.matcher(str);
 	    
 		if(blankCheckForTsName.find())
 		{ 
@@ -637,10 +645,7 @@ public class Utilities
 		{ 
 			collvalidityMessage.add("Special Characters/Space not allowed in name");
 		}
-		if(blankCheckForTsNameForJavaKeywordCheck.find())
-		{
-			collvalidityMessage.add("Java Keyword not allowed in name");
-		}
+		
 		return collvalidityMessage;
     }
 

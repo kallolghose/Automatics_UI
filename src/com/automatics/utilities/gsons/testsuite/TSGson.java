@@ -11,7 +11,5 @@ public class TSGson
 	public String tsCreatedBy;
 	public String tsCreatedOn; 
 	public String lockedBy;
-	public String tsPrivilege; 
-	public String updateInfo;
 	public List<TSTCGson> tsTCLink;
 }

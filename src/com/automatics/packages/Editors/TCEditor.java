@@ -460,7 +460,7 @@ public class TCEditor extends EditorPart {
 				}
 			});
 			TableColumn objmapCol = objmapViewer.getColumn();
-			objmapCol.setResizable(false);
+			objmapCol.setWidth(50);
 			objmapCol.setText("ObjMapCol");
 	
 			//Load Test Steps
@@ -671,6 +671,7 @@ public class TCEditor extends EditorPart {
 						newStep.stepObjName = copyGson.stepObjName;
 						newStep.stepArgument = copyGson.stepArgument;
 						newStep.stepVarName = copyGson.stepVarName;
+						newStep.omName = copyGson.omName;
 						
 						listOfTestCaseSteps.add(insertAfter,newStep);
 						insertAfter++;
@@ -1058,7 +1059,7 @@ public class TCEditor extends EditorPart {
 						throw new RuntimeException("Error In Test Case Save");
 					}*/
 					
-					tcSaveGson = TestCaseAPIHandler.getInstance().updateTestCase(tcSaveGson);
+					tcSaveGson = TestCaseAPIHandler.getInstance().updateTestCase(tcSaveGson.tcName,tcSaveGson);
 					if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
 					{
 						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Error", null, 

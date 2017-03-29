@@ -4,10 +4,13 @@ import java.io.OutputStreamWriter;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+
+
 
 
 
@@ -54,10 +57,12 @@ import org.osgi.framework.AllServiceListener;
 import sun.security.krb5.Realm;
 
 import com.automatics.packages.api.handlers.TestSuiteAPIHandler;
+import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.testsuite.TSGson;
 import com.automatics.utilities.gsons.testsuite.TSTCGson;
 import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
 import com.automatics.utilities.helpers.Utilities;
+import org.eclipse.wb.swt.SWTResourceManager;
 
 /**
  * NewRunnerUI.
@@ -69,12 +74,14 @@ public class NewRunnerUI {
 
 	protected Shell shlRunner;
 	private List<String> allTestSuites;
-	private Text text;
+	private Text rerunTimes;
 	private Text text_1;
-	private TreeItem trtmNewTreeitem;
+	private TreeItem parentTestSuite;
 	private Tree remoteTable;
 	private Tree localHostTable;
 	private Text runnerConsole;
+	private TestSuiteExecutor execution = null;
+	private GitUtilities gitUtil;
 	/**
 	 * Launch the application.
 	 * @param args
@@ -114,6 +121,14 @@ public class NewRunnerUI {
 	 * @wbp.parser.entryPoint
 	 */
 	protected void createContents() {
+		
+		/*
+		 * Load GIT properties*/
+		gitUtil = new GitUtilities();
+		gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+		gitUtil.initExistingRepository();
+		/*Loading completed*/
+		
 		shlRunner = new Shell();
 		shlRunner.setSize(555, 582);
 		shlRunner.setText("Runner");
@@ -143,17 +158,29 @@ public class NewRunnerUI {
 		refresh.setToolTipText("Refresh");
 		refresh.addSelectionListener(new SelectionAdapter() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-//				AutomaticsDBTestSuiteQueries.deleteTS(Utilities.getMongoDB(), tsName)
+			public void widgetSelected(SelectionEvent e) 
+			{
 				createTestSuiteTable(remoteTable);
 				createTestSuiteTable(localHostTable);
 			}
 		});
 		
-		final TabFolder tabFolder = new TabFolder(suitedetailsComposite, SWT.NONE);
-		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false, 1, 1));
+
+		ToolItem stop = new ToolItem(iConToolBar, SWT.NONE);
+		stop.setText("Stop");
+		stop.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				if(execution!=null)
+				{
+					execution.stopExecution();
+				}
+			}
+		});
 		
-//		ArrayList<String>collList=	AutomaticsDBTestSuiteQueries.getAllTS(Utilities.getMongoDB());
+		final TabFolder tabFolder = new TabFolder(suitedetailsComposite, SWT.NONE);
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false, 1, 1));
+		
 		
 		TabItem tbtmNewItem = new TabItem(tabFolder, SWT.NONE);
 		tbtmNewItem.setText("Remote");
@@ -164,7 +191,6 @@ public class NewRunnerUI {
 		 gl_composite_1.marginWidth = 0;
 		 gl_composite_1.marginHeight = 0;
 		 composite_1.setLayout(gl_composite_1);
-		 //composite_1.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		 remoteTable = new Tree(composite_1, SWT.BORDER | SWT.CHECK | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		 remoteTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
@@ -267,33 +293,41 @@ public class NewRunnerUI {
 			}
 			
 		});
+		 
+		shlRunner.setTabList(new Control[]{parentComposite});
+		//m_bindingContext = initDataBindings();
+		createTestSuiteTable(localHostTable);
+
+		editTreeTable(remoteTable);
+		editTreeTable(localHostTable);
+		getChecked(remoteTable);
+		getChecked(localHostTable);
 		
-		
-		TabItem tbtmNewItem_2 = new TabItem(tabFolder, SWT.NONE);
-		tbtmNewItem_2.setText("Settings");
+		TabItem tbtmSettings = new TabItem(tabFolder, SWT.NONE);
+		tbtmSettings.setText("Settings");
 		
 		final Composite composite_3 = new Composite(tabFolder, SWT.NONE);
-		tbtmNewItem_2.setControl(composite_3);
-			    Label lblNewLabel = new Label(composite_3, SWT.NONE);
-			    lblNewLabel.setBounds(10, 96, 112, 31);
-			    lblNewLabel.setText("Re-run Failed Scripts:");
+		tbtmSettings.setControl(composite_3);
+		Label lblNewLabel = new Label(composite_3, SWT.NONE);
+		lblNewLabel.setBounds(20, 60, 112, 31);
+		lblNewLabel.setText("Re-run Failed Scripts :");
 		final Button btnRadioButton = new Button(composite_3, SWT.RADIO);
-		btnRadioButton.setBounds(136, 85, 38, 42);
+		btnRadioButton.setBounds(204, 52, 38, 31);
 		btnRadioButton.setText("Yes");
 		
 		final Button btnRadioButton_1 = new Button(composite_3, SWT.RADIO);
-		btnRadioButton_1.setBounds(193, 85, 48, 42);
+		btnRadioButton_1.setBounds(248, 52, 48, 31);
 		btnRadioButton_1.setText("No");
 		new Label(composite_3, SWT.NONE);
 		Label lblHowManyTimes = new Label(composite_3, SWT.NONE);
-		lblHowManyTimes.setBounds(10, 133, 96, 24);
-		lblHowManyTimes.setText("How Many Times:");		
-		text = new Text(composite_3, SWT.BORDER);
-		text.setBounds(136, 133, 48, 16);
+		lblHowManyTimes.setBounds(20, 97, 164, 16);
+		lblHowManyTimes.setText("No of times for Re-Run :");		
+		rerunTimes = new Text(composite_3, SWT.BORDER);
+		rerunTimes.setBounds(204, 94, 73, 16);
 		new Label(composite_3, SWT.NONE);
 		new Label(composite_3, SWT.NONE);
 		Label lblSaveReports = new Label(composite_3, SWT.NONE);
-		lblSaveReports.setBounds(10, 193, 70, 24);
+		lblSaveReports.setBounds(20, 130, 164, 24);
 		lblSaveReports.setText("Save Reports:");
 		
 		final Button btnCheckButton = new Button(composite_3, SWT.CHECK);
@@ -302,11 +336,11 @@ public class NewRunnerUI {
 			public void widgetSelected(SelectionEvent e) {
 			}
 		});
-		btnCheckButton.setBounds(141, 179, 48, 42);
+		btnCheckButton.setBounds(204, 116, 48, 42);
 		btnCheckButton.setText("Disk");
 		
 		final Button btnCheckButton_1 = new Button(composite_3, SWT.CHECK);
-		btnCheckButton_1.setBounds(223, 191, 38, 24);
+		btnCheckButton_1.setBounds(298, 125, 38, 24);
 		btnCheckButton_1.setText("DB");
 		new Label(composite_3, SWT.NONE);
 		new Label(composite_3, SWT.NONE);
@@ -317,11 +351,11 @@ public class NewRunnerUI {
 			public void widgetSelected(SelectionEvent e) {
 			}
 		});
-		btnCheckButton_2.setBounds(141, 227, 48, 31);
+		btnCheckButton_2.setBounds(248, 122, 38, 31);
 		btnCheckButton_2.setText("PDF");
 		
 		final Button btnCheckButton_3 = new Button(composite_3, SWT.CHECK);
-		btnCheckButton_3.setBounds(223, 236, 54, 16);
+		btnCheckButton_3.setBounds(342, 129, 54, 16);
 		btnCheckButton_3.setText("HTML");
 		new Label(composite_3, SWT.NONE);
 		new Label(composite_3, SWT.NONE);
@@ -331,16 +365,41 @@ public class NewRunnerUI {
 		new Label(composite_3, SWT.NONE);
 		
 		Button btnNewButton = new Button(composite_3, SWT.NONE);
-		btnNewButton.setBounds(141, 287, 79, 31);
+		btnNewButton.setBounds(442, 262, 79, 21);
 		btnNewButton.setText("Reset");
 		new Label(composite_3, SWT.NONE);
 		new Label(composite_3, SWT.NONE);
 		Button btnNewButton_1 = new Button(composite_3, SWT.NONE);
-		btnNewButton_1.setBounds(10, 27, 96, 23);
+		btnNewButton_1.setBounds(425, 23, 96, 23);
 		btnNewButton_1.setText("Date And Time");
 		
 		final Label lblNewLabel_1 = new Label(composite_3, SWT.NONE);
 		lblNewLabel_1.setBounds(136, 27, 222, 27);
+		
+		Label lblDateAndTime = new Label(composite_3, SWT.NONE);
+		lblDateAndTime.setBounds(20, 27, 164, 15);
+		lblDateAndTime.setText("Date and Time For Execution :");
+		
+		Label label = new Label(composite_3, SWT.NONE);
+		label.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		label.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		label.setBounds(10, 27, 10, 15);
+		label.setText("*");
+		
+		Label label_1 = new Label(composite_3, SWT.NONE);
+		label_1.setText("*");
+		label_1.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		label_1.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		label_1.setBounds(10, 60, 10, 15);
+		
+		Label label_2 = new Label(composite_3, SWT.NONE);
+		label_2.setText("*");
+		label_2.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		label_2.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		label_2.setBounds(10, 130, 10, 15);
+		
+		Label label_3 = new Label(composite_3, SWT.SEPARATOR | SWT.HORIZONTAL);
+		label_3.setBounds(0, 191, 453, 0);
 		btnNewButton_1.addSelectionListener (new SelectionAdapter () {
 			    public void widgetSelected (SelectionEvent e) {
 			      final Shell dialog = new Shell (shlRunner, SWT.DIALOG_TRIM);
@@ -370,15 +429,21 @@ public class NewRunnerUI {
 			      dialog.open ();
 			    }
 			  });
-		 
-		shlRunner.setTabList(new Control[]{parentComposite});
-		//m_bindingContext = initDataBindings();
-		createTestSuiteTable(localHostTable);
-
-		editTreeTable(remoteTable);
-		editTreeTable(localHostTable);
-		getChecked(remoteTable);
-		getChecked(localHostTable);
+		
+		btnNewButton.addSelectionListener(new SelectionAdapter()
+		  {
+		    @Override
+		    public void widgetSelected(SelectionEvent e)
+		    {
+		    	btnCheckButton.setSelection(false);
+		    	btnCheckButton_1.setSelection(false);
+		    	btnCheckButton_2.setSelection(false);
+		    	btnCheckButton_3.setSelection(false);
+		    	btnRadioButton.setSelection(false);
+		    	btnRadioButton_1.setSelection(false);
+		    	rerunTimes.setText("");
+		    }
+		});
 		
 		Composite composite_4 = new Composite(suitedetailsComposite, SWT.NONE);
 		GridLayout gl_composite_4 = new GridLayout(1, false);
@@ -399,21 +464,6 @@ public class NewRunnerUI {
 		
 		runnerConsole = new Text(composite_5, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL | SWT.MULTI);
 		runnerConsole.setEditable(false);
-		
-		btnNewButton.addSelectionListener(new SelectionAdapter()
-		  {
-		    @Override
-		    public void widgetSelected(SelectionEvent e)
-		    {
-		    	btnCheckButton.setSelection(false);
-		    	btnCheckButton_1.setSelection(false);
-		    	btnCheckButton_2.setSelection(false);
-		    	btnCheckButton_3.setSelection(false);
-		    	btnRadioButton.setSelection(false);
-		    	btnRadioButton_1.setSelection(false);
-		    	text.setText("");
-		    }
-		});
 
 		
 		run.addSelectionListener(new SelectionAdapter() {
@@ -446,19 +496,24 @@ public class NewRunnerUI {
 		boolean checked=false;
 		for (TSGson tsGson : tsGsons) 
 		{
-			trtmNewTreeitem = new TreeItem(table, SWT.NONE|SWT.MULTI);
-		    trtmNewTreeitem.setText(new String[] { "" +tsGson.tsName, "", "","","","" });
-		    trtmNewTreeitem.setData("EltType","TESTSUITE");
-		
+			parentTestSuite = new TreeItem(table, SWT.NONE|SWT.MULTI);
+		    parentTestSuite.setText(new String[] { "" +tsGson.tsName, "", "","","","" });
+		    parentTestSuite.setData("EltType","TESTSUITE");
+		    
 		    if(tsGson.tsTCLink==null)
 		            continue;
 		    for(TSTCGson tsTCGson : tsGson.tsTCLink) 
 		    {
-		    	TreeItem trtmTestcases = new TreeItem(trtmNewTreeitem, SWT.NONE|SWT.MULTI);
-		        trtmTestcases.setText(new String[] {tsTCGson.tcName, tsTCGson.tcParams.get(0)!=null ?tsTCGson.tcParams.get(0).tcparamValue:"", tsTCGson.tcParams.get(1)!=null ?tsTCGson.tcParams.get(1).tcparamValue:"",tsTCGson.tcParams.get(2)!=null ?tsTCGson.tcParams.get(2).tcparamValue:"",tsTCGson.tcParams.get(3)!=null ?tsTCGson.tcParams.get(3).tcparamValue:"",tsTCGson.tcParams.get(4)!=null ?tsTCGson.tcParams.get(4).tcparamValue:"" });
+		    	TreeItem trtmTestcases = new TreeItem(parentTestSuite, SWT.NONE|SWT.MULTI);
+		        trtmTestcases.setText(new String[] {tsTCGson.tcName, 
+		        		tsTCGson.tcParams.get(0)!=null ?tsTCGson.tcParams.get(0).tcparamValue:"",
+		        		tsTCGson.tcParams.get(1)!=null ?tsTCGson.tcParams.get(1).tcparamValue:"",
+		        		tsTCGson.tcParams.get(2)!=null ?tsTCGson.tcParams.get(2).tcparamValue:"",
+		        		tsTCGson.tcParams.get(3)!=null ?tsTCGson.tcParams.get(3).tcparamValue:"",
+		        		tsTCGson.tcParams.get(4)!=null ?tsTCGson.tcParams.get(4).tcparamValue:"" });
 		        trtmTestcases.setData("EltType","TESTCASE");
 
-                table.setSelection(trtmNewTreeitem);
+                table.setSelection(parentTestSuite);
                 if(checked)
                 {
                       trtmTestcases.setChecked(checked);
@@ -673,9 +728,11 @@ public class NewRunnerUI {
 		runnerAPI.testsuiteName = tsGson.tsName;
 		runnerAPI.status = "Running";
 		testNGList.add(Utilities.createTestng(tsGson, runnerAPI));
+		boolean gitPassed = this.gitUtil.performGITSyncOperation();
+		System.out.println("[" + new Date() + "] : Runner Git Operation : " + gitPassed);
 		
 	  }
-	  TestSuiteExecutor execution = new TestSuiteExecutor(testNGList, new ConsoleOutputStream(runnerConsole), runnerConsole);
+	  execution = new TestSuiteExecutor(testNGList, new ConsoleOutputStream(runnerConsole), runnerConsole);
 	  execution.executeTestSuite();
   }
 }

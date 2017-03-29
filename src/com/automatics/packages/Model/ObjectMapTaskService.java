@@ -38,4 +38,17 @@ public class ObjectMapTaskService
 		return null;
 	}
 	
+	public boolean deleteTaskByOMName(String omName)
+	{
+		for(ObjectMapTask task : tasks)
+		{
+			if(task.getOmName().equals(omName))
+			{
+				tasks.remove(task);
+				return true;
+			}
+		}
+		return false;
+	}
+	
 }
