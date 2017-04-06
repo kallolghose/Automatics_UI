@@ -39,7 +39,7 @@ import com.jcraft.jsch.Session;
 
 public class GitUtilities 
 {
-	public static String GIT_PASSWORD = "admin";
+	public static String GIT_PASSWORD = "gitu$er@852";
 	public static String GIT_PROPERTY_PATH = "git_config.properties";
 	
 	private Repository localRepo;
@@ -57,16 +57,16 @@ public class GitUtilities
 			Properties properties = new Properties();
 			properties.load(fileInput);
 			setGitProperties(properties);
-			if(properties.getProperty("REMOTE_PASSWORD")!=null)
+			/*if(properties.getProperty("REMOTE_PASSWORD")!=null)
 			{
 				GIT_PASSWORD = properties.getProperty("REMOTE_PASSWORD"); 
-			}
+			}*/
 			return properties;
 		}
 		catch(Exception e)
 		{
-			System.out.println("[GitLoadProperties : loadProperties()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [GitLoadProperties : loadProperties()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -92,8 +92,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[GitUtilities : init()] - Exception  : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [GitUtilities : init()] - Exception  : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -110,8 +110,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : initExistingRepository()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : initExistingRepository()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -129,8 +129,8 @@ public class GitUtilities
 		{
 		
 			ERR_MSG_GIT = e.getMessage();
-			System.out.println("[" + getClass().getName() +" : createRepositary()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() +" : createRepositary()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 			return false;
 		}
     }
@@ -158,8 +158,8 @@ public class GitUtilities
 			if(e.getMessage().contains("Repository already exists"))
 				return true;
 			ERR_MSG_GIT = e.getMessage();
-			System.out.println("[" + getClass().getName() + " - cloneRepository()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " - cloneRepository()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 			return false;
 		}
  	}
@@ -173,8 +173,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " - addToRepository()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " - addToRepository()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -188,8 +188,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : performCommit()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : performCommit()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -203,8 +203,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : performCommit()] :  Exception - " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : performCommit()] :  Exception - " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -224,8 +224,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : perfromPush()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : perfromPush()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -248,6 +248,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + "] : Exception  : " + e.getMessage());
+			e.printStackTrace(System.out);
 			return false;
 		}
 	}
@@ -269,8 +271,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : perfromPull()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : perfromPull()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 			return false;
 		}
 	}
@@ -318,8 +320,8 @@ public class GitUtilities
 		catch(Exception e)
 		{
 			ERR_MSG_GIT = e.getMessage();
-			System.out.println("[" + getClass().getName() + " : performGITSyncOperation()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : performGITSyncOperation()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return false;
 	}
@@ -365,8 +367,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : getDifference()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : getDifference()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 			return false;
 		}
 	}
@@ -380,8 +382,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " getStatus()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " getStatus()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 			return null;
 		}
 	}
@@ -408,8 +410,8 @@ public class GitUtilities
         }
         catch(Exception e)
         {
-        	System.out.println("[" + getClass().getName() + " : prepareTreeParser()] - Exception : " + e.getMessage());
-        	e.printStackTrace();
+        	System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : prepareTreeParser()] - Exception : " + e.getMessage());
+        	e.printStackTrace(System.out);
         	return null;
         }
     }
@@ -435,6 +437,8 @@ public class GitUtilities
 		}
 		catch(Exception e)
 		{
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + "] : Exception - " + e.getMessage());
+			e.printStackTrace(System.out);
 			return false;
 		}
 	}

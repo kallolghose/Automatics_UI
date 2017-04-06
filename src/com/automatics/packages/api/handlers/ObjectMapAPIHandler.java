@@ -17,14 +17,15 @@ public class ObjectMapAPIHandler
 	private OMGson[] allObjectMap;
 	public static int OBJECTMAP_RESPONSE_CODE = -99;
 	public static String OBJECTMAP_RESPONSE_MESSAGE = "";
+	public static JsonObject OBJECTMAP_JSON_ERROR_RESPONSE = null;
 	
 	private ObjectMapAPIHandler()
 	{
 		try
 		{
 			Gson gson = new Gson();
-			JsonArray testcaseJsonArr = ObjectMapAPI.getAllObjectMap();
-			allObjectMap = gson.fromJson(testcaseJsonArr.toString(), OMGson[].class);
+			JsonArray omJsonArr = ObjectMapAPI.getAllObjectMap();
+			allObjectMap = gson.fromJson(omJsonArr.toString(), OMGson[].class);
 		}
 		catch(Exception e)
 		{
@@ -43,9 +44,17 @@ public class ObjectMapAPIHandler
 		try
 		{
 			Gson gson = new Gson();
-			JsonArray testcaseJsonArr = ObjectMapAPI.getAllObjectMap();
-			allObjectMap = gson.fromJson(testcaseJsonArr.toString(), OMGson[].class);
-			return allObjectMap;
+			JsonArray omJsonArr = ObjectMapAPI.getAllObjectMap();
+			OBJECTMAP_RESPONSE_CODE = ObjectMapAPI.RESPONSE_CODE;
+			OBJECTMAP_RESPONSE_MESSAGE = ObjectMapAPI.RESPONSE_MESSAGE; 
+	
+			if(OBJECTMAP_RESPONSE_CODE == 200)
+			{
+				allObjectMap = gson.fromJson(omJsonArr.toString(), OMGson[].class);
+				return allObjectMap;
+			}
+			/*In case of an error*/
+			OBJECTMAP_JSON_ERROR_RESPONSE = omJsonArr.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -68,6 +77,8 @@ public class ObjectMapAPIHandler
 			{
 				allObjectMap = gson.fromJson(omJsonArr.toString(), OMGson[].class);
 			}
+			/*In case of an error*/
+			OBJECTMAP_JSON_ERROR_RESPONSE = omJsonArr.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -88,6 +99,8 @@ public class ObjectMapAPIHandler
 				OMGson[] omGson = Utilities.getGSONFromJSON(omObjects.toString(), OMGson[].class);
 				return omGson[0];
 			}
+			/*In case of an error*/
+			OBJECTMAP_JSON_ERROR_RESPONSE = omObjects.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -111,6 +124,8 @@ public class ObjectMapAPIHandler
 				OMGson responseGson = Utilities.getGSONFromJSON(responseObj.toString(), OMGson.class);
 				return responseGson;
 			}
+			/*In case of an error*/
+			OBJECTMAP_JSON_ERROR_RESPONSE = responseObj;
 		}
 		catch(Exception e)
 		{
@@ -134,6 +149,8 @@ public class ObjectMapAPIHandler
 				OMGson responseGson = Utilities.getGSONFromJSON(responseObj.toString(), OMGson.class);
 				return responseGson;
 			}
+			/*In case of an error*/
+			OBJECTMAP_JSON_ERROR_RESPONSE = responseObj;
 		}
 		catch(Exception e)
 		{
@@ -152,6 +169,9 @@ public class ObjectMapAPIHandler
 			OBJECTMAP_RESPONSE_MESSAGE = ObjectMapAPI.RESPONSE_MESSAGE;
 			if(OBJECTMAP_RESPONSE_CODE==200)
 				return true;
+
+			/*In case of an error*/
+			OBJECTMAP_JSON_ERROR_RESPONSE = responseObj;
 		}
 		catch(Exception e)
 		{

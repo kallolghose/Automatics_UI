@@ -51,7 +51,7 @@ public class TCArgumentsColumnEditable extends EditingSupport
 		/*
 		 * Check if the operation is RunScript then show pop-up*/
 		TCStepsGSON temp = (TCStepsGSON)element;
-		if(temp.stepOperation.equals("RunScript"))
+		if(temp.stepOperation.equalsIgnoreCase("RunScript"))
 		{
 			RunScriptTCPopUp rspopUp = new RunScriptTCPopUp(viewer.getTable().getShell());
 			if(rspopUp.open() == Window.OK)

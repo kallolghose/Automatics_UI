@@ -1,7 +1,9 @@
 package com.automatics.utilities.runner;
 
 import java.io.PrintWriter;
+import java.util.Date;
 import java.util.List;
+
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecuteResultHandler;
 import org.apache.commons.exec.DefaultExecutor;
@@ -37,7 +39,7 @@ public class TestSuiteExecutor
 		String workspacePath = ResourcesPlugin.getWorkspace().getRoot().getLocation().toString();
 		String location  = workspacePath + "\\" + PROJECT_NAME;
 		String libPath = workspacePath + "\\ext\\jars";
-		String binPath = location + "\\bin";
+		String binPath = location + "\\com.automatics.packages";
 		String dir = location.charAt(0) + ":";
 		String cmd_for_testng = "java -cp " + libPath + "\\*;" + binPath + " org.testng.TestNG " + location +"\\testng.xml";
 		
@@ -85,6 +87,7 @@ public class TestSuiteExecutor
 		}
 		catch(Exception e)
 		{
+			System.out.println("[" + new Date() + "] - TestSuiteExecutor - executeTestSuite : " + e.getMessage());
 			e.printStackTrace(System.out);
 		}
 	}
@@ -96,6 +99,7 @@ public class TestSuiteExecutor
 		}
 		catch(Exception e)
 		{
+			System.out.println("[" + new Date() + "] - TestSuiteExecutor - stopExecution : " + e.getMessage());
 			e.printStackTrace(System.out);
 		}
 	}

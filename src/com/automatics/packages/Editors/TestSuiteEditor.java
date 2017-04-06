@@ -2,6 +2,7 @@ package com.automatics.packages.Editors;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import javax.json.JsonObject;
@@ -48,6 +49,7 @@ import com.automatics.utilities.gsons.testsuite.TSTCParamGson;
 import com.automatics.utilities.helpers.Utilities;
 import com.automatics.utilities.runner.TestSuiteRunnerAPI;
 import com.mongodb.DB;
+import com.sun.corba.se.impl.protocol.giopmsgheaders.Message;
 
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.SWT;
@@ -97,9 +99,9 @@ public class TestSuiteEditor extends EditorPart {
 	private List<TSTCGson> listStepGSON;
 	private ArrayList<TSTCGson> copiedCell;
 	private GitUtilities gitUtil;
-	private Label errLabel;
+	private Label lockLabel;
 	private String user_lock_message = "Lock Username";
-	private boolean viewAllElements = true;
+	private boolean viewAllElements = true, viewLockItem = true;
 	private String lock_image = "images/icons/Open_lock.png";
 	private String lock_message = "Lock for editing";
 	
@@ -127,11 +129,22 @@ public class TestSuiteEditor extends EditorPart {
 		{
 			throw new RuntimeException("Wrong input");
 		}
+
+		//Initialize GIT properties
+		gitUtil = new GitUtilities();
+		gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
+		gitUtil.initExistingRepository();
 		
 		this.input = (TestSuiteEditorInput) input;
 		setSite(site);
 		setInput(input);
 		tsTask = TestSuiteTaskService.getInstance().getTaskByTSName(this.input.getId());
+		
+		if(tsTask==null)
+		{
+			throw new RuntimeException("Test suite does not exists");
+		}
+		
 		setPartName("TestSuite:" + tsTask.getTsName());
 		
 		TSGson tsGson = tsTask.getTsGson();
@@ -141,11 +154,13 @@ public class TestSuiteEditor extends EditorPart {
 			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(tsGson.lockedBy))
 	    	{
 	    		viewAllElements = false;
+	    		viewLockItem = false;
 	    		user_lock_message = "Locked By : " + tsGson.lockedBy;
 	    	}
 			else
 	    	{
 				viewAllElements = true;
+				viewLockItem = true;
 	    		lock_image = "images/icons/lock.png";
 	    		lock_message = "Unlock the file";
 	    		user_lock_message = "";
@@ -155,21 +170,24 @@ public class TestSuiteEditor extends EditorPart {
 		else
 		{
 			viewAllElements = false;
+			viewLockItem = true;
 			user_lock_message = "";
+			gitUtil.performPull();
 		}
 		
 		/*Load all the test case names in the ArrayList for drop down*/
 		TCGson [] allTC = TestCaseAPIHandler.getInstance().getAllTestCases();
 		testCaseList = new ArrayList<String>();
-		for(TCGson tcGson : allTC)
+		if(allTC!=null && allTC.length!=0)
 		{
-			testCaseList.add(tcGson.tcName);
+			for(TCGson tcGson : allTC)
+			{
+				if(tcGson.tcName==null)
+					continue;
+				testCaseList.add(tcGson.tcName);
+			}
 		}
 		
-		//Initialize GIT properties
-		gitUtil = new GitUtilities();
-		gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
-		gitUtil.initExistingRepository();
 		
 	}
 
@@ -237,15 +255,24 @@ public class TestSuiteEditor extends EditorPart {
 		
 		lockItem = new ToolItem(iconsToolbar, SWT.NONE);
 		lockItem.setToolTipText(lock_message);
-		lockItem.setData("Locked", !viewAllElements);
+		lockItem.setData("Locked", viewAllElements);
 		lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
-		lockItem.setEnabled(viewAllElements);
+		lockItem.setEnabled(viewLockItem);
 		
-		errLabel = new Label(composite, SWT.NONE);
-		errLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
-		errLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
-		errLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
-		errLabel.setText(user_lock_message);
+		lockLabel = new Label(composite, SWT.NONE);
+		lockLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		lockLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
+		lockLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
+		lockLabel.setText("Locked By : Username");
+		if(user_lock_message.equals(""))
+		{
+			lockLabel.setVisible(false);
+		}
+		else
+		{
+			lockLabel.setText(user_lock_message);
+			lockLabel.setVisible(true);
+		}
 		new Label(composite, SWT.NONE);
 		new Label(composite, SWT.NONE);
 		
@@ -501,8 +528,8 @@ public class TestSuiteEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : setDragListener()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : setDragListener()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -574,8 +601,8 @@ public class TestSuiteEditor extends EditorPart {
 				}
 				catch(Exception e)
 				{
-					System.out.println("[" + getClass().getName() + " : setListeners()] - Exception : " + e.getMessage());
-					e.printStackTrace();
+					System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : setListeners()] - Exception : " + e.getMessage());
+					e.printStackTrace(System.out);
 				}
 			}
 		});
@@ -601,8 +628,8 @@ public class TestSuiteEditor extends EditorPart {
 				}
 				catch(Exception e)
 				{
-					System.out.println("[" + getClass().getName() + " : delBtn:addListener()] - Exception  : " + e.getMessage());
-					e.printStackTrace();
+					System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : delBtn:addListener()] - Exception  : " + e.getMessage());
+					e.printStackTrace(System.out);
 				}
 			}
 		});
@@ -616,8 +643,8 @@ public class TestSuiteEditor extends EditorPart {
             }
             catch(Exception e)
 			{
-				System.out.println("[" + getClass().getName() + " : Save:addListener()] - Exception  : " + e.getMessage());
-				e.printStackTrace();
+				System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : Save:addListener()] - Exception  : " + e.getMessage());
+				e.printStackTrace(System.out);
 			}
 			}
 		});
@@ -641,8 +668,8 @@ public class TestSuiteEditor extends EditorPart {
 				}
 				catch(Exception e)
 				{
-					System.out.println("[" + getClass().getName() + " : CopyItem:addListener()] - Exception  : " + e.getMessage());
-					e.printStackTrace();
+					System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : CopyItem:addListener()] - Exception  : " + e.getMessage());
+					e.printStackTrace(System.out);
 				}
 			}
 		});
@@ -675,8 +702,8 @@ public class TestSuiteEditor extends EditorPart {
 				}
 				catch(Exception e)
 				{
-					System.out.println("[" + getClass().getName() + " : PasteItem:addListener()] - Exception  : " + e.getMessage());
-					e.printStackTrace();
+					System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : PasteItem:addListener()] - Exception  : " + e.getMessage());
+					e.printStackTrace(System.out);
 				}
 				
 			}
@@ -698,13 +725,39 @@ public class TestSuiteEditor extends EditorPart {
 				boolean locked = new Boolean(lockItem.getData("Locked").toString());
 				if(!locked)
 				{
-					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
-					lockItem.setToolTipText("Unlock the file");
+					
+					refreshDataTable();
 					TSGson tsGson = tsTask.getTsGson();
+					if(!tsGson.lockedBy.equals(""))
+					{
+						if(!tsGson.lockedBy.equals(Utilities.AUTOMATICS_USERNAME))
+						{
+							user_lock_message = "Locked by : " + tsGson.lockedBy; 
+							lockLabel.setVisible(true);
+							lockLabel.setText(user_lock_message);
+							lockItem.setEnabled(false);
+							return;
+						}
+					}
+					//tsGson = tsTask.getTsGson();
 					tsGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
 					tsTask.setTsGson(tsGson);
-					viewAllElements = true;
-					saveActionPerform();
+					//saveActionPerform();
+					TestSuiteAPIHandler.getInstance().updateTestSuite(tsGson);
+					if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE==200)
+					{
+						viewAllElements = true;
+						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
+						lockItem.setToolTipText("Unlock the file");
+					}
+					else
+					{
+						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Lock Error", null,
+								"Cannot take lock. Please try again.", MessageDialog.ERROR, new String[]{"OK"}, 0);
+						dialog.open();
+						return;
+					}
+					
 				}
 				else
 				{
@@ -737,8 +790,8 @@ public class TestSuiteEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : loadTestSuiteData()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : loadTestSuiteData()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -790,6 +843,8 @@ public class TestSuiteEditor extends EditorPart {
 				}
 				
 				tssaveGson = TestSuiteAPIHandler.getInstance().updateTestSuite(tssaveGson);
+				System.out.println("[" + new Date() + "] : [Test suite save reponse] - " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE 
+									   + "  " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);	
 				if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE!=200)
 				{
 					MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Error", null, 
@@ -797,7 +852,7 @@ public class TestSuiteEditor extends EditorPart {
 							new String [] {"OK"}, 0);
 							dialog.open();
 							throw new RuntimeException("Cannot Save TestCase : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE + " : " 
-														 + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
+														 + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE + "  ");
 				}
 				isDirty = false;
 				firePropertyChange(PROP_DIRTY);
@@ -811,9 +866,9 @@ public class TestSuiteEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : saveActionPerform()] - Exception : " + e.getMessage());
-			e.printStackTrace();
-		}
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : saveActionPerform()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
+ 		}
 	}
 	
 	@Override
@@ -840,8 +895,34 @@ public class TestSuiteEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : setFocus() - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : setFocus() - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
+		}
+	}
+	
+	public void refreshDataTable()
+	{
+		try
+		{
+			this.gitUtil.performGITSyncOperation();
+			TSGson tsGson = TestSuiteAPIHandler.getInstance().getSpecificTestSuite(tsTask.getTsName());
+			System.out.println("[" + new Date() + "] - [Test Suite Refresh] : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE 
+								   + "  " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
+			if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE==200)
+			{
+				tsTask.setTsGson(tsGson);
+				testsuiteviewer.setInput(tsGson.tsTCLink);
+				testsuiteviewer.refresh();
+			}
+			else
+			{
+				System.out.println("Testsuite Refresh Error : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
+			} 
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + new Date() + "] - [" + this.getClass().getName() + " : refreshTable()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 }

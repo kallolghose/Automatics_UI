@@ -6,6 +6,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -270,37 +271,44 @@ public class TC_TS_List extends ViewPart {
 			//ArrayList<String> allTSList = AutomaticsDBTestSuiteQueries.getAllTS(db); //Get all test suites
 			//Collections.sort(allTSList);
 			TSGson allTSList [] = TestSuiteAPIHandler.getInstance().getAllTestSuites();
-			for(TSGson tsGson : allTSList)
+			System.out.println("[" + new Date() + "] Load Test Suite Response : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE + "  "
+					  + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
+			if(allTSList!=null && allTSList.length>0)
 			{
-				//Add test suite to the application tree
-				TreeItem testSuiteItem = new TreeItem(application_name_item, SWT.NONE);
-				testSuiteItem.setText(tsGson.tsName);
-				testSuiteItem.setData("eltType", "TESTSUITE");
-				testSuiteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/ts_logo.png"));
-			
-				//Create or Update task of test suite
-				if(tsService.getTaskByTSName(tsGson.tsName)==null) //Add task only if the task is not already added
+				for(TSGson tsGson : allTSList)
 				{
-					TestSuiteTask tsTask = new TestSuiteTask(tsGson.tsName, tsGson.tsDesc, tsGson.tsIdentifier, tsGson);
-					tsService.addTasks(tsTask);
-				}
-				else
-				{
-					TestSuiteTask tsTask = tsService.getTaskByTSName(tsGson.tsName);
-					tsTask.setTsGson(tsGson);
-				}
+					if(tsGson.tsName == null) /*Error message*/
+						continue;
+					//Add test suite to the application tree
+					TreeItem testSuiteItem = new TreeItem(application_name_item, SWT.NONE);
+					testSuiteItem.setText(tsGson.tsName);
+					testSuiteItem.setData("eltType", "TESTSUITE");
+					testSuiteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/ts_logo.png"));
 				
-				List<TSTCGson> allTestCasesInTestSuite = tsGson.tsTCLink; 
-				if(allTestCasesInTestSuite !=null)
-				{
-					Iterator<TSTCGson> itr = allTestCasesInTestSuite.iterator();
-					while(itr.hasNext())
+					//Create or Update task of test suite
+					if(tsService.getTaskByTSName(tsGson.tsName)==null) //Add task only if the task is not already added
 					{
-						TSTCGson tstcGson = itr.next();
-						TreeItem testsuite_testcaseItem = new TreeItem(testSuiteItem, SWT.NONE);
-						testsuite_testcaseItem.setText(tstcGson.tcName);
-						testsuite_testcaseItem.setData("eltType","TESTCASE");
-						testsuite_testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
+						TestSuiteTask tsTask = new TestSuiteTask(tsGson.tsName, tsGson.tsDesc, tsGson.tsIdentifier, tsGson);
+						tsService.addTasks(tsTask);
+					}
+					else
+					{
+						TestSuiteTask tsTask = tsService.getTaskByTSName(tsGson.tsName);
+						tsTask.setTsGson(tsGson);
+					}
+					
+					List<TSTCGson> allTestCasesInTestSuite = tsGson.tsTCLink; 
+					if(allTestCasesInTestSuite !=null)
+					{
+						Iterator<TSTCGson> itr = allTestCasesInTestSuite.iterator();
+						while(itr.hasNext())
+						{
+							TSTCGson tstcGson = itr.next();
+							TreeItem testsuite_testcaseItem = new TreeItem(testSuiteItem, SWT.NONE);
+							testsuite_testcaseItem.setText(tstcGson.tcName);
+							testsuite_testcaseItem.setData("eltType","TESTCASE");
+							testsuite_testcaseItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/tc_logo.png"));
+						}
 					}
 				}
 			}
@@ -317,11 +325,14 @@ public class TC_TS_List extends ViewPart {
 			
 			
 			TCGson [] allTCList = TestCaseAPIHandler.getInstance().getAllTestCases();
-			
+			System.out.println("[" + new Date() + "] Load Test Case Response : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE + "  "
+					  + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 			if(allTCList!=null && allTCList.length>0)
 			{
 				for(TCGson tcGson : allTCList)
 				{
+					if(tcGson.tcName == null)
+						continue;
 					TreeItem testCaseItem = new TreeItem(appName,SWT.NONE);
 					testCaseItem.setText(tcGson.tcName);
 					testCaseItem.setData("eltType","TESTCASE");
@@ -340,11 +351,12 @@ public class TC_TS_List extends ViewPart {
 				}
 				appName.setExpanded(true);
 			}
+			
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + "-loadTestSuiteTestCaseTreeView()] Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + "-loadTestSuiteTestCaseTreeView()] Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -385,14 +397,11 @@ public class TC_TS_List extends ViewPart {
 				}
 			});
 			
-			
-			
-			
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : setDragListner()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : setDragListner()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -457,9 +466,18 @@ public class TC_TS_List extends ViewPart {
 					if (dialog.open() == Window.OK) {
 						String pasteTSName = dialog.getFirstName();
 						
-						TSGson tsGson = copyTask.getTsGson();
+						TSGson tsGsonOrig = copyTask.getTsGson(); //The copied task
+
+						/*Create new TSGson object and add copy all values to it*/
+						TSGson tsGson = new TSGson();
 						tsGson.tsName = pasteTSName;
-						tsGson.lockedBy = Utilities.AUTOMATICS_PASSWORD;
+						tsGson.tsIdentifier = pasteTSName;
+						tsGson.tsDesc = tsGsonOrig.tsDesc;
+						tsGson.tsCreatedBy = Utilities.AUTOMATICS_USERNAME;
+						tsGson.tsTCLink = tsGsonOrig.tsTCLink;
+						tsGson.projectName = Utilities.DB_PROJECT_NAME;
+						tsGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
+						 
 
 						TreeItem testSuiteItem = new TreeItem(testSuiteList
 								.getItem(0), SWT.NONE);
@@ -497,10 +515,19 @@ public class TC_TS_List extends ViewPart {
 							AutomaticsDBTestSuiteQueries.postTS(Utilities.getMongoDB(), jsonObj);
 						}*/
 						tsGson = TestSuiteAPIHandler.getInstance().postTestSuite(tsGson);
+						System.out.println("[" + new Date() + "] - [Test suite paste : Response - " 
+											   + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE + " : "
+											   + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
 						if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE!=200)
+						{
+							MessageDialog paste_dialog = new MessageDialog(getSite().getShell(), "Copy/Paste Error", null, 
+															"Cannot Paste Test Suite : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE, 
+															MessageDialog.ERROR, new String[]{"OK"}, 0);
+							paste_dialog.open();
 							throw new RuntimeException("Cannot Copy Test Suite : "
 														+ TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE + " : "
 														+ TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
+						}
 						
 					}
 				}
@@ -522,8 +549,8 @@ public class TC_TS_List extends ViewPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println("[" + getClass().getName() + " : copyItemforTC.addListener()] - Exception" + e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : copyItemforTC.addListener()] - Exception" + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 				}
 			});
@@ -540,10 +567,20 @@ public class TC_TS_List extends ViewPart {
 						if (dialog.open() == Window.OK) 
 						{
 							String pasteTCName = dialog.getFirstName();
-							
-							TCGson tcGson = copyTaskForTC.getTcGson();
+							TCGson tcGsonOrig = copyTaskForTC.getTcGson();
+							/*Create new test case Gson and copy all values to it*/
+							TCGson tcGson = new TCGson();
 							tcGson.tcName = pasteTCName;
+							tcGson.tcIdentifier = pasteTCName;
+							tcGson.tcDesc = tcGsonOrig.tcDesc;
+							tcGson.tcCreatedBy = Utilities.AUTOMATICS_USERNAME;
+							tcGson.tcObjectMapLink = tcGsonOrig.tcObjectMapLink;
+							tcGson.tcSteps = tcGsonOrig.tcSteps;
+							tcGson.tcParams = tcGsonOrig.tcParams;
+							tcGson.tcType = tcGsonOrig.tcType;
+							tcGson.projectName = Utilities.DB_PROJECT_NAME;
 							tcGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
+							
 							
 							TreeItem testsuite_testcaseItem = new TreeItem(testCaseList.getItem(0), SWT.NONE);
 							testsuite_testcaseItem.setText(tcGson.tcName);
@@ -558,10 +595,12 @@ public class TC_TS_List extends ViewPart {
 							
 							
 							tcGson = TestCaseAPIHandler.getInstance().postTestCase(tcGson);
+							System.out.println("[" + new Date() + "] - [Test Case Paste Response] : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE 
+												   + "  " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 							if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
 							{
 								new MessageDialog(getSite().getShell(), "Copy/Paste Error", null, 
-															"Cannot Copy/Paste Test Suite : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE,
+															"Cannot Copy/Paste Test Case : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE,
 															MessageDialog.ERROR, new String[]{"OK"}, 0);
 								throw new RuntimeException("Copy Error TestCase : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE
 															+" : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
@@ -570,8 +609,8 @@ public class TC_TS_List extends ViewPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println("[" + getClass().getName() + " : pasteItemForTC.addListener()] : Exception : " + e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : pasteItemForTC.addListener()] : Exception : " + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 				}
 			});
@@ -594,8 +633,8 @@ public class TC_TS_List extends ViewPart {
 					}
 					catch(Exception e)
 					{
-						e.printStackTrace();
-						System.out.println("[TC_TS_List-setlisteners()] : Exception" + e.getMessage());
+						e.printStackTrace(System.out);
+						System.out.println("[" + new Date() + "] - [TC_TS_List-setlisteners()] : Exception" + e.getMessage());
 					}
 				}
 			});
@@ -624,8 +663,8 @@ public class TC_TS_List extends ViewPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println(e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] Open Test Case Dialog : " + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 				}
 			});
@@ -653,8 +692,8 @@ public class TC_TS_List extends ViewPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println("[" + getClass().getName() + " - openItem.addListener()] : Exception : " + e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] - [" + getClass().getName() + " - openItem.addListener()] : Exception : " + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 				}
 			});
@@ -674,6 +713,8 @@ public class TC_TS_List extends ViewPart {
 						if(!value.equals("APPLICATION")&& value.equals("TESTSUITE"))
 						{
 							TestSuiteAPIHandler.getInstance().deleteTestSuite(item.getText());
+							System.out.println("[" + new Date() + "] -  [Test Suite Delete Response] : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE 
+												   + " " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);		
 							if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE==200)
 							{
 								tsService.removeTaskByTSName(item.getText());
@@ -706,6 +747,8 @@ public class TC_TS_List extends ViewPart {
 								}
 								//AutomaticsDBTestCaseQueries.deleteTC(Utilities.getMongoDB(), item.getText());
 								TestCaseAPIHandler.getInstance().deleteTestCase(item.getText());
+								System.out.println("[" + new Date() + "] : [Test Case Delete Response] - " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE 
+													   + "  " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 								if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE==200)
 								{
 									tcService.removeTaskByTCName(item.getText());
@@ -736,6 +779,8 @@ public class TC_TS_List extends ViewPart {
 					if(optionSelected==0)
 					{
 						TestCaseAPIHandler.getInstance().deleteTestCase(item.getText());
+						System.out.println("[" + new Date() + "] - [Test Case Delete Response] :" + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE 
+											   + " " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 						if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE==200)
 						{
 							tcService.removeTaskByTCName(item.getText());
@@ -778,6 +823,8 @@ public class TC_TS_List extends ViewPart {
                         	renameGSON.tcName = dialog.getFirstName();
                         	renameTask.setTcName(dialog.getFirstName());
                         	renameGSON = TestCaseAPIHandler.getInstance().updateTestCase(oldName, renameGSON);
+                        	System.out.println("[" + new Date() + "] - [Test Case Rename Response] :" + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE 
+									   + " " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
                         	if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
                             {
                                    new MessageDialog(getSite().getShell(), "Rename Error", null, 
@@ -801,8 +848,8 @@ public class TC_TS_List extends ViewPart {
 		}
 		catch(Exception exp)
 		{
-			System.out.println("[" + getClass().getName() + "-setListeners()] Exception : " + exp.getMessage());
-			exp.printStackTrace();
+			System.out.println("[" + new Date() + "]-[" + getClass().getName() + "-setListeners()] Exception : " + exp.getMessage());
+			exp.printStackTrace(System.out);
 		}
 		
 		
@@ -1106,6 +1153,8 @@ public class TC_TS_List extends ViewPart {
 						AutomaticsDBTestSuiteQueries.updateTS(Utilities.getMongoDB(), tsTask.getTsName(), jsonObj);
 					}*/
 					tsGson = TestSuiteAPIHandler.getInstance().updateTestSuite(tsGson);
+					System.out.println("[" + new Date()+ "] - addTestCase() : Test Suite Response : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE
+							+ "  " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
 					if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE!=200)
 					{
 						throw new RuntimeException("Exception while save testsuite : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
@@ -1122,6 +1171,8 @@ public class TC_TS_List extends ViewPart {
 			
 			//Add the new task to the DB
 			gson = TestCaseAPIHandler.getInstance().postTestCase(gson);
+			System.out.println("[" + new Date() + "] : Test Case Save - Response " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE + " "
+								   + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 			if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
 			{
 				throw new RuntimeException("Cannot Create new test case : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE);
@@ -1131,7 +1182,12 @@ public class TC_TS_List extends ViewPart {
 			TCGson [] allTCGsons = TestCaseAPIHandler.getInstance().getAllTestCases();
 			ArrayList<String> tempTCList = new ArrayList<String>();
 			for(TCGson tc : allTCGsons)
+			{
+				if(tc.tcName == null)
+					continue;
 				tempTCList.add(tc.tcName);
+			}
+				
 			TestSuiteEditor.testCaseList = tempTCList; 
 			
 			//Create the task for the newly created test suite
@@ -1150,7 +1206,7 @@ public class TC_TS_List extends ViewPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("TC_TS_List : addTestCase()-Exception : " + e.getMessage());
+			System.out.println("[" + new Date() + "] - TC_TS_List : addTestCase()-Exception : " + e.getMessage());
 			e.printStackTrace(System.out);
 		}
 	}
@@ -1186,6 +1242,8 @@ public class TC_TS_List extends ViewPart {
 			//Add the new task to the DB
 			
 			gson = TestSuiteAPIHandler.getInstance().postTestSuite(gson);
+			System.out.println("[" + new Date() + "] Test Suite Save - Response " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE + "  " 
+								+ TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
 			if(TestSuiteAPIHandler.TESTSUITE_RESPONSE_CODE!=200)
 			{
 				throw new RuntimeException("Cannot Save Test Suite : " + TestSuiteAPIHandler.TESTSUITE_RESPONSE_MESSAGE);
@@ -1208,8 +1266,8 @@ public class TC_TS_List extends ViewPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[TC_TS_List : addTestSuite] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "][TC_TS_List : addTestSuite] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 }

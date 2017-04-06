@@ -405,12 +405,15 @@ public class TestCaseParamView extends ViewPart {
 	
 	public static void removeAllColumns()
 	{
-		while(testcaseParamViewer.getTable().getColumnCount() > 0)
+		if(testcaseParamViewer!=null)
 		{
-			testcaseParamViewer.getTable().getColumn(0).dispose();
+			while(testcaseParamViewer.getTable().getColumnCount() > 0)
+			{
+				testcaseParamViewer.getTable().getColumn(0).dispose();
+			}
+			testcaseParamViewer.setInput(new ArrayList<ArrayList<String>>());
+			testcaseParamViewer.refresh();
 		}
-		testcaseParamViewer.setInput(new ArrayList<ArrayList<String>>());
-		testcaseParamViewer.refresh();
 	}
 	
 	public static void loadTestCaseParameters(TCGson tcGSON)

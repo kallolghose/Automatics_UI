@@ -3,6 +3,7 @@
 
 <product name="AutoMaTics" uid="com.automatics.product" id="Automatics.automaticsProduct" application="Automatics.application" version="0.1" useFeatures="false" includeLaunchers="true">
 
+
    <configIni use="default">
    </configIni>
 
@@ -18,16 +19,18 @@
       startupProgressRect="5,275,445,15"
       startupMessageRect="7,252,445,20"
       startupForegroundColor="000000" />
-   <launcher name="Automatics">
+   <launcher name="automatics">
       <solaris/>
       <win useIco="false">
          <bmp/>
       </win>
    </launcher>
 
+
    <vm>
       <windows include="false">org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/OSGi%Minimum-1.2</windows>
    </vm>
+
 
    <plugins>
       <plugin id="Automatics"/>

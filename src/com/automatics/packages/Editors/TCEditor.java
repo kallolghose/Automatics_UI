@@ -6,9 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-
-
+import java.util.Date;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IWorkspace;
@@ -106,11 +104,11 @@ public class TCEditor extends EditorPart {
 	private Label lockLabel;
 	
 	private boolean isFocus = false;
-	private boolean viewAllElements = true;
+	private boolean viewAllElements = true, viewLockItem = true;
 	private List<TCStepsGSON> listOfTestCaseSteps;
 	private ArrayList<TCStepsGSON> copiedGson;
 	private String lock_image = "images/icons/Open_lock.png";
-	private boolean public_view = false, private_view = false;
+	//private boolean public_view = false;
 	private String lock_message = "Lock for editing";
 	private String user_lock_message = "";
 	
@@ -166,22 +164,26 @@ public class TCEditor extends EditorPart {
 	    	if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(tcGson.lockedBy))
 	    	{
 	    		viewAllElements = false;
+	    		viewLockItem = false;
 	    		user_lock_message = "Locked By : " + tcGson.lockedBy;
 	    	}
 	    	else
 	    	{
 	    		lock_image = "images/icons/lock.png";
 	    		lock_message = "Unlock the file";
-	    		public_view = true;
+	    		viewAllElements = true;
+	    		viewLockItem = true;
 	    		user_lock_message = "";
 	    	}
 	    }
 	    else
 	    {
-	    	public_view = false;
+	    	viewAllElements = false;
+	    	viewLockItem = true;
 	    	user_lock_message = "";
 		    String currentFileName = Utilities.TESTCASE_FILE_LOCATION + tcTask.getTcName() + ".java";
-		    
+		    this.gitUtil.performPull();
+		    /*
 		    boolean syncStatus = this.gitUtil.getSync(currentFileName);
 		    if(syncStatus)
 		    {
@@ -199,6 +201,7 @@ public class TCEditor extends EditorPart {
 		    		break;
 		    	}
 		    }
+		    */
 	    }
 	    OBJECTMAP_FOR_RECORDING = tcTask.getTcName() + "_Recorded_OM";
 	    //When all operation done call all methods for Editor Display
@@ -249,56 +252,56 @@ public class TCEditor extends EditorPart {
 			addBtn.setToolTipText("Add Testcase Step");
 			addBtn.setSelection(true);
 			addBtn.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
-			addBtn.setEnabled(viewAllElements && public_view);
+			addBtn.setEnabled(viewAllElements);
 			
 			delBtn = new ToolItem(iconsToolBar, SWT.NONE);
 			delBtn.setToolTipText("Delete Testcase step");
 			delBtn.setSelection(true);
 			delBtn.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
-			delBtn.setEnabled(viewAllElements && public_view);
+			delBtn.setEnabled(viewAllElements);
 			
 			saveItem = new ToolItem(iconsToolBar, SWT.NONE);
 			saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
 			saveItem.setToolTipText("Save");
 			saveItem.setSelection(true);
-			saveItem.setEnabled(viewAllElements && public_view);
+			saveItem.setEnabled(viewAllElements);
 			
 			copyItem = new ToolItem(iconsToolBar, SWT.NONE);
 			copyItem.setToolTipText("Copy");
 			copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
 			copyItem.setSelection(true);
-			copyItem.setEnabled(viewAllElements && public_view);
+			copyItem.setEnabled(viewAllElements);
 			
 			pasteItem = new ToolItem(iconsToolBar, SWT.NONE);
 			pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
 			pasteItem.setToolTipText("Paste");
 			pasteItem.setSelection(true);
-			pasteItem.setEnabled(viewAllElements && public_view);
+			pasteItem.setEnabled(viewAllElements);
 			
 			openEditor = new ToolItem(iconsToolBar, SWT.NONE);
 			openEditor.setToolTipText("View In Editor");
 			openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 			openEditor.setSelection(true);
-			openEditor.setEnabled(viewAllElements && public_view);
+			openEditor.setEnabled(viewAllElements);
 			
 			start_stop_recording = new ToolItem(iconsToolBar, SWT.NONE);
 			start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/start_rec_2.png"));
 			start_stop_recording.setToolTipText("Start Recording");
 			start_stop_recording.setData("isRecorded", false);
-			start_stop_recording.setEnabled(viewAllElements && public_view);
+			start_stop_recording.setEnabled(viewAllElements );
 			
 			lockItem = new ToolItem(iconsToolBar, SWT.NONE);
 			lockItem.setSelection(true);
 			lockItem.setToolTipText(lock_message);
 			lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
-			lockItem.setData("Locked", !viewAllElements);
-			lockItem.setEnabled(viewAllElements); 
+			lockItem.setData("Locked", viewAllElements);
+			lockItem.setEnabled(viewLockItem); 
 			
 			lockLabel = new Label(composite, SWT.HORIZONTAL | SWT.RIGHT);
 			lockLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 			lockLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
 			lockLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
-			lockLabel.setText("Lock Message");
+			lockLabel.setText("Locked By : Username");
 			if(user_lock_message.equals(""))
 			{
 				lockLabel.setVisible(false);
@@ -317,7 +320,7 @@ public class TCEditor extends EditorPart {
 			testscriptTable.setLinesVisible(true);
 			testscriptTable.setHeaderVisible(true);
 			testscriptTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-			testscriptTable.setEnabled(viewAllElements && public_view);
+			testscriptTable.setEnabled(viewAllElements);
 			
 			/*Biswabir Code - Tabbing*/
 			
@@ -460,7 +463,8 @@ public class TCEditor extends EditorPart {
 				}
 			});
 			TableColumn objmapCol = objmapViewer.getColumn();
-			objmapCol.setWidth(50);
+			objmapCol.setResizable(false);
+			objmapCol.setWidth(-1);
 			objmapCol.setText("ObjMapCol");
 	
 			//Load Test Steps
@@ -613,11 +617,11 @@ public class TCEditor extends EditorPart {
 					else
 					{
 						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Error", null,
-							    "Please fill all the fields", MessageDialog.ERROR, new String[] { "ok"
+							    "Please fill all the fields", MessageDialog.ERROR, new String[] { "OK"
 							         }, 0);
 						dialog.open();
 					}
-				}
+				}	
 				catch(Exception e)
 				{
 					System.out.println("[" + getClass().getName() + " Save: addListeners()] - Exception : " + e.getMessage());
@@ -736,13 +740,39 @@ public class TCEditor extends EditorPart {
 				boolean locked = new Boolean(lockItem.getData("Locked").toString());
 				if(!locked)
 				{
-					lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
-					lockItem.setToolTipText("Unlock the file");
+					/*
+					 * Refresh to the case to get that value again
+					 * */
+					refreshDataTable();
 					TCGson tcGson = tcTask.getTcGson();
+					if(!tcGson.lockedBy.equalsIgnoreCase(""))
+					{
+						if(!tcGson.lockedBy.equals(Utilities.AUTOMATICS_USERNAME))
+						{
+							lockLabel.setVisible(true);
+							user_lock_message = "Locked By : " + tcGson.lockedBy;
+							lockLabel.setText(user_lock_message);
+							lockItem.setEnabled(false);
+							return;
+						}
+					}
+					//TCGson tcGson = tcTask.getTcGson();
 					tcGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
 					tcTask.setTcGson(tcGson);
-					public_view = true;
-					saveActionPerform();
+					TestCaseAPIHandler.getInstance().updateTestCase(tcGson.tcName,tcGson);
+					if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE==200)
+					{
+						viewAllElements = true;
+						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
+						lockItem.setToolTipText("Unlock the file");
+					}
+					else
+					{
+						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Lock Error", null, 
+								"Cannot take lock. Please try again", MessageDialog.ERROR  , new String [] {"OK"}, 0);
+						dialog.open();
+						return;
+					}
 				}
 				else
 				{
@@ -753,7 +783,7 @@ public class TCEditor extends EditorPart {
 					tcTask.setTcGson(tcGson);
 					saveActionPerform();
 					
-					public_view = false;
+					viewAllElements = false;
 					
 					/*Commit the changes*/
 					/*
@@ -763,16 +793,16 @@ public class TCEditor extends EditorPart {
 					gitUtil.performPush();
 					*/
 				}
-				addBtn.setEnabled(viewAllElements && public_view);
-				delBtn.setEnabled(viewAllElements && public_view);
-				saveItem.setEnabled(viewAllElements && public_view);
-				copyItem.setEnabled(viewAllElements && public_view);
-				pasteItem.setEnabled(viewAllElements && public_view);
-				openEditor.setEnabled(viewAllElements && public_view);
+				addBtn.setEnabled(viewAllElements);
+				delBtn.setEnabled(viewAllElements);
+				saveItem.setEnabled(viewAllElements);
+				copyItem.setEnabled(viewAllElements);
+				pasteItem.setEnabled(viewAllElements);
+				openEditor.setEnabled(viewAllElements);
 				//commitItem.setEnabled(viewAllElements && public_view);
 				//pullItem.setEnabled(viewAllElements && public_view);
-				testscriptTable.setEnabled(viewAllElements && public_view);
-				start_stop_recording.setEnabled(viewAllElements && public_view);
+				testscriptTable.setEnabled(viewAllElements);
+				start_stop_recording.setEnabled(viewAllElements);
 				lockItem.setData("Locked", !locked);
 			}
 		});
@@ -804,6 +834,7 @@ public class TCEditor extends EditorPart {
 						omGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
 						omGson.omIdentifier = OBJECTMAP_FOR_RECORDING;
 						omGson.omCreatedBy = Utilities.AUTOMATICS_USERNAME;
+						omGson.projectName = Utilities.DB_PROJECT_NAME;
 						
 						omGson.omDetails = new ArrayList<OMDetails>();
 						
@@ -976,6 +1007,9 @@ public class TCEditor extends EditorPart {
 			TCGson tcGson = tcTask.getTcGson();
 			if(tcGson.tcSteps!=null)
 				parent.setInput(tcGson.tcSteps);
+			else
+				parent.setInput(new ArrayList<TCStepsGSON>());
+			
 		}
 		catch(Exception e)
 		{
@@ -1060,6 +1094,8 @@ public class TCEditor extends EditorPart {
 					}*/
 					
 					tcSaveGson = TestCaseAPIHandler.getInstance().updateTestCase(tcSaveGson.tcName,tcSaveGson);
+					System.out.println("[" + new Date() + "] - [TestCase Save Response] : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE 
+										   + " " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
 					if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE!=200)
 					{
 						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Error", null, 
@@ -1067,7 +1103,7 @@ public class TCEditor extends EditorPart {
 												new String [] {"OK"}, 0);
 						dialog.open();
 						throw new RuntimeException("Cannot Save TestCase : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE + " : " 
-																			 + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
+																			 + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE + "  ");
 					}
 					isDirty = false;
 					firePropertyChange(PROP_DIRTY);
@@ -1083,8 +1119,8 @@ public class TCEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : doSave() ] - Exception  : " + e.getMessage() );
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : doSave() ] - Exception  : " + e.getMessage() );
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -1136,7 +1172,7 @@ public class TCEditor extends EditorPart {
 			}
 		}
 		catch(Exception e){
-			System.out.println("["+getClass().getName() + " - SetFocus] : Exception "+e.getMessage());
+			System.out.println("[" + new Date() + "] - ["+getClass().getName() + " - SetFocus] : Exception "+e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -1161,7 +1197,7 @@ public class TCEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[TCEditor - refreshTableContents()] - Exception  : " + e.getMessage());
+			System.out.println("[" + new Date() + "] - [TCEditor -  Contents()] - Exception  : " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
@@ -1219,6 +1255,7 @@ public class TCEditor extends EditorPart {
 			/*Update the test case steps*/
 			if(step!=null)
 			{
+				TCGson tcGson = tcTask.getTcGson();
 				List<TCStepsGSON> list_of_steps = (List<TCStepsGSON>)testscriptsViewer.getInput();
 				if(list_of_steps == null || list_of_steps.size()==0)
 				{
@@ -1235,6 +1272,9 @@ public class TCEditor extends EditorPart {
 					launchBrowserStep.stepVarName = "";
 					launchBrowserStep.omName = "";
 					list_of_steps.add(launchBrowserStep);
+					testscriptsViewer.setInput(list_of_steps);
+					testscriptsViewer.refresh();
+					testscriptTable.forceFocus();
 				}
 				step.stepNo = list_of_steps.size()+1;
 				step.omName = OBJECTMAP_FOR_RECORDING;
@@ -1242,13 +1282,67 @@ public class TCEditor extends EditorPart {
 				
 				testscriptsViewer.setInput(list_of_steps);
 				testscriptsViewer.refresh();
+				testscriptTable.forceFocus();
+				
+				tcGson.tcSteps = list_of_steps;
+				tcTask.setTcGson(tcGson);
+				
+				isDirty = true;
+				firePropertyChange(PROP_DIRTY);
 			}
 			
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : addContentsToTableGrid()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : addContentsToTableGrid()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
+		}
+	}
+	
+	private void refreshDataTable()
+	{
+		try
+		{
+			this.gitUtil.performGITSyncOperation();
+			TCGson tcGson = TestCaseAPIHandler.getInstance().getSpecificTestCase(tcTask.getTcName());
+			System.out.println("[" + new Date() + "] - [Test Case Response] : " + TestCaseAPIHandler.TESTCASE_RESPONSE_CODE + " "
+								+ TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
+			if(TestCaseAPIHandler.TESTCASE_RESPONSE_CODE==200)
+			{
+				tcTask.setTcGson(tcGson);
+				testscriptsViewer.setInput(tcGson.tcSteps);
+				testscriptsViewer.refresh();
+				
+				ObjectMap.disposeObjMaps();
+				if(tcTask.getTcGson().tcObjectMapLink!=null)
+				{
+					boolean first = true;
+					for(String omName : tcTask.getTcGson().tcObjectMapLink)
+					{
+						if(first) 
+						{
+							ObjectMap.loadObjectMap(omName);
+							first=false;
+						}
+						else
+						{
+							ObjectMap.addObjectMap(omName);
+						}
+					}
+				}
+				
+				TestCaseParamView.currentTask = tcTask;
+				TestCaseParamView.loadTestCaseParameters(tcGson);
+			}
+			else
+			{
+				System.out.println("[" + new Date() + "] - TestCase Refresh Problem : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE);
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + new Date() + "] - [" + this.getClass().getName() + " - Exception  : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 }

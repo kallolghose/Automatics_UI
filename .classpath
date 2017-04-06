@@ -19,7 +19,6 @@
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/org.eclipse.jgit-4.6.0.201612231935-r.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/slf4j-api-1.7.23.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/slf4j-log4j12-1.7.23.jar"/>
-	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/log4j-1.2.15.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/jsch-0.1.42.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/jetty_jars/asm-5.0.1.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/jetty_jars/asm-commons-5.0.1.jar"/>
@@ -96,5 +95,6 @@
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/api_headers/java-json.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/api_headers/jsoup-1.6.0.jar"/>
 	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/api_headers/commons-codec-1.10.jar"/>
+	<classpathentry kind="lib" path="D:/KG00360770/ATT/Automatic_DC/Automatics/jar/log4j-1.2.17.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

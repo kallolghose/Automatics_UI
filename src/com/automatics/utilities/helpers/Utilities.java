@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -125,8 +126,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[ Utilities - getGSONFromJSON ] - Exception : " + e.getMessage() );
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [ Utilities - getGSONFromJSON ] - Exception : " + e.getMessage() );
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -142,8 +143,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[ Utilities - getJSONFomGSON ] - Exception : " + e.getMessage() );
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [ Utilities - getJSONFomGSON ] - Exception : " + e.getMessage() );
+			e.printStackTrace(System.out);
 		}
 		return ret;
 	}
@@ -160,8 +161,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[ Utilities - getJsonObjectFromString ] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [ Utilities - getJsonObjectFromString ] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -205,8 +206,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[ Utilities - openDialog ] - Exception : " + e.getMessage() );
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [ Utilities - openDialog ] - Exception : " + e.getMessage() );
+			e.printStackTrace(System.out);
 		}
 		return dialog;
 	}
@@ -226,8 +227,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utilities : removeDuplicatesFromArraylist ] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utilities : removeDuplicatesFromArraylist ] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -292,8 +293,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[utilities : createJavaFiles ] - Exception :" + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [utilities : createJavaFiles ] - Exception :" + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -338,8 +339,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[utilities : createObjectMap()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [utilities : createObjectMap()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -378,8 +379,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[utilities : createTestng()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [utilities : createTestng()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -437,8 +438,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utilities : getParameters()] - Exception  : " +e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utilities : getParameters()] - Exception  : " +e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -462,8 +463,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utitlites : readBeforeContent()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utitlites : readBeforeContent()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;		
 	}
@@ -484,8 +485,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utitlites : readBeforeContent()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utitlites : readBeforeContent()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -511,8 +512,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utilitites : writeContentstoFile()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utilitites : writeContentstoFile()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -559,7 +560,7 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utilities : checkCompilationError()] - Exception  : " + e.getMessage());
+			System.out.println("[" + new Date() + "] - [Utilities : checkCompilationError()] - Exception  : " + e.getMessage());
 			e.printStackTrace(System.out);
 		}
 		return false;
@@ -581,8 +582,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utilites - openEditor()] : Exception - " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utilites - openEditor()] : Exception - " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	} 
 	
@@ -604,8 +605,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utilities : convertToTestCaseGsonFromContent()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utilities : convertToTestCaseGsonFromContent()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 	}
@@ -669,8 +670,8 @@ public class Utilities
 		}
 		catch(Exception e)
 		{
-			System.out.println("[Utitlites - validationDescriptionValue()] : Exception - " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [Utitlites - validationDescriptionValue()] : Exception - " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 		return null;
 		

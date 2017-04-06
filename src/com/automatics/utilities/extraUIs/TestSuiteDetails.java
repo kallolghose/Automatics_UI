@@ -12,6 +12,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -109,6 +110,7 @@ public class TestSuiteDetails extends Shell {
 		errLabel.setBounds(10, 294, 263, 15);
 		errLabel.setText("Error Label");
 		errLabel.setVisible(false);
+		composite.setTabList(new Control[]{testsuiteName,testsuiteDesc,btnOk,btnCancel});
 		setListeners();
 		createContents();
 	}

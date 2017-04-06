@@ -1,5 +1,7 @@
 package com.automatics.packages;
 
+import java.util.Date;
+
 import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.IPartListener2;
 import org.eclipse.ui.IPerspectiveDescriptor;
@@ -58,21 +60,21 @@ public class EditorListeners implements IPartListener2
 					
 					ObjectMap.disposeObjMaps();
 					
-						if(tcTask.getTcGson().tcObjectMapLink!=null)
+					if(tcTask.getTcGson().tcObjectMapLink!=null)
+					{
+						boolean first = true;
+						for(String omName : tcTask.getTcGson().tcObjectMapLink)
 						{
-							boolean first = true;
-							for(String omName : tcTask.getTcGson().tcObjectMapLink)
+							if(first) {
+								ObjectMap.loadObjectMap(omName);
+								first=false;
+							}
+							else
 							{
-								if(first) {
-									ObjectMap.loadObjectMap(omName);
-									first=false;
-								}
-								else
-								{
-									ObjectMap.addObjectMap(omName);
-								}
+								ObjectMap.addObjectMap(omName);
 							}
 						}
+					}
 					
 					/*Set the test case parameter if any*/
 					/*Try to use the object to access the value*/
@@ -120,7 +122,7 @@ public class EditorListeners implements IPartListener2
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : partBroughtToTop()] - Exception : " + e.getMessage());
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : partBroughtToTop()] - Exception : " + e.getMessage());
 			e.printStackTrace(System.out);
 		}
 	}
@@ -159,7 +161,7 @@ public class EditorListeners implements IPartListener2
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : partClosed()] - Exception : " + e.getMessage());
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : partClosed()] - Exception : " + e.getMessage());
 			e.printStackTrace(System.out);
 		}
 	}
@@ -193,8 +195,8 @@ public class EditorListeners implements IPartListener2
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : partVisible()] - Exception - " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : partVisible()] - Exception - " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 

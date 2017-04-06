@@ -23,7 +23,8 @@ public class TSTestCaseColumnEditable extends EditingSupport
 		this.viewer = viewer;
 		this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
 		this.editor.setContenProvider(new ArrayContentProvider());
-		this.editor.setInput(dropdownVals);
+		if(dropdownVals.size()!=0)
+			this.editor.setInput(dropdownVals);
 	}
 
 	@Override

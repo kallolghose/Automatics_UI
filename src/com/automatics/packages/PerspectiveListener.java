@@ -1,6 +1,7 @@
 package com.automatics.packages;
 
 import java.io.File;
+import java.util.Date;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
@@ -135,8 +136,8 @@ public class PerspectiveListener implements IPerspectiveListener
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : perspectiveActivated()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : perspectiveActivated()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 

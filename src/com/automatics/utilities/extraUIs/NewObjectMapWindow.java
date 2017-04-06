@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -86,8 +87,8 @@ public class NewObjectMapWindow extends Shell {
 		lblObjectMapDescription.setBounds(10, 114, 136, 15);
 		lblObjectMapDescription.setText("Object Map Description :");
 		
-		objectmapDesc = new Text(parentComposite, SWT.BORDER);
-		objectmapDesc.setBounds(148, 108, 286, 114);
+		objectmapDesc = new Text(parentComposite, SWT.BORDER | SWT.MULTI);
+		objectmapDesc.setBounds(148, 108, 286, 168);
 		
 		Label label = new Label(parentComposite, SWT.SEPARATOR | SWT.HORIZONTAL);
 		label.setBounds(0, 302, 444, 2);
@@ -106,6 +107,7 @@ public class NewObjectMapWindow extends Shell {
 		errLabel.setBounds(10, 330, 262, 15);
 		errLabel.setText("Display Error Message");
 		errLabel.setVisible(false);
+		parentComposite.setTabList(new Control[]{objectmapName,objectmapDesc,btnCreate,btnCancel});
 		createContents();
 		setListeners();
 	}
@@ -150,8 +152,6 @@ public class NewObjectMapWindow extends Shell {
 				omDetail.objName = "";
 				omDetail.locatorInfo = "";
 				omDetail.locatorType = "";
-				
-				omDetailsList.add(omDetail);
 				
 				OMGson omGson = new OMGson();
 				omGson.omName = omName;

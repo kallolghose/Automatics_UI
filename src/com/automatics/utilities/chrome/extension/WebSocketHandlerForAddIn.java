@@ -149,17 +149,17 @@ public class WebSocketHandlerForAddIn {
 		        		objName = objName + OBJ_ELT_COUNT; OBJ_ELT_COUNT++;
 		        		
 		        		String pageName = obj.get("title").toString();
-		        		pageName = pageName.replace(" ", "");
-		        		pageName = pageName.replace("-", "");
+		        		String regexExp = "[^a-zA-Z0-9]";
+		        		pageName = pageName.replaceAll(regexExp, "");
 		        		
 		        		//Add regex to replace all special characters
-		        		Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
+		        		/*Pattern pt = Pattern.compile("[^a-zA-Z0-9]");
 		        		Matcher match= pt.matcher(pageName);
 		        		while(match.find())
 		        		{
 		        			String s= match.group();
 		        			pageName = pageName.replace("\\"+s, "_");
-		        		}
+		        		}*/
 		        		
 			        	//Create Object Map Details
 			        	OMDetails omDetails = new OMDetails();
@@ -176,7 +176,6 @@ public class WebSocketHandlerForAddIn {
 			        	step.stepObjName = objName; 
 			        	step.stepArgument = obj.get("val").toString(); 
 			        	step.omName = "";
-			        	
 			        	addOnUtility.addRecordedContents(step, omDetails, obj);
 			        	
 		        	}
@@ -226,8 +225,8 @@ public class WebSocketHandlerForAddIn {
 	        		objName = objName + OBJ_ELT_COUNT; OBJ_ELT_COUNT++;
 		        	
 	        		String pageName = obj.get("title").toString();
-	        		pageName = pageName.replace(" ", "");
-	        		pageName = pageName.replace("-", "");
+	        		String regexExp = "[^a-zA-Z0-9]";
+	        		pageName = pageName.replaceAll(regexExp, "");
 	        		
 		        	OMDetails details = new OMDetails();
 		        	details.pageName = pageName; 

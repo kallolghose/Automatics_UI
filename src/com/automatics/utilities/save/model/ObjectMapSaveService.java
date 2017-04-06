@@ -19,7 +19,6 @@ public class ObjectMapSaveService
 	
 	public void addSaveTask(ObjectMapSaveTask task)
 	{
-		System.out.println("Add Save Task");
 		saveTasks.put(task.getOmName(), task);
 	}
 	

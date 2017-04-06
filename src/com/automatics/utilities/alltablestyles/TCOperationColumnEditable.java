@@ -2,6 +2,7 @@ package com.automatics.utilities.alltablestyles;
 
 import java.util.ArrayList;
 
+import org.eclipse.jface.fieldassist.AutoCompleteField;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CellEditor;
 import org.eclipse.jface.viewers.ComboBoxViewerCellEditor;
@@ -36,17 +37,18 @@ public class TCOperationColumnEditable extends EditingSupport
 			//this.editor = new TextCellEditor(this.viewer.getTable());
 			
 			OperationGSON[] allOperations = OperationAPIHandler.getInstance().getAllOperations();
-			
 			ArrayList<String> opnName = new ArrayList<String>();
-	
 			for(OperationGSON opn : allOperations)
 			{
 				opnName.add(opn.opnName);
 			}
-			this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.READ_ONLY);
+			String [] stockArr = new String[opnName.size()];
+			stockArr = opnName.toArray(stockArr);
+			
+			this.editor = new ComboBoxViewerCellEditor(this.viewer.getTable(), SWT.FULL_SELECTION);
 			this.editor.setContentProvider(new ArrayContentProvider());
 			this.editor.setInput(opnName);
-			
+			new AutoCompleteField(this.editor.getControl(), new CComboContentAdapter(), stockArr);	
 		}
 		catch(Exception e)
 		{
@@ -88,7 +90,7 @@ public class TCOperationColumnEditable extends EditingSupport
 			OperationGSON opnGson = OperationAPIHandler.getInstance().getSpecificOperation(updateVal);
 			/*
 			 * Check if the operation is run script and display pop-up*/
-			if(updateVal.equals("RunScript"))
+			if(updateVal.equalsIgnoreCase("RunScript"))
 			{
 				RunScriptTCPopUp rspopUp = new RunScriptTCPopUp(viewer.getTable().getShell());
 				if(rspopUp.open() == Window.OK)

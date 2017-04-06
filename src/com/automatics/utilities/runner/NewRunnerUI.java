@@ -74,7 +74,6 @@ public class NewRunnerUI {
 
 	protected Shell shlRunner;
 	private List<String> allTestSuites;
-	private Text rerunTimes;
 	private Text text_1;
 	private TreeItem parentTestSuite;
 	private Tree remoteTable;
@@ -82,6 +81,7 @@ public class NewRunnerUI {
 	private Text runnerConsole;
 	private TestSuiteExecutor execution = null;
 	private GitUtilities gitUtil;
+	private Text text_2;
 	/**
 	 * Launch the application.
 	 * @param args
@@ -168,6 +168,16 @@ public class NewRunnerUI {
 
 		ToolItem stop = new ToolItem(iConToolBar, SWT.NONE);
 		stop.setText("Stop");
+		
+		ToolItem clearConsole = new ToolItem(iConToolBar, SWT.NONE);
+		clearConsole.setText("Clear Console");
+		clearConsole.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				runnerConsole.setText("");
+			}
+		});
+		
 		stop.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
@@ -303,120 +313,151 @@ public class NewRunnerUI {
 		getChecked(remoteTable);
 		getChecked(localHostTable);
 		
-		TabItem tbtmSettings = new TabItem(tabFolder, SWT.NONE);
-		tbtmSettings.setText("Settings");
+		TabItem settingTab = new TabItem(tabFolder, SWT.NONE);
+		settingTab.setText("Settings");
 		
-		final Composite composite_3 = new Composite(tabFolder, SWT.NONE);
-		tbtmSettings.setControl(composite_3);
-		Label lblNewLabel = new Label(composite_3, SWT.NONE);
-		lblNewLabel.setBounds(20, 60, 112, 31);
-		lblNewLabel.setText("Re-run Failed Scripts :");
-		final Button btnRadioButton = new Button(composite_3, SWT.RADIO);
-		btnRadioButton.setBounds(204, 52, 38, 31);
-		btnRadioButton.setText("Yes");
+		Composite composite_6 = new Composite(tabFolder, SWT.NONE);
+		composite_6.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		settingTab.setControl(composite_6);
+		composite_6.setLayout(new GridLayout(1, false));
 		
-		final Button btnRadioButton_1 = new Button(composite_3, SWT.RADIO);
-		btnRadioButton_1.setBounds(248, 52, 48, 31);
-		btnRadioButton_1.setText("No");
-		new Label(composite_3, SWT.NONE);
-		Label lblHowManyTimes = new Label(composite_3, SWT.NONE);
-		lblHowManyTimes.setBounds(20, 97, 164, 16);
-		lblHowManyTimes.setText("No of times for Re-Run :");		
-		rerunTimes = new Text(composite_3, SWT.BORDER);
-		rerunTimes.setBounds(204, 94, 73, 16);
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		Label lblSaveReports = new Label(composite_3, SWT.NONE);
-		lblSaveReports.setBounds(20, 130, 164, 24);
-		lblSaveReports.setText("Save Reports:");
+		Composite composite_7 = new Composite(composite_6, SWT.NONE);
+		composite_7.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		GridLayout gl_composite_7 = new GridLayout(1, false);
+		gl_composite_7.marginWidth = 2;
+		gl_composite_7.marginHeight = 3;
+		composite_7.setLayout(gl_composite_7);
+		GridData gd_composite_7 = new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1);
+		gd_composite_7.heightHint = 22;
+		composite_7.setLayoutData(gd_composite_7);
 		
-		final Button btnCheckButton = new Button(composite_3, SWT.CHECK);
-		btnCheckButton.addSelectionListener(new SelectionAdapter() {
+		Label lblNewLabel_2 = new Label(composite_7, SWT.NONE);
+		lblNewLabel_2.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblNewLabel_2.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		lblNewLabel_2.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false, 1, 1));
+		lblNewLabel_2.setText("Schedular Settings");
+		
+		Composite composite_8 = new Composite(composite_6, SWT.NONE);
+		composite_8.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		composite_8.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		
+		Label lblDateAndTime_1 = new Label(composite_8, SWT.NONE);
+		lblDateAndTime_1.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblDateAndTime_1.setBounds(23, 20, 165, 15);
+		lblDateAndTime_1.setText("Date and time for execution :");
+		
+		Label label_4 = new Label(composite_8, SWT.NONE);
+		label_4.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		label_4.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		label_4.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		label_4.setBounds(10, 20, 10, 15);
+		label_4.setText("*");
+		
+		Label lblRerun = new Label(composite_8, SWT.NONE);
+		lblRerun.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblRerun.setText("Re-run failed scripts :");
+		lblRerun.setBounds(23, 59, 165, 15);
+		
+		Label label_6 = new Label(composite_8, SWT.NONE);
+		label_6.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		label_6.setText("*");
+		label_6.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		label_6.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		label_6.setBounds(10, 59, 10, 15);
+		
+		Label lblNoTimesFor = new Label(composite_8, SWT.NONE);
+		lblNoTimesFor.setText("No times for Re-Run :");
+		lblNoTimesFor.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblNoTimesFor.setBounds(23, 102, 165, 15);
+		
+		Label label_7 = new Label(composite_8, SWT.NONE);
+		label_7.setText("*");
+		label_7.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		label_7.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		label_7.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		label_7.setBounds(10, 102, 10, 15);
+		
+		text_2 = new Text(composite_8, SWT.BORDER);
+		text_2.setBounds(194, 96, 105, 21);
+		
+		Label lblSaveReportsTo = new Label(composite_8, SWT.NONE);
+		lblSaveReportsTo.setText("Save reports to : ");
+		lblSaveReportsTo.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		lblSaveReportsTo.setBounds(23, 146, 165, 15);
+		
+		Label label_8 = new Label(composite_8, SWT.NONE);
+		label_8.setText("*");
+		label_8.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
+		label_8.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
+		label_8.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		label_8.setBounds(10, 146, 10, 15);
+		
+		Button rerun_yes = new Button(composite_8, SWT.RADIO);
+		rerun_yes.setText("Yes");
+		rerun_yes.setBounds(194, 56, 38, 21);
+		rerun_yes.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		
+		Button rerun_no = new Button(composite_8, SWT.RADIO);
+		rerun_no.setText("No");
+		rerun_no.setBounds(239, 56, 38, 21);
+		rerun_no.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		
+		Button resetAll = new Button(composite_8, SWT.NONE);
+		resetAll.setBounds(436, 211, 75, 25);
+		resetAll.setText("Reset All");
+		
+		Button chkLocalSystem = new Button(composite_8, SWT.CHECK);
+		chkLocalSystem.setBounds(194, 145, 93, 16);
+		chkLocalSystem.setText("Local System");
+		chkLocalSystem.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		
+		Button chkPDF = new Button(composite_8, SWT.CHECK);
+		chkPDF.setText("PDF");
+		chkPDF.setBounds(305, 146, 93, 16);
+		chkPDF.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		
+		Button chkDatabase = new Button(composite_8, SWT.CHECK);
+		chkDatabase.setText("Database");
+		chkDatabase.setBounds(194, 171, 93, 16);
+		chkDatabase.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		
+		Button chkHTML = new Button(composite_8, SWT.CHECK);
+		chkHTML.setText("HTML");
+		chkHTML.setBounds(305, 171, 93, 16);
+		chkHTML.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		
+		Label selectDateLabel = new Label(composite_8, SWT.NONE);
+		selectDateLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		selectDateLabel.setForeground(SWTResourceManager.getColor(0, 0, 128));
+		selectDateLabel.setFont(SWTResourceManager.getFont("Segoe UI", 7, SWT.BOLD));
+		selectDateLabel.setBounds(389, 20, 122, 15);
+		selectDateLabel.setText("Click to select date and time");
+		
+		
+		final Label setdateLabel = new Label(composite_8, SWT.NONE);
+		setdateLabel.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
+		setdateLabel.setBounds(194, 20, 165, 15);
+		
+		
+		selectDateLabel.addListener(SWT.MouseDown, new Listener() {
 			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
-		btnCheckButton.setBounds(204, 116, 48, 42);
-		btnCheckButton.setText("Disk");
-		
-		final Button btnCheckButton_1 = new Button(composite_3, SWT.CHECK);
-		btnCheckButton_1.setBounds(298, 125, 38, 24);
-		btnCheckButton_1.setText("DB");
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		
-		final Button btnCheckButton_2 = new Button(composite_3, SWT.CHECK);
-		btnCheckButton_2.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-			}
-		});
-		btnCheckButton_2.setBounds(248, 122, 38, 31);
-		btnCheckButton_2.setText("PDF");
-		
-		final Button btnCheckButton_3 = new Button(composite_3, SWT.CHECK);
-		btnCheckButton_3.setBounds(342, 129, 54, 16);
-		btnCheckButton_3.setText("HTML");
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		
-		Button btnNewButton = new Button(composite_3, SWT.NONE);
-		btnNewButton.setBounds(442, 262, 79, 21);
-		btnNewButton.setText("Reset");
-		new Label(composite_3, SWT.NONE);
-		new Label(composite_3, SWT.NONE);
-		Button btnNewButton_1 = new Button(composite_3, SWT.NONE);
-		btnNewButton_1.setBounds(425, 23, 96, 23);
-		btnNewButton_1.setText("Date And Time");
-		
-		final Label lblNewLabel_1 = new Label(composite_3, SWT.NONE);
-		lblNewLabel_1.setBounds(136, 27, 222, 27);
-		
-		Label lblDateAndTime = new Label(composite_3, SWT.NONE);
-		lblDateAndTime.setBounds(20, 27, 164, 15);
-		lblDateAndTime.setText("Date and Time For Execution :");
-		
-		Label label = new Label(composite_3, SWT.NONE);
-		label.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-		label.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
-		label.setBounds(10, 27, 10, 15);
-		label.setText("*");
-		
-		Label label_1 = new Label(composite_3, SWT.NONE);
-		label_1.setText("*");
-		label_1.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-		label_1.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
-		label_1.setBounds(10, 60, 10, 15);
-		
-		Label label_2 = new Label(composite_3, SWT.NONE);
-		label_2.setText("*");
-		label_2.setForeground(SWTResourceManager.getColor(SWT.COLOR_RED));
-		label_2.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
-		label_2.setBounds(10, 130, 10, 15);
-		
-		Label label_3 = new Label(composite_3, SWT.SEPARATOR | SWT.HORIZONTAL);
-		label_3.setBounds(0, 191, 453, 0);
-		btnNewButton_1.addSelectionListener (new SelectionAdapter () {
-			    public void widgetSelected (SelectionEvent e) {
-			      final Shell dialog = new Shell (shlRunner, SWT.DIALOG_TRIM);
+			public void handleEvent(Event event) {
+				final Shell dialog = new Shell (shlRunner, SWT.DIALOG_TRIM);
 			      dialog.setLayout (new GridLayout (5, false));
 
 			      final DateTime calendar = new DateTime (dialog, SWT.CALENDAR | SWT.BORDER);
 			      final DateTime date = new DateTime (dialog, SWT.DATE | SWT.SHORT);
 			      final DateTime time = new DateTime (dialog, SWT.TIME | SWT.SHORT);
 
-			      new Label (composite_3, SWT.NONE);
-			      new Label (composite_3, SWT.NONE);
+			      //new Label (composite_3, SWT.NONE);
+			      //new Label (composite_3, SWT.NONE);
 			      Button ok = new Button (dialog, SWT.PUSH);
 			      ok.setText ("OK");
 			      ok.setLayoutData(new GridData (SWT.FILL, SWT.CENTER, false, false));
 			      ok.addSelectionListener (new SelectionAdapter () {
-			        public void widgetSelected (SelectionEvent e) {
-			        	lblNewLabel_1.setText(+ (calendar.getMonth () + 1) + "/" + calendar.getDay () + "/" + calendar.getYear ()+" "+" "+"Time:"+ time.getHours () + ":" + time.getMinutes ());
+			        public void widgetSelected (SelectionEvent e) 
+			        {
+			          setdateLabel.setText(+ (calendar.getMonth () + 1) + "/" + calendar.getDay () + "/" + calendar.getYear ()+" "+" "+"Time:"+ time.getHours () + ":" + time.getMinutes ());
 			          System.out.println ("Calendar date selected (MM/DD/YYYY) = " + (calendar.getMonth () + 1) + "/" + calendar.getDay () + "/" + calendar.getYear ());
 			          System.out.println ("Date selected (MM/YYYY) = " + (date.getMonth () + 1) + "/" + date.getYear ());
 			          System.out.println ("Time selected (HH:MM) = " + time.getHours () + ":" + time.getMinutes ());
@@ -427,23 +468,10 @@ public class NewRunnerUI {
 			      dialog.setDefaultButton (ok);
 			      dialog.pack ();
 			      dialog.open ();
-			    }
-			  });
-		
-		btnNewButton.addSelectionListener(new SelectionAdapter()
-		  {
-		    @Override
-		    public void widgetSelected(SelectionEvent e)
-		    {
-		    	btnCheckButton.setSelection(false);
-		    	btnCheckButton_1.setSelection(false);
-		    	btnCheckButton_2.setSelection(false);
-		    	btnCheckButton_3.setSelection(false);
-		    	btnRadioButton.setSelection(false);
-		    	btnRadioButton_1.setSelection(false);
-		    	rerunTimes.setText("");
-		    }
+			}
 		});
+		
+		
 		
 		Composite composite_4 = new Composite(suitedetailsComposite, SWT.NONE);
 		GridLayout gl_composite_4 = new GridLayout(1, false);
@@ -463,6 +491,7 @@ public class NewRunnerUI {
 		composite_5.setLayout(new FillLayout(SWT.HORIZONTAL));
 		
 		runnerConsole = new Text(composite_5, SWT.BORDER | SWT.H_SCROLL | SWT.V_SCROLL | SWT.CANCEL | SWT.MULTI);
+		runnerConsole.setBackground(SWTResourceManager.getColor(SWT.COLOR_WHITE));
 		runnerConsole.setEditable(false);
 
 		
@@ -490,7 +519,7 @@ public class NewRunnerUI {
 		TreeItem items[] = table.getItems();
 		for(int i=0;i<items.length;i++)
 		{
-		    items[0].dispose();
+		    items[i].dispose();
 		}
 		TSGson tsGsons[] = TestSuiteAPIHandler.getInstance().getAllTestSuites();
 		boolean checked=false;
@@ -588,8 +617,8 @@ public class NewRunnerUI {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : getAllTestSuites()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : getAllTestSuites()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	

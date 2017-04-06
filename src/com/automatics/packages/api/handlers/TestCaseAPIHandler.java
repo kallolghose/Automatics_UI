@@ -17,6 +17,7 @@ public class TestCaseAPIHandler
 	private TCGson allTestCases[];
 	public static String TESTCASE_RESPONSE_MESSAGE = "";
 	public static int TESTCASE_RESPONSE_CODE = -99;
+	public static JsonObject TESTCASE_JSON_ERROR_REPSONSE = null;
 	
 	private TestCaseAPIHandler()
 	{
@@ -45,8 +46,16 @@ public class TestCaseAPIHandler
 		{
 			Gson gson = new Gson();
 			JsonArray testcaseJsonArr = TestcaseAPI.getAllTestCases();
-			allTestCases = gson.fromJson(testcaseJsonArr.toString(), TCGson[].class);
-			return allTestCases;
+			TESTCASE_RESPONSE_CODE = TestcaseAPI.RESPONSE_CODE;
+			TESTCASE_RESPONSE_MESSAGE = TestcaseAPI.RESPONSE_MESSAGE; 
+	
+			if(TESTCASE_RESPONSE_CODE == 200)
+			{
+				allTestCases = gson.fromJson(testcaseJsonArr.toString(), TCGson[].class);
+				return allTestCases;
+			}
+			/*In case of an error*/
+			TESTCASE_JSON_ERROR_REPSONSE = testcaseJsonArr.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -69,6 +78,8 @@ public class TestCaseAPIHandler
 			{
 				allTestCases = gson.fromJson(testcaseJsonArr.toString(), TCGson[].class);
 			}
+			/*In case of an error*/
+			TESTCASE_JSON_ERROR_REPSONSE = testcaseJsonArr.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -89,6 +100,9 @@ public class TestCaseAPIHandler
 				TCGson[] tcGson = Utilities.getGSONFromJSON(testcaseObjects.toString(), TCGson[].class);
 				return tcGson[0];
 			}
+
+			/*In case of an error*/
+			TESTCASE_JSON_ERROR_REPSONSE = testcaseObjects.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -112,6 +126,8 @@ public class TestCaseAPIHandler
 				TCGson responseGson = Utilities.getGSONFromJSON(responseObj.toString(), TCGson.class);
 				return responseGson;
 			}
+			/*In case of an error*/
+			TESTCASE_JSON_ERROR_REPSONSE = responseObj;
 		}
 		catch(Exception e)
 		{
@@ -135,6 +151,8 @@ public class TestCaseAPIHandler
 				TCGson responseGson = Utilities.getGSONFromJSON(responseObj.toString(), TCGson.class);
 				return responseGson;
 			}
+			/*In case of an error*/
+			TESTCASE_JSON_ERROR_REPSONSE = responseObj;
 		}
 		catch(Exception e)
 		{
@@ -153,6 +171,9 @@ public class TestCaseAPIHandler
 			TESTCASE_RESPONSE_MESSAGE = TestcaseAPI.RESPONSE_MESSAGE;
 			if(TESTCASE_RESPONSE_CODE==200)
 				return true;
+
+			/*In case of an error*/
+			TESTCASE_JSON_ERROR_REPSONSE = responseObj;
 		}
 		catch(Exception e)
 		{

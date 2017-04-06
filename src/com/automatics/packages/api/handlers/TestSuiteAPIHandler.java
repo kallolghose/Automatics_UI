@@ -20,6 +20,7 @@ public class TestSuiteAPIHandler
 	
 	public static String TESTSUITE_RESPONSE_MESSAGE = "";
 	public static int TESTSUITE_RESPONSE_CODE = -99;
+	public static JsonObject TESTSUITE_JSON_ERROR_REPSONSE = null;
 	
 	private TestSuiteAPIHandler()
 	{
@@ -47,8 +48,16 @@ public class TestSuiteAPIHandler
 		{
 			Gson gson = new Gson();
 			JsonArray testcaseJsonArr = TestSuiteAPI.getAllTestSuites();
-			allTestSuites = gson.fromJson(testcaseJsonArr.toString(), TSGson[].class);
-			return allTestSuites;
+			TESTSUITE_RESPONSE_CODE = TestSuiteAPI.RESPONSE_CODE;
+			TESTSUITE_RESPONSE_MESSAGE = TestSuiteAPI.RESPONSE_MESSAGE; 
+	
+			if(TESTSUITE_RESPONSE_CODE == 200)
+			{
+				allTestSuites = gson.fromJson(testcaseJsonArr.toString(), TSGson[].class);
+				return allTestSuites;
+			}
+			/*In case of Error*/
+			TESTSUITE_JSON_ERROR_REPSONSE = testcaseJsonArr.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -63,14 +72,17 @@ public class TestSuiteAPIHandler
 		try
 		{
 			Gson gson = new Gson();
-			JsonArray omJsonArr = TestSuiteAPI.getAllTestSuites();
+			JsonArray testcaseJsonArr = TestSuiteAPI.getAllTestSuites();
 			TESTSUITE_RESPONSE_CODE = TestSuiteAPI.RESPONSE_CODE;
 			TESTSUITE_RESPONSE_MESSAGE = TestSuiteAPI.RESPONSE_MESSAGE; 
 	
 			if(TESTSUITE_RESPONSE_CODE == 200)
 			{
-				allTestSuites = gson.fromJson(omJsonArr.toString(), TSGson[].class);
+				allTestSuites = gson.fromJson(testcaseJsonArr.toString(), TSGson[].class);
 			}
+
+			/*In case of Error*/
+			TESTSUITE_JSON_ERROR_REPSONSE = testcaseJsonArr.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -92,6 +104,8 @@ public class TestSuiteAPIHandler
 				TSGson[] tsGson = Utilities.getGSONFromJSON(omObjects.toString(), TSGson[].class);
 				return tsGson[0];
 			}
+			/*In case of Error*/
+			TESTSUITE_JSON_ERROR_REPSONSE = omObjects.getJsonObject(0);
 		}
 		catch(Exception e)
 		{
@@ -115,6 +129,8 @@ public class TestSuiteAPIHandler
 				TSGson responseGson = Utilities.getGSONFromJSON(responseObj.toString(), TSGson.class);
 				return responseGson;
 			}
+			/*In case of Error*/
+			TESTSUITE_JSON_ERROR_REPSONSE = responseObj;
 		}
 		catch(Exception e)
 		{
@@ -139,6 +155,8 @@ public class TestSuiteAPIHandler
 				TSGson responseGson = Utilities.getGSONFromJSON(responseObj.toString(), TSGson.class);
 				return responseGson;
 			}
+			/*In case of Error*/
+			TESTSUITE_JSON_ERROR_REPSONSE = responseObj;
 		}
 		catch(Exception e)
 		{
@@ -158,6 +176,8 @@ public class TestSuiteAPIHandler
 			TESTSUITE_RESPONSE_MESSAGE = TestSuiteAPI.RESPONSE_MESSAGE;
 			if(TESTSUITE_RESPONSE_CODE==200)
 				return true;
+			/*In case of Error*/
+			TESTSUITE_JSON_ERROR_REPSONSE = responseObj;
 		}
 		catch(Exception e)
 		{

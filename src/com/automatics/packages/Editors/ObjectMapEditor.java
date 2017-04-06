@@ -96,10 +96,10 @@ public class ObjectMapEditor extends EditorPart {
 
 	private AddOnUtility addOnUtility = AddOnUtility.getInstance();
 	private GitUtilities gitUtil;
-	private boolean viewAllElements = true;
+	private boolean viewAllElements = true, viewLockItem = true;
 	private String lock_image = "images/icons/Open_lock.png";
 	private boolean private_check = false;
-	private boolean public_view = false, private_view = false;
+	//private boolean public_view = false;
 	private String lock_message = "Lock for editing";
 	private String user_lock_message = "";
 	private ArrayList<OMDetails> copiedCells = null;
@@ -110,59 +110,7 @@ public class ObjectMapEditor extends EditorPart {
 
 	@Override
 	public void doSave(IProgressMonitor monitor) {
-		// TODO Auto-generated method stub
-		/*try
-		{
-			boolean warning= false;
-			List<OMDetails> list = (List<OMDetails>) objectMapTableViewer.getInput();
-			objectMapDataTable.forceFocus();
-			if(list !=null)
-			{
-				for(OMDetails stepDetails : list)
-				{
-					if(stepDetails.pageName.equals("") || stepDetails.objName.equals(""))
-					{
-						warning = true;
-						break;
-					}
-				}
-				if(!warning)
-				{
-					//Go and save the object map
-					OMGson saveGSON = omTask.getOmGson();
-					saveGSON.omDetails = list;
-					omTask.setOmGson(saveGSON); //Add the value to task
-					JsonObject jsonObj = Utilities.getJsonObjectFromString(Utilities.getJSONFomGSON(OMGson.class, saveGSON));
-					if(jsonObj !=null)
-					{
-						AutomaticsDBObjectMapQueries.updateOM(Utilities.getMongoDB(), saveGSON.omName, jsonObj);
-						ObjectMapSaveService.getInstance().updateSaveTask(new ObjectMapSaveTask(saveGSON.omName, saveGSON));
-						//Utilities.createObjectMap(saveGSON);
-						isDirty = false;
-						firePropertyChange(PROP_DIRTY);
-						Utilities.createObjectMap(omTask.getOmGson());
-					}
-					else 
-					{
-						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Save Failed",
-											 "Some Unexpected Error Occured", "ERR");
-						throw new RuntimeException("Error In Object Map Save");
-					}
-				}
-				else
-				{
-					//Display Warning
-					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
-										"One or more PageName/ObjectName is not specified. Please provide value(s) for them", 
-										"WARN").open();
-				}
-			}
-		}
-		catch(Exception e)
-		{
-			System.out.println("[" + getClass().getName() + " - doSave()] - Exception : " + e.getMessage());
-			e.printStackTrace();
-		}*/
+		
 		saveActionPerform();
 	}
 
@@ -202,21 +150,26 @@ public class ObjectMapEditor extends EditorPart {
 			if(!Utilities.AUTOMATICS_USERNAME.equalsIgnoreCase(omGson.lockedBy))
 			{
 				viewAllElements = false; //Add this flag to disable all operations
+				viewLockItem = false;
 				user_lock_message = "Locked By : " + omGson.lockedBy;
 			}
 			else
 	    	{
 	    		lock_image = "images/icons/lock.png";
 	    		lock_message = "Unlock the file";
-	    		public_view = true;
+	    		viewAllElements = true;
+	    		viewLockItem = true;
 	    		user_lock_message = "";
 	    	}
 		}
 		else
 		{
-			public_view = false;
+			viewAllElements = false;
+			viewLockItem = true;
 			user_lock_message = "";
 		    String currentFileName = Utilities.OBJECTMAP_FILE_LOCATION + omTask.getOmName() + ".java";
+		    this.gitUtil.performPull();
+		    /*
 		    boolean syncstaus = gitUtil.getSync(currentFileName);
 		    if(syncstaus)
 		    {
@@ -234,7 +187,7 @@ public class ObjectMapEditor extends EditorPart {
 		    		promptMsg.open();
 		    		break;
 		    	}
-		    }
+		    }*/
 		}
 		
 		setSite(site);
@@ -282,67 +235,67 @@ public class ObjectMapEditor extends EditorPart {
 		btnAdd.setToolTipText("Add new object details");
 		btnAdd.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/add.png"));
 		btnAdd.setSelection(true);
-		btnAdd.setEnabled(viewAllElements && public_view);
+		btnAdd.setEnabled(viewAllElements);
 		
 		btnDelete = new ToolItem(iconsToolBar, SWT.NONE);
 		btnDelete.setToolTipText("Delete object details");
 		btnDelete.setImage(ResourceManager.getPluginImage("org.eclipse.debug.ui", "/icons/full/elcl16/delete_config.gif"));
 		btnDelete.setSelection(true);
-		btnDelete.setEnabled(viewAllElements && public_view);
+		btnDelete.setEnabled(viewAllElements);
 		
 		saveItem = new ToolItem(iconsToolBar, SWT.NONE);
 		saveItem.setToolTipText("Save");
 		saveItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Save.png"));
 		saveItem.setSelection(true);
-		saveItem.setEnabled(viewAllElements && public_view);
+		saveItem.setEnabled(viewAllElements);
 		
 		copyItem = new ToolItem(iconsToolBar, SWT.NONE);
 		copyItem.setToolTipText("Copy");
 		copyItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Copy.png"));
 		copyItem.setSelection(true);
-		copyItem.setEnabled(viewAllElements && public_view);
+		copyItem.setEnabled(viewAllElements);
 		
 		pasteItem = new ToolItem(iconsToolBar, SWT.NONE);
 		pasteItem.setToolTipText("Paste");
 		pasteItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
 		pasteItem.setSelection(true);
-		pasteItem.setEnabled(viewAllElements && public_view);
+		pasteItem.setEnabled(viewAllElements);
 		
 		openEditor = new ToolItem(iconsToolBar, SWT.NONE);
 		openEditor.setToolTipText("View Editor");
 		openEditor.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966863_editor-grid-view-block-glyph.png"));
 		openEditor.setSelection(true);
-		openEditor.setEnabled(viewAllElements && public_view);
+		openEditor.setEnabled(viewAllElements);
 		
 		findSpecificElt = new ToolItem(iconsToolBar, SWT.NONE);
 		findSpecificElt.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/find_2.png"));
 		findSpecificElt.setToolTipText("Find Specific Element");
-		findSpecificElt.setEnabled(viewAllElements && public_view);
+		findSpecificElt.setEnabled(viewAllElements);
 		
 		validateallOM = new ToolItem(iconsToolBar, SWT.NONE);
 		validateallOM.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/validate.png"));
 		validateallOM.setToolTipText("Validate all Object Map");
-		validateallOM.setEnabled(viewAllElements && public_view);
+		validateallOM.setEnabled(viewAllElements);
 		
 		
 		refresh = new ToolItem(iconsToolBar, SWT.NONE);
 		refresh.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/Refresh.png"));
 		refresh.setToolTipText("Refresh");
-		refresh.setEnabled(viewAllElements && public_view);
+		refresh.setEnabled(viewAllElements);
 		
 		lockItem = new ToolItem(iconsToolBar, SWT.NONE);
 		lockItem.setToolTipText(lock_message);
 		lockItem.setImage(ResourceManager.getPluginImage("Automatics", lock_image));
 		lockItem.setSelection(true);
-		lockItem.setData("Locked", !viewAllElements);
-		lockItem.setEnabled(viewAllElements); 
+		lockItem.setData("Locked", viewAllElements);
+		lockItem.setEnabled(viewLockItem); 
 		
 		lockLabel = new Label(composite, SWT.NONE);
 		lockLabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false, 1, 1));
 		lockLabel.setForeground(SWTResourceManager.getColor(SWT.COLOR_DARK_BLUE));
 		lockLabel.setFont(SWTResourceManager.getFont("Segoe UI", 9, SWT.BOLD));
 		lockLabel.setAlignment(SWT.RIGHT);
-		lockLabel.setText("Locked By : UserName");
+		lockLabel.setText("Locked By : Username");
 		if(user_lock_message.equals(""))
 		{
 			lockLabel.setVisible(false);
@@ -359,7 +312,7 @@ public class ObjectMapEditor extends EditorPart {
 		objectMapDataTable.setLinesVisible(true);
 		objectMapDataTable.setHeaderVisible(true);
 		objectMapDataTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		objectMapDataTable.setEnabled(viewAllElements && public_view);
+		objectMapDataTable.setEnabled(viewAllElements);
 		
 		/*Biswabir - Tabbing Issue*/
 		
@@ -501,8 +454,8 @@ public class ObjectMapEditor extends EditorPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println("[" + getClass().getName() + "tltmNewItem - setListener] - Exceptioen : " + e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] - [" + getClass().getName() + "tltmNewItem - setListener] - Exceptioen : " + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 				}
 			});
@@ -524,8 +477,8 @@ public class ObjectMapEditor extends EditorPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println("[" + getClass().getName() + "tltmForCopy - setListener] - Exceptioen : " + e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] - [" + getClass().getName() + "tltmForCopy - setListener] - Exceptioen : " + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 					}
 				
@@ -589,8 +542,8 @@ public class ObjectMapEditor extends EditorPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println("[" + getClass().getName() + " : openEditor.addListener()] - Exception : " + e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : openEditor.addListener()] - Exception : " + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 				}
 			});
@@ -600,14 +553,37 @@ public class ObjectMapEditor extends EditorPart {
 					boolean locked = new Boolean(lockItem.getData("Locked").toString());
 					if(!locked)
 					{
-						lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
-						lockItem.setToolTipText("Unlock the file");
+						refreshDataTable();
 						OMGson omGson = omTask.getOmGson();
+						if(!omGson.lockedBy.equals(""))
+						{
+							if(!omGson.lockedBy.equals(Utilities.AUTOMATICS_USERNAME))
+							{
+								user_lock_message = "Locked By : " + omGson.lockedBy; 
+								lockLabel.setVisible(true);
+								lockLabel.setText(user_lock_message);
+								lockItem.setEnabled(false);
+								return;
+							}
+						}
+						//omGson = omTask.getOmGson();
 						omGson.lockedBy = Utilities.AUTOMATICS_USERNAME;
-						omTask.setOmGson(omGson);						
-						public_view = true;
-						saveActionPerform();
-						
+						omTask.setOmGson(omGson);
+						//saveActionPerform();
+						ObjectMapAPIHandler.getInstance().updateObjectMap(omGson);
+						if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE==200)
+						{
+							viewAllElements = true;
+							lockItem.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/lock.png"));
+							lockItem.setToolTipText("Unlock the file");
+						}
+						else
+						{
+							MessageDialog dialog = new MessageDialog(getSite().getShell(), "Lock Error", null,
+									"Cannot take lock. Please try again.", MessageDialog.ERROR, new String [] {"OK"}, 0);
+							dialog.open();
+							return;
+						}
 					}
 					else
 					{
@@ -616,21 +592,21 @@ public class ObjectMapEditor extends EditorPart {
 						OMGson omGson = omTask.getOmGson();
 						omGson.lockedBy = "";
 						omTask.setOmGson(omGson);
-						public_view = false;
+						viewAllElements = false;
 						saveActionPerform();
 					}
-					btnAdd.setEnabled(viewAllElements && public_view);
-					btnDelete.setEnabled(viewAllElements && public_view);
-					saveItem.setEnabled(viewAllElements && public_view);
-					copyItem.setEnabled(viewAllElements && public_view);
-					pasteItem.setEnabled(viewAllElements && public_view);
-					openEditor.setEnabled(viewAllElements && public_view);
+					btnAdd.setEnabled(viewAllElements);
+					btnDelete.setEnabled(viewAllElements);
+					saveItem.setEnabled(viewAllElements);
+					copyItem.setEnabled(viewAllElements);
+					pasteItem.setEnabled(viewAllElements);
+					openEditor.setEnabled(viewAllElements);
 					//commitItem.setEnabled(viewAllElements && public_view);
 					//pullItem.setEnabled(viewAllElements && public_view);
-					objectMapDataTable.setEnabled(viewAllElements && public_view);
-					findSpecificElt.setEnabled(viewAllElements && public_view);
-					validateallOM.setEnabled(viewAllElements && public_view);
-					refresh.setEnabled(viewAllElements && public_view);
+					objectMapDataTable.setEnabled(viewAllElements);
+					findSpecificElt.setEnabled(viewAllElements);
+					validateallOM.setEnabled(viewAllElements);
+					refresh.setEnabled(viewAllElements);
 					lockItem.setData("Locked", !locked);
 				}
 			});
@@ -671,8 +647,8 @@ public class ObjectMapEditor extends EditorPart {
 					}
 					catch(Exception e)
 					{
-						System.out.println("[ObjectMapEditor : findSpecificElt.addListener()] - Exception : "  + e.getMessage());
-						e.printStackTrace();
+						System.out.println("[" + new Date() + "] - [ObjectMapEditor : findSpecificElt.addListener()] - Exception : "  + e.getMessage());
+						e.printStackTrace(System.out);
 					}
 				}
 			});
@@ -711,8 +687,8 @@ public class ObjectMapEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " - setListener] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " - setListener] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -742,8 +718,8 @@ public class ObjectMapEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " : loadObjectMapDetails()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " : loadObjectMapDetails()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -766,8 +742,8 @@ public class ObjectMapEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[ObjectMapEditor - updateTableRow()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [ObjectMapEditor - updateTableRow()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -797,8 +773,18 @@ public class ObjectMapEditor extends EditorPart {
 					saveGSON.omDetails = list;
 					omTask.setOmGson(saveGSON); //Add the value to task
 
-					//Perform GIT sync
 					Utilities.createObjectMap(omTask.getOmGson());
+					if(Utilities.COMPILATION_ERROR) //CHECK IF THE FLAG IS SET
+					{
+						MessageDialog errDialog = new MessageDialog(getSite().getShell(),"Compilation Errors", 
+								null, "One or more compilation errors.\nView in editor to check errors.", MessageDialog.ERROR, 
+								new String[]{"Continue ", "Cancel"}, 0);
+						int selected = errDialog.open();
+						if(selected == 1)
+							return;
+					}
+
+					//Perform GIT sync
 					boolean gitPassed = this.gitUtil.performGITSyncOperation();
 					if(!gitPassed)
 					{
@@ -825,10 +811,13 @@ public class ObjectMapEditor extends EditorPart {
 						throw new RuntimeException("Error In Object Map Save");
 					}*/
 					saveGSON = ObjectMapAPIHandler.getInstance().updateObjectMap(saveGSON);
+					System.out.println("[" + new Date() + "] - [Object Map Save Response] - " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE 
+										   + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
 					if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE!=200)
 					{
 						MessageDialog dialog = new MessageDialog(getSite().getShell(), "Save Error", null, 
-								"Cannot Save ObjectMap Error : " + TestCaseAPIHandler.TESTCASE_RESPONSE_MESSAGE, MessageDialog.ERROR, 
+								"Cannot Save ObjectMap \nError : " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE + " ",
+								MessageDialog.ERROR, 
 								new String [] {"OK"}, 0);
 						dialog.open();
 						throw new RuntimeException("Error In Object Map Save : " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
@@ -848,8 +837,8 @@ public class ObjectMapEditor extends EditorPart {
 		}
 		catch(Exception e)
 		{
-			System.out.println("[" + getClass().getName() + " - doSave()] - Exception : " + e.getMessage());
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - [" + getClass().getName() + " - doSave()] - Exception : " + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 	
@@ -875,8 +864,33 @@ public class ObjectMapEditor extends EditorPart {
 		List<OMDetails> list = (ArrayList<OMDetails>)objectMapTableViewer.getInput();
 		omTask = ObjectMapTaskService.getInstance().getTaskByOmName(omTask.getOmName());
 		list = omTask.getOmGson().omDetails;
-		System.out.println("Here List : " + list);
 		objectMapTableViewer.setInput(list);
 		objectMapTableViewer.refresh();
+	}
+	
+	private void refreshDataTable()
+	{
+		try
+		{
+			this.gitUtil.performGITSyncOperation();
+			OMGson omGson = ObjectMapAPIHandler.getInstance().getSpecificObjectMap(omTask.getOmName());
+			System.out.println("[" + new Date() + "] - [Object map Response] : " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE 
+								   + "  " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
+			if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE==200)
+			{
+				omTask.setOmGson(omGson);
+				objectMapTableViewer.setInput(omGson.omDetails);
+				objectMapTableViewer.refresh();
+			}
+			else
+			{
+				System.out.println("Object Refresh Problem : " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.println("[" + new Date() + "] - [" + this.getClass().getName() + " : refreshTable()] - Exception  :" + e.getMessage());
+			e.printStackTrace(System.out);
+		}
 	}
 }

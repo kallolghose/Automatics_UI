@@ -12,6 +12,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.wb.swt.ResourceManager;
 
 import com.automatics.utilities.extraUIs.*;
 
@@ -23,7 +24,10 @@ public class Manager
 		try
 		{
 			final Shell shell = new Shell(SWT.SHELL_TRIM);
-			LoginDialog loginDialog = new LoginDialog(shell);
+			shell.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/1485966418_Paste.png"));
+			shell.setSize(10, 10);
+			//shell.open();
+			LoginDialog loginDialog = new LoginDialog(null);
 			appContext.applicationRunning();
 			
 			setLocation(display, shell);

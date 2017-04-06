@@ -1,6 +1,7 @@
 package com.automatics.packages;
 
 import java.io.FileOutputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -45,10 +46,11 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 			 * Initialize GIT functionalities
 			 * */
 			GitUtilities gitUtil = new GitUtilities();
-			//GitUtilities.GIT_PROPERTY_PATH = "D:/KG00360770/ATT/Automatic_DC/Automatics/conf.ini"; //For Desktop use this
-			GitUtilities.GIT_PROPERTY_PATH = System.getProperty("user.dir")+ "/../conf.ini"; //For Exe Use this
+			GitUtilities.GIT_PROPERTY_PATH = "D:/KG00360770/ATT/Automatic_DC/Automatics/conf.ini"; //For Desktop use this
+			//GitUtilities.GIT_PROPERTY_PATH = System.getProperty("user.dir")+ "/../conf.ini"; //For Exe Use this
 			Properties prop = gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
-			prop.setProperty("LOCAL_PATH", ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/" + Utilities.PROJECT_NAME);
+			prop.setProperty("LOCAL_PATH", ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/" + Utilities.PROJECT_NAME 
+										   + "/com.automatics.packages");
 			prop.store(new FileOutputStream(GitUtilities.GIT_PROPERTY_PATH), null);
 
 			/*Set various variables to be used later in the code*/
@@ -77,11 +79,11 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 			gitUtil.setGitProperties(prop);
 			if(gitUtil.cloneRepository())
 			{
-				System.out.println("Cloning Performed.");
+				System.out.println("[" + new Date() + "] - Cloning Performed.");
 			}
 			else
 			{
-				System.out.println("Error While Cloning");
+				System.out.println("[" + new Date() + "] - Error While Cloning");
 			}
 			
 			/*
@@ -97,7 +99,8 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			System.out.println("[" + new Date() + "] - preWindowOpen()" + e.getMessage());
+			e.printStackTrace(System.out);
 		}
 	}
 }

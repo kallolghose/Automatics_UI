@@ -11,6 +11,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.wb.swt.SWTResourceManager;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -124,7 +125,7 @@ public class TestCaseDetails extends Shell {
 		errLabel.setBounds(10, 337, 262, 15);
 		errLabel.setText("Display Error Message");
 		errLabel.setVisible(false);
-		
+		composite.setTabList(new Control[]{testcaseName,testcaseDesc,applicationType,btnOk,btnCancel});
 		createContents();
 		setListeners();
 	}
