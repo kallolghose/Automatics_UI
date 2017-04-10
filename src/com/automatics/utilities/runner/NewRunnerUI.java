@@ -22,6 +22,7 @@ import org.eclipse.core.databinding.observable.Realm;
 import org.eclipse.jface.databinding.swt.SWTObservables;
 */
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CCombo;
 import org.eclipse.swt.custom.TreeEditor;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -166,7 +167,8 @@ public class NewRunnerUI {
 		});
 		
 		ToolItem clearConsole = new ToolItem(iConToolBar, SWT.NONE);
-		clearConsole.setText("Clear Console");
+		clearConsole.setToolTipText("Clear Console");
+		clearConsole.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/console.png"));
 		clearConsole.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
@@ -193,38 +195,41 @@ public class NewRunnerUI {
 		 remoteTable.setLinesVisible(true);
 		remoteTable.setHeaderVisible(true);
 		
-		TreeColumn trclmnNewColumn = new TreeColumn(remoteTable, SWT.NONE);
-		trclmnNewColumn.setWidth(121);
-		trclmnNewColumn.setText("TestSuite/TestCase");
+		TreeColumn remote_ts_tc_name = new TreeColumn(remoteTable, SWT.NONE);
+		remote_ts_tc_name.setWidth(121);
+		remote_ts_tc_name.setText("TestSuite/TestCase");
 		
 		
-		TreeColumn trclmnColumn = new TreeColumn(remoteTable, SWT.NONE);
-		trclmnColumn.setWidth(77);
-		trclmnColumn.setText("Exe_Platform");
+		TreeColumn remote_exe_platform = new TreeColumn(remoteTable, SWT.NONE);
+		remote_exe_platform.setWidth(77);
+		remote_exe_platform.setText("Exe_Platform");
 		
-		TreeColumn trclmnColumn_1 = new TreeColumn(remoteTable, SWT.NONE);
-		trclmnColumn_1.setWidth(78);
-		trclmnColumn_1.setText("Exe_Type");
+		TreeColumn remote_exe_type = new TreeColumn(remoteTable, SWT.NONE);
+		remote_exe_type.setWidth(78);
+		remote_exe_type.setText("Exe_Type");
 		
-		TreeColumn trclmnColumn_2 = new TreeColumn(remoteTable, SWT.NONE);
-		trclmnColumn_2.setWidth(80);
-		trclmnColumn_2.setText("Run_On");
+		TreeColumn remote_run_on = new TreeColumn(remoteTable, SWT.NONE);
+		remote_run_on.setWidth(80);
+		remote_run_on.setText("Run_On");
 		
-		TreeColumn trclmnColumn_3 = new TreeColumn(remoteTable, SWT.NONE);
-		trclmnColumn_3.setWidth(81);
-		trclmnColumn_3.setText("Thread-Count");
+		TreeColumn remote_threadcount = new TreeColumn(remoteTable, SWT.NONE);
+		remote_threadcount.setWidth(81);
+		remote_threadcount.setText("Thread-Count");
 		
 		TreeColumn trclmnColumn_4 = new TreeColumn(remoteTable, SWT.NONE);
 		trclmnColumn_4.setWidth(88);
 		trclmnColumn_4.setText("Column5");
 		
+		
+		
+		
 		createTestSuiteTable(remoteTable);
 		
-		TabItem tbtmNewItem_1 = new TabItem(tabFolder, SWT.NONE);
-		tbtmNewItem_1.setText("Localhost");
+		TabItem localhost_ts_tc_name = new TabItem(tabFolder, SWT.NONE);
+		localhost_ts_tc_name.setText("Localhost");
 		
 		Composite composite_2 = new Composite(tabFolder, SWT.NONE);
-		tbtmNewItem_1.setControl(composite_2);
+		localhost_ts_tc_name.setControl(composite_2);
 		GridLayout gl_composite_2 = new GridLayout(1, false);
 		gl_composite_2.marginWidth = 0;
 		gl_composite_2.marginHeight = 0;
@@ -239,21 +244,21 @@ public class NewRunnerUI {
 		trclmnNewColumn_1.setWidth(113);
 		trclmnNewColumn_1.setText("TestSuite/TestCase");
 		
-		TreeColumn trclmnColumn_5 = new TreeColumn(localHostTable, SWT.NONE);
-		trclmnColumn_5.setWidth(73);
-		trclmnColumn_5.setText("Exe_Platform");
+		TreeColumn localhost_exe_platfrom = new TreeColumn(localHostTable, SWT.NONE);
+		localhost_exe_platfrom.setWidth(73);
+		localhost_exe_platfrom.setText("Exe_Platform");
 		
-		TreeColumn trclmnColumn_6 = new TreeColumn(localHostTable, SWT.NONE);
-		trclmnColumn_6.setWidth(77);
-		trclmnColumn_6.setText("Exe_Type");
+		TreeColumn localhost_exe_type = new TreeColumn(localHostTable, SWT.NONE);
+		localhost_exe_type.setWidth(77);
+		localhost_exe_type.setText("Exe_Type");
 		
-		TreeColumn trclmnColumn_7 = new TreeColumn(localHostTable, SWT.NONE);
-		trclmnColumn_7.setWidth(85);
-		trclmnColumn_7.setText("Run_On");
+		TreeColumn localhost_run_on = new TreeColumn(localHostTable, SWT.NONE);
+		localhost_run_on.setWidth(85);
+		localhost_run_on.setText("Run_On");
 		
-		TreeColumn trclmnColumn_8 = new TreeColumn(localHostTable, SWT.NONE);
-		trclmnColumn_8.setWidth(81);
-		trclmnColumn_8.setText("Thread-Count");
+		TreeColumn localhost_thread_count = new TreeColumn(localHostTable, SWT.NONE);
+		localhost_thread_count.setWidth(81);
+		localhost_thread_count.setText("Thread-Count");
 		
 		final TreeColumn trclmnColumn_9 = new TreeColumn(localHostTable, SWT.NONE);
 		trclmnColumn_9.setWidth(97);
@@ -493,6 +498,8 @@ public class NewRunnerUI {
 			}
 		});
 		
+		/*Disable the setting tag*/
+		tabFolder.getTabList()[2].setEnabled(false);
 	}
 
 	/**
@@ -533,6 +540,13 @@ public class NewRunnerUI {
 			        		tsTCGson.tcParams.get(4)!=null ? tsTCGson.tcParams.get(4).tcparamValue:"" });
 			        trtmTestcases.setData("EltType","TESTCASE");
 
+			        /*Add drop down to remote data*/
+					CCombo run_on_combo = new CCombo(remoteTable, SWT.READ_ONLY);
+					run_on_combo.setItems(new String[]{"Workstation1","Workstation2"});
+					run_on_combo.setEditable(false);
+					TreeEditor treeEditor = new TreeEditor(remoteTable);
+					treeEditor.setEditor(run_on_combo, trtmTestcases, 3);
+			        
 	                table.setSelection(parentTestSuite);
 	                if(checked)
 	                {
