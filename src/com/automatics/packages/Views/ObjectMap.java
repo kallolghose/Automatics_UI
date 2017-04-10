@@ -1,6 +1,7 @@
 package com.automatics.packages.Views;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -25,6 +26,8 @@ import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 
 import com.automatics.packages.Editors.TCEditor;
+import com.automatics.packages.Model.ObjectMapTask;
+import com.automatics.packages.Model.ObjectMapTaskService;
 import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
@@ -163,10 +166,12 @@ public class ObjectMap extends ViewPart {
 				public void handleEvent(Event event) {
 					// TODO Auto-generated method stub
 					TreeItem [] selected = objectTree.getSelection();
+					if(selected.length==0)
+						return;
 					String omName = selected[0].getText();
 					if(omName!=null)
 					{
-						loadAllPageName(ObjectMapSaveService.getInstance().getSaveTask(omName));
+						loadAllPageName(ObjectMapTaskService.getInstance().getTaskByOmName(omName));
 					}
 				}
 			});
@@ -189,7 +194,7 @@ public class ObjectMap extends ViewPart {
 						String omName = selected[0].getData("ObjectMapName").toString();
 						if(pageName!=null)
 						{
-							loadAllObjectName(ObjectMapSaveService.getInstance().getSaveTask(omName), pageName);
+							loadAllObjectName(ObjectMapTaskService.getInstance().getTaskByOmName(omName), pageName);
 						}
 					}
 					catch(Exception e)
@@ -264,7 +269,7 @@ public class ObjectMap extends ViewPart {
 		}
 	}
 	
-	public ArrayList<OMDetails> loadAllPageName(ObjectMapSaveTask omtask)
+	public ArrayList<OMDetails> loadAllPageName(ObjectMapTask omtask)
 	{
 		try
 		{
@@ -303,7 +308,7 @@ public class ObjectMap extends ViewPart {
 		return null;
 	}
 	
-	public ArrayList<OMDetails> loadAllObjectName(ObjectMapSaveTask omtask,String pageName)
+	public ArrayList<OMDetails> loadAllObjectName(ObjectMapTask omtask,String pageName)
 	{
 		try
 		{
@@ -351,8 +356,13 @@ public class ObjectMap extends ViewPart {
 		{
 			objectTree.getItem(0).dispose();
 		}
-		
-		ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
+		ObjectMapTask omT = ObjectMapTaskService.getInstance().getTaskByOmName(omName);
+		if(omT == null)
+		{
+			System.out.println("[" + new Date() + "] - Error in " + omName + " : Object map NOT found");
+			return;
+		}
+		//ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
 		TreeItem trtmObjectmap = new TreeItem(objectTree, SWT.NONE);
 		trtmObjectmap.setText(omName);
 		trtmObjectmap.setData("eltType","OBJECTMAP");
@@ -398,7 +408,13 @@ public class ObjectMap extends ViewPart {
 		trtmObjectmap.setData("eltType","OBJECTMAP");
 		
 		//Add the task to the data
-		ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
+		ObjectMapTask omT = ObjectMapTaskService.getInstance().getTaskByOmName(omName);
+		if(omT==null)
+		{
+			System.out.println("[" + new Date() + "] - Object Map : " + omName + " NOT Found in database.");
+			return;
+		}
+		//ObjectMapSaveTask omT = ObjectMapSaveService.getInstance().getSaveTask(omName);
 		OMGson omGson = omT.getOmGson();
 		List<OMDetails> omDetails = omGson.omDetails;
 		for(OMDetails details : omDetails)

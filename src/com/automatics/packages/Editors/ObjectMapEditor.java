@@ -30,21 +30,17 @@ import com.automatics.utilities.alltablestyles.OMObjectNameColumnEditable;
 import com.automatics.utilities.alltablestyles.OMPageNameColumnEditable;
 import com.automatics.utilities.chrome.extension.AddInProgressBar;
 import com.automatics.utilities.chrome.extension.AddOnUtility;
-import com.automatics.utilities.chrome.extension.VerifyElementsClass;
 import com.automatics.utilities.chrome.extension.WebSocketHandlerForAddIn;
 import com.automatics.utilities.git.GitUtilities;
 import com.automatics.utilities.gsons.objectmap.OMDetails;
 import com.automatics.utilities.gsons.objectmap.OMGson;
-import com.automatics.utilities.gsons.testcase.TCStepsGSON;
 import com.automatics.utilities.helpers.Utilities;
 import com.automatics.utilities.save.model.ObjectMapSaveService;
 import com.automatics.utilities.save.model.ObjectMapSaveTask;
-import com.google.gson.Gson;
 
 import java.io.File;
 import java.util.*;
 
-import javax.json.JsonObject;
 
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.SWT;
@@ -753,11 +749,12 @@ public class ObjectMapEditor extends EditorPart {
 	private void saveActionPerform() {
 		try
 		{
-			boolean warning= false;
+			boolean warning= false, uniquenessWarning = false;
 			List<OMDetails> list = (List<OMDetails>) objectMapTableViewer.getInput();
 			objectMapDataTable.forceFocus();
 			if(list !=null)
 			{
+				/*Check for empty string values*/
 				for(OMDetails stepDetails : list)
 				{
 					if(stepDetails.pageName.equals("") || stepDetails.objName.equals(""))
@@ -766,7 +763,24 @@ public class ObjectMapEditor extends EditorPart {
 						break;
 					}
 				}
-				if(!warning)
+				/*Check if all the page name and object name are unique*/
+				String currentPGOBName = "";
+				for(int i=0;i<list.size();i++)
+				{
+					OMDetails currentOM = list.get(i);
+					currentPGOBName = currentOM.pageName + "__" + currentOM.objName;
+					for(int j=i+1;j<list.size();j++)
+					{
+						OMDetails tempOM = list.get(j);
+						String tempPGOMName = tempOM.pageName + "__" + tempOM.objName;
+						if(tempPGOMName.equalsIgnoreCase(currentPGOBName))
+						{
+							uniquenessWarning = true;
+						}
+					}
+				}
+				
+				if(!warning && !uniquenessWarning)
 				{
 					//Go and save the object map
 					OMGson saveGSON = omTask.getOmGson();
@@ -829,9 +843,19 @@ public class ObjectMapEditor extends EditorPart {
 				else
 				{
 					//Display Warning
-					Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
+					if(warning)
+					{
+						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
 										"One or more PageName/ObjectName is not specified. Please provide value(s) for them", 
 										"WARN").open();
+						return;
+					}
+					if(uniquenessWarning)
+					{
+						Utilities.openDialog(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Cannot Save",
+								"One or more PageName/ObjectName Combination have same value. Please remove duplicacy.", 
+								"WARN").open();
+					}
 				}
 			}
 		}

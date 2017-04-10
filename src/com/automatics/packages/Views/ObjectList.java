@@ -3,6 +3,7 @@ package com.automatics.packages.Views;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
+
 import javax.json.JsonObject;
 
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -30,6 +31,7 @@ import com.automatics.packages.Model.ObjectMapTaskService;
 import com.automatics.packages.Model.TestCaseTask;
 import com.automatics.packages.Model.TestCaseTaskService;
 import com.automatics.packages.api.handlers.ObjectMapAPIHandler;
+import com.automatics.packages.api.handlers.TestCaseAPIHandler;
 import com.automatics.utilities.gsons.objectmap.OMGson;
 import com.automatics.utilities.gsons.testcase.TCGson;
 import com.automatics.utilities.helpers.MyTitleAreaDialog;
@@ -268,14 +270,60 @@ public class ObjectList extends ViewPart {
 		});
 		
 		delObjMap.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) 
-			{
-				TreeItem item = omListTree.getSelection()[0];
-				MessageDialog deleteDialog = new MessageDialog(getSite().getShell(), "Delete Object Map", null,
-						"Are you sure you want to delete - " + item.getText() + " ?", 
-						MessageDialog.CONFIRM, new String[]{"Delete", "Cancel"}, 0);
-			}
-		});
+            public void handleEvent(Event event) 
+            {
+                  List<String> testCaseValue=new ArrayList<String>();
+                  boolean value=false;
+                  TreeItem item = omListTree.getSelection()[0];
+                  TCGson [] allTCList = TestCaseAPIHandler.getInstance().getAllTestCases();
+                  for (TCGson tcGson : allTCList) 
+                  {
+                	  if(tcGson.tcObjectMapLink.contains(item.getText()))
+                	  {
+                		  value=true;
+                		  testCaseValue.add(tcGson.tcName);
+                	  }
+                  }
+                  if(!value)
+                  {
+                          MessageDialog deleteDialog = new MessageDialog(getSite().getShell(), "Delete Object Map", null,
+                                       "Are you sure you want to delete - " + item.getText() + " ?", 
+                                       MessageDialog.CONFIRM, new String[]{"Delete", "Cancel"}, 0);
+                         int optionSelected = deleteDialog.open();
+                         if(optionSelected == 0)
+                         {
+	                            ObjectMapAPIHandler.getInstance().deleteObjectMap(item.getText());
+	                            System.out.println("[" + new Date() + "] : [Object List Delete Response] - " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE 
+	                                             + "  " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
+	                            if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE==200)
+	                            {
+	                            	ObjectMapTaskService.getInstance().deleteTaskByOMName(item.getText());
+	                            	item.dispose();
+	                            }	
+                         }                                 
+                  }
+                  else
+                  {
+                         MessageDialog deleteDialog = new MessageDialog(getSite().getShell(), "Delete Object Map", null,
+                                       "This object map is associated with Test Case(s)" +" "+ testCaseValue +". Removal may cause an error in testcase."
+                                       + "\nSure want to delete the same ?", 
+                                       MessageDialog.WARNING, new String[]{"OK","Cancel"}, 0);
+                         int temp = deleteDialog.open();
+                         if(temp==0)
+                         {
+                        	 ObjectMapAPIHandler.getInstance().deleteObjectMap(item.getText());
+                             System.out.println("[" + new Date() + "] : [Object List Delete Response] - " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE 
+                                              + "  " + ObjectMapAPIHandler.OBJECTMAP_RESPONSE_MESSAGE);
+                             if(ObjectMapAPIHandler.OBJECTMAP_RESPONSE_CODE==200)
+                             {
+                             	ObjectMapTaskService.getInstance().deleteTaskByOMName(item.getText());
+                             	item.dispose();
+                             }
+                         }
+                  }
+            }
+     });
+
 		
 	}
 	
@@ -419,9 +467,9 @@ public class ObjectList extends ViewPart {
 	}
 	
 	@Override
-	public void setFocus() {
-		// TODO Auto-generated method stub
-
+	public void setFocus() 
+	{
+		
 	}
 	
 	

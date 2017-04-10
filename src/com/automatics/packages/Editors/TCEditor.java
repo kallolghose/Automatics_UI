@@ -286,7 +286,7 @@ public class TCEditor extends EditorPart {
 			
 			start_stop_recording = new ToolItem(iconsToolBar, SWT.NONE);
 			start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/start_rec_2.png"));
-			start_stop_recording.setToolTipText("Start Recording");
+			start_stop_recording.setToolTipText("Enable Recording");
 			start_stop_recording.setData("isRecorded", false);
 			start_stop_recording.setEnabled(viewAllElements );
 			
@@ -372,7 +372,7 @@ public class TCEditor extends EditorPart {
 			TableColumn operationCol = oprViewer.getColumn();
 			operationCol.setWidth(107);
 			operationCol.setText("Operation");
-			oprViewer.setEditingSupport(new TCOperationColumnEditable(testscriptsViewer));
+			oprViewer.setEditingSupport(new TCOperationColumnEditable(testscriptsViewer, tcTask.getTcGson().tcType));
 			
 			TableViewerColumn pgViewer = new TableViewerColumn(testscriptsViewer, SWT.NONE);
 			pgViewer.setLabelProvider(new ColumnLabelProvider() {
@@ -868,14 +868,14 @@ public class TCEditor extends EditorPart {
 					addOnUtility.openCloseServer(true); /*Open the server*/
 					addOnUtility.start_stop_Recording(true);
 					
-					MessageDialog popup = new MessageDialog(getSite().getShell(), "Start Recording", null, 
+					MessageDialog popup = new MessageDialog(getSite().getShell(), "Enable Recording", null, 
 							"Recording started. Please use Google chrome to perform recording.", 
 							MessageDialog.INFORMATION, new String[]{"OK"}, 0);
 					popup.open();
 				}
 				else
 				{
-					start_stop_recording.setToolTipText("Start Recording");
+					start_stop_recording.setToolTipText("Enable Recording");
 					start_stop_recording.setImage(ResourceManager.getPluginImage("Automatics", "images/icons/start_rec_2.png"));
 					start_stop_recording.setData("isRecorded", !isRecording);
 					addOnUtility.start_stop_Recording(false);

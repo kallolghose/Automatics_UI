@@ -125,7 +125,7 @@
             <menu
                   label="New">
                <command
-                     commandId="com.automatics.packages.new.Project"
+                     commandId="__disabled"
                      label="Project"
                      style="push">
                </command>

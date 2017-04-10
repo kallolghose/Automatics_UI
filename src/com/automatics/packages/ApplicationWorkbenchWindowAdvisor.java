@@ -46,8 +46,8 @@ public class ApplicationWorkbenchWindowAdvisor extends WorkbenchWindowAdvisor {
 			 * Initialize GIT functionalities
 			 * */
 			GitUtilities gitUtil = new GitUtilities();
-			GitUtilities.GIT_PROPERTY_PATH = "D:/KG00360770/ATT/Automatic_DC/Automatics/conf.ini"; //For Desktop use this
-			//GitUtilities.GIT_PROPERTY_PATH = System.getProperty("user.dir")+ "/../conf.ini"; //For Exe Use this
+			//GitUtilities.GIT_PROPERTY_PATH = "D:/KG00360770/ATT/Automatic_DC/Automatics/conf.ini"; //For Desktop use this
+			GitUtilities.GIT_PROPERTY_PATH = System.getProperty("user.dir")+ "/../conf.ini"; //For Exe Use this
 			Properties prop = gitUtil.loadAndSetProperties(GitUtilities.GIT_PROPERTY_PATH);
 			prop.setProperty("LOCAL_PATH", ResourcesPlugin.getWorkspace().getRoot().getLocation().toString() + "/" + Utilities.PROJECT_NAME 
 										   + "/com.automatics.packages");

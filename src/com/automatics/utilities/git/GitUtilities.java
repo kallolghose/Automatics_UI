@@ -40,7 +40,7 @@ import com.jcraft.jsch.Session;
 public class GitUtilities 
 {
 	public static String GIT_PASSWORD = "gitu$er@852";
-	public static String GIT_PROPERTY_PATH = "git_config.properties";
+	public static String GIT_PROPERTY_PATH = "conf.ini";
 	
 	private Repository localRepo;
 	private static Git git = null;

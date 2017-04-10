@@ -165,26 +165,12 @@ public class NewRunnerUI {
 			}
 		});
 		
-
-		ToolItem stop = new ToolItem(iConToolBar, SWT.NONE);
-		stop.setText("Stop");
-		
 		ToolItem clearConsole = new ToolItem(iConToolBar, SWT.NONE);
 		clearConsole.setText("Clear Console");
 		clearConsole.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
 				runnerConsole.setText("");
-			}
-		});
-		
-		stop.addListener(SWT.Selection, new Listener() {
-			@Override
-			public void handleEvent(Event event) {
-				if(execution!=null)
-				{
-					execution.stopExecution();
-				}
 			}
 		});
 		
@@ -239,14 +225,14 @@ public class NewRunnerUI {
 		
 		Composite composite_2 = new Composite(tabFolder, SWT.NONE);
 		tbtmNewItem_1.setControl(composite_2);
-		 GridLayout gl_composite_2 = new GridLayout(1, false);
-		 gl_composite_2.marginWidth = 0;
-		 gl_composite_2.marginHeight = 0;
-		 composite_2.setLayout(gl_composite_2);
+		GridLayout gl_composite_2 = new GridLayout(1, false);
+		gl_composite_2.marginWidth = 0;
+		gl_composite_2.marginHeight = 0;
+		composite_2.setLayout(gl_composite_2);
 		
-		 localHostTable = new Tree(composite_2,SWT.BORDER | SWT.CHECK | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		 localHostTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		 localHostTable.setLinesVisible(true);
+		localHostTable = new Tree(composite_2,SWT.BORDER | SWT.CHECK | SWT.FULL_SELECTION | SWT.VIRTUAL);
+		localHostTable.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		localHostTable.setLinesVisible(true);
 		localHostTable.setHeaderVisible(true);
 		
 		TreeColumn trclmnNewColumn_1 = new TreeColumn(localHostTable, SWT.NONE);
@@ -516,6 +502,7 @@ public class NewRunnerUI {
 	private void createTestSuiteTable( final Tree table) 
     {      
            //Dispose all elements
+		
 		TreeItem items[] = table.getItems();
 		for(int i=0;i<items.length;i++)
 		{
@@ -531,22 +518,49 @@ public class NewRunnerUI {
 		    
 		    if(tsGson.tsTCLink==null)
 		            continue;
-		    for(TSTCGson tsTCGson : tsGson.tsTCLink) 
+		    
+		    if(table.equals(remoteTable))
 		    {
-		    	TreeItem trtmTestcases = new TreeItem(parentTestSuite, SWT.NONE|SWT.MULTI);
-		        trtmTestcases.setText(new String[] {tsTCGson.tcName, 
-		        		tsTCGson.tcParams.get(0)!=null ?tsTCGson.tcParams.get(0).tcparamValue:"",
-		        		tsTCGson.tcParams.get(1)!=null ?tsTCGson.tcParams.get(1).tcparamValue:"",
-		        		tsTCGson.tcParams.get(2)!=null ?tsTCGson.tcParams.get(2).tcparamValue:"",
-		        		tsTCGson.tcParams.get(3)!=null ?tsTCGson.tcParams.get(3).tcparamValue:"",
-		        		tsTCGson.tcParams.get(4)!=null ?tsTCGson.tcParams.get(4).tcparamValue:"" });
-		        trtmTestcases.setData("EltType","TESTCASE");
+		    	for(TSTCGson tsTCGson : tsGson.tsTCLink) 
+			    {
+			    	TreeItem trtmTestcases = new TreeItem(parentTestSuite, SWT.NONE|SWT.MULTI);
+			        trtmTestcases.setText(new String[] {
+			        		tsTCGson.tcName, 
+			        		tsTCGson.tcParams.get(0)!=null ? tsTCGson.tcParams.get(0).tcparamValue:"",
+			        		tsTCGson.tcParams.get(1)!=null ? tsTCGson.tcParams.get(1).tcparamValue:"",
+			        		tsTCGson.tcParams.get(2)!=null ? tsTCGson.tcParams.get(2).tcparamValue:"",
+			        		tsTCGson.tcParams.get(3)!=null ? tsTCGson.tcParams.get(3).tcparamValue:"", 
+			        		tsTCGson.tcParams.get(4)!=null ? tsTCGson.tcParams.get(4).tcparamValue:"" });
+			        trtmTestcases.setData("EltType","TESTCASE");
 
-                table.setSelection(parentTestSuite);
-                if(checked)
-                {
-                      trtmTestcases.setChecked(checked);
-		        }
+	                table.setSelection(parentTestSuite);
+	                if(checked)
+	                {
+	                      trtmTestcases.setChecked(checked);
+			        }
+			    }
+
+		    }
+		    else
+		    {
+			    for(TSTCGson tsTCGson : tsGson.tsTCLink) 
+			    {
+			    	TreeItem trtmTestcases = new TreeItem(parentTestSuite, SWT.NONE|SWT.MULTI);
+			        trtmTestcases.setText(new String[] {
+			        		tsTCGson.tcName, 
+			        		tsTCGson.tcParams.get(0)!=null ? tsTCGson.tcParams.get(0).tcparamValue:"",
+			        		tsTCGson.tcParams.get(1)!=null ? tsTCGson.tcParams.get(1).tcparamValue:"",
+			        		"localhost", //Run_On
+			        		tsTCGson.tcParams.get(3)!=null ? tsTCGson.tcParams.get(3).tcparamValue:"", 
+			        		tsTCGson.tcParams.get(4)!=null ? tsTCGson.tcParams.get(4).tcparamValue:"" });
+			        trtmTestcases.setData("EltType","TESTCASE");
+	
+	                table.setSelection(parentTestSuite);
+	                if(checked)
+	                {
+	                      trtmTestcases.setChecked(checked);
+			        }
+			    }
 		    }
 		          
 		}

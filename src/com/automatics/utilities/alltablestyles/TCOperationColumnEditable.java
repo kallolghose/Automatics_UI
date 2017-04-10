@@ -26,21 +26,31 @@ public class TCOperationColumnEditable extends EditingSupport
 {
 	private TableViewer viewer = null;
 	private ComboBoxViewerCellEditor editor = null;
+	private String tcType  = "";
 	
-	
-	public TCOperationColumnEditable(TableViewer viewer) {
+	public TCOperationColumnEditable(TableViewer viewer, String tcType) {
 
 		super(viewer);
 		try
 		{
 			this.viewer = viewer;
-			//this.editor = new TextCellEditor(this.viewer.getTable());
+			this.tcType = tcType;
+			//Split the tcType to handle various testcase types
+			String tcTypes [] = tcType.split(",");
 			
 			OperationGSON[] allOperations = OperationAPIHandler.getInstance().getAllOperations();
 			ArrayList<String> opnName = new ArrayList<String>();
 			for(OperationGSON opn : allOperations)
 			{
-				opnName.add(opn.opnName);
+				//Select operation based in tcType
+				for(int i=0;i<tcTypes.length;i++)
+				{
+					if(tcTypes[0].equals(opn.projectCategory))
+					{
+						opnName.add(opn.opnName);
+						break;
+					}
+				}
 			}
 			String [] stockArr = new String[opnName.size()];
 			stockArr = opnName.toArray(stockArr);
